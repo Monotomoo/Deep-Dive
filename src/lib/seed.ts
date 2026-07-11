@@ -6,6 +6,7 @@ import type {
   AppState,
   BiggerSwing,
   Broadcaster,
+  Camera,
   CashflowQuarter,
   Contract,
   CoverageCam,
@@ -18,6 +19,9 @@ import type {
   GrammarDevice,
   Interview,
   JournalEntry,
+  Lens,
+  Light,
+  Microphone,
   Milestone,
   Reference,
   Risk,
@@ -28,8 +32,7 @@ import type {
   ShootDay,
   Sponsor,
   SchedulePhase,
-  SpineAnswer,
-  SpineQuestion,
+  SpineIdea,
   Talent,
   TalentFour,
   Thread,
@@ -108,7 +111,7 @@ export const SEED_FOUR: TalentFour[] = [
     name: 'Sanda Delija',
     role: 'the first, and a champion in her own right',
     nationality: 'Croatian',
-    hometown: 'Rijeka',
+    hometown: 'Trieste',
     languagePrimary: 'hr',
     epithet: 'the first Croatian woman past 100m',
     bio: 'Former free-immersion world-record holder. Multiple national champion. Coached by Vito, partnered with him — and best friends with Zsófia, the woman who took her record. Never "a partner who dives" — a world-record holder whose story the film is determined to tell with its full weight.',
@@ -129,18 +132,9 @@ export const SEED_FOUR: TalentFour[] = [
 ];
 
 /* ---------- Talent adjacent to The Four ---------- */
+/* Empty for now — Borna out per user feedback; add ideas incrementally. */
 
-export const SEED_TALENTS: Talent[] = [
-  {
-    id: 'talent-borna',
-    name: 'Borna Klovar',
-    role: "Petar's younger brother · safety / rescue diver · becoming a diver himself",
-    relationshipTo: 'petar',
-    discipline: 'safety',
-    releaseStatus: 'pending',
-    onCameraNotes: "The net beneath every dive — the hands that are the last safe thing before the dark. Across the film, becomes a diver himself. 'Who catches the catcher?'",
-  },
-];
+export const SEED_TALENTS: Talent[] = [];
 
 /* ---------- The 10 Threads ---------- */
 
@@ -195,15 +189,8 @@ export const SEED_THREAD_QUESTIONS: ThreadQuestion[] = [
   { id: 'tq10-2', threadId: 't10', target: 'vito',  question: 'He runs at the dark by going into it; you meet it by going completely still. What does he understand about fear that you don\'t — and what do you understand that he doesn\'t?', status: 'draft' },
 ];
 
-/* ---------- The 5 Spine Questions ---------- */
-
-export const SEED_SPINE_QUESTIONS: SpineQuestion[] = [
-  { key: 'bottom',  order: 1, text: "What's at the bottom?",                          note: 'Asked at every shoot. The answer changes across a year.' },
-  { key: 'holds',   order: 2, text: 'Who holds you?',                                  note: 'The core question of the film.' },
-  { key: 'wound',   order: 3, text: 'What did 2023 take — and what did it give?',      note: 'Only Lastovo. Never Sicily.' },
-  { key: 'without', order: 4, text: 'If you never dived again, who would you be?',     note: 'Identity beneath the sport.' },
-  { key: 'toward',  order: 5, text: 'What are you running toward — or from?',          note: 'Motivation, unpolished.' },
-];
+/* ---------- Spine · replaced by Ideas Workshop (v0.2) ----------
+   The 5 locked questions are removed. See SEED_SPINE_IDEAS below. */
 
 /* ---------- The 6 Shoots ---------- */
 
@@ -227,7 +214,7 @@ export const SEED_SHOOTS: Shoot[] = [
     id: 'shoot-sicily',
     key: 'sicily',
     title: "Sicily · Petar's monofin attempt",
-    location: 'Acireale, Santa Tecla · Blue World Freediving centre',
+    location: 'Catania · next to Etna volcano',
     country: 'Italy',
     status: 'completed',
     startDate: '2026-07-01',
@@ -283,14 +270,53 @@ export const SEED_SHOOTS: Shoot[] = [
   {
     id: 'shoot-usa',
     key: 'usa',
-    title: 'The USA · Hall of Fame + maybe the coda',
-    location: 'USA · Hall of Fame venue TBC',
+    title: 'The USA · Hall of Fame + Vegas→SF RV road-trip',
+    location: 'USA · Hall of Fame + Las Vegas → San Francisco road-trip',
     country: 'USA',
     status: 'planned',
-    spirit: "Vito's Hall of Fame induction · vindication made real · maybe a dive, or the coda.",
-    captures: ['the ceremony · the applause · the standing', "Vito's face during the induction", 'the others watching him honoured', 'if the trip allows · a special dive elsewhere · or the coda'],
+    spirit: "Vito's Hall of Fame induction · vindication made real · and a shared road-trip that could become the coda itself.",
+    captures: [
+      'the ceremony · the applause · the standing',
+      "Vito's face during the induction",
+      'the others watching him honoured',
+      'the four together on the road · out of the water · new geography',
+      'if the trip allows · a special dive · or the coda',
+    ],
     presentFour: ['petar','vito','sanda','zsofia'],
-    bible: '# USA · Hall of Fame\n\nVito is being inducted. The perfect close to the 2023 thread: the same world that branded him coming, in the end, to honour him.\n\n## The coda option\nThe trip is an opening. Could carry a special dive somewhere extraordinary — or become the coda itself.',
+    bible: `# USA · Hall of Fame + the road-trip
+
+Vito is being inducted into a sports Hall of Fame in the USA. The perfect close to the 2023 thread: the same world that branded him coming, in the end, to honour him.
+
+## The RV plan — Vegas → San Francisco
+
+Rent a cool 6-person RV. Drive from Las Vegas to San Francisco through:
+
+- **Death Valley** — otherworldly desert · zero water · the anti-Adriatic · geological time
+- **Mammoth Lakes** — high alpine · thin air (altitude hypoxia connects to Vito's science) · lakes deeper than they look
+- **Yosemite** — El Capitan · granite verticality · Free Solo geography — reference-film soil
+
+The trip is a category for itself: not a shoot around a dive, but four freedivers on solid ground, off-water, out of their world.
+
+## Why an RV, why together
+
+- The four of them living in one vehicle for days · the bond visible, unforced
+- Geographic contrast — everything ABOVE water · desert, mountain, granite
+- No cameras chase them; the cameras live with them
+- Could become the coda: "something together, free"
+
+## Editorial
+
+The RV footage is the "long breath" of the film — after every underwater sequence, cut to a moment on the road. Silence between them. The bond off duty.
+
+## Open (fill together — Petar, Vito, Sanda, Zsófia jump in)
+
+- Dates
+- Which RV rental company (Cruise America? RVshare? Outdoorsy?)
+- Route stops in order
+- Any special dives (Mono Lake? Emerald Bay? Ocean cliffs?)
+- Meal / camp discipline
+- Music we play in the RV
+- Who drives what stretch`,
   },
   {
     id: 'shoot-coda',
@@ -309,12 +335,9 @@ export const SEED_SHOOTS: Shoot[] = [
 /* ---------- Shoot days for Sicily (from the Shooting Bible) ---------- */
 
 export const SEED_SHOOT_DAYS: ShootDay[] = [
-  { id: 'sd-sicily-1', shootId: 'shoot-sicily', dayNum: 1, date: '2026-07-01', plan: 'Land early, tired. Settle in at Santa Tecla. Recon only — boat, water, light, camera positions. Meet the centre and safety team.', mood: 'setup', done: true },
-  { id: 'sd-sicily-2', shootId: 'shoot-sicily', dayNum: 2, date: '2026-07-02', plan: 'Find positions on a training dive. Begin breath-up and watcher footage. A few light questions with Petar.', mood: 'roll', done: true },
-  { id: 'sd-sicily-3', shootId: 'shoot-sicily', dayNum: 3, date: '2026-07-03', plan: 'Attempt window — full coverage.', mood: 'roll', done: true },
-  { id: 'sd-sicily-4', shootId: 'shoot-sicily', dayNum: 4, date: '2026-07-04', plan: 'Attempt(s) / buffer for weather. Possible Etna day if window\'s clear.', mood: 'buffer', done: true, reflection: 'ETNA ERUPTED. Volcano interview turned into volcano-erupting-during-interview. Bigger Swing #4 achieved.' },
-  { id: 'sd-sicily-5', shootId: 'shoot-sicily', dayNum: 5, date: '2026-07-05', plan: 'Final attempts, the watchers, anything missed.', mood: 'roll', done: true },
-  { id: 'sd-sicily-6', shootId: 'shoot-sicily', dayNum: 6, date: '2026-07-06', plan: 'Wrap. Two copies. Travel home.', mood: 'wrap', done: true },
+  { id: 'sd-sicily-1', shootId: 'shoot-sicily', dayNum: 1, date: '2026-07-01', plan: 'Landed in Catania. Settled in. Met with everybody.',                                                                             mood: 'setup', done: true },
+  { id: 'sd-sicily-2', shootId: 'shoot-sicily', dayNum: 2, date: '2026-07-02', plan: 'Training day.',                                                                                                                     mood: 'roll',  done: true },
+  /* Day 3+ intentionally open — user fills in as memory returns / edits inline */
 ];
 
 /* ---------- Camera coverage plan (Sicily) ---------- */
@@ -328,16 +351,117 @@ export const SEED_COVERAGE_CAMS: CoverageCam[] = [
 /* ---------- Bigger Swings ---------- */
 
 export const SEED_SWINGS: BiggerSwing[] = [
-  { id: 'sw-1',  title: 'The score is their own bodies',      description: "The film's music built from real physiology — the 20-beat heart, the blood shift, the brain under low O2. Vito's lab becomes the orchestra.",                                                                                            status: 'planned',   shootId: 'shoot-rijeka-zagreb' },
-  { id: 'sw-2',  title: 'One dive, real time, no mercy',      description: 'A full record descent and ascent in a single unbroken shot — the actual duration, no editorial rescue. You live every second of the fall.',                                                                                                status: 'planned' },
-  { id: 'sw-3',  title: 'Four voices, one mind',              description: 'The descent monologue braided so tight that the four become a single voice going into the dark — four people, one breath, one mind. Zsófia English against Petar/Vito/Sanda Croatian.',                                                    status: 'planned' },
-  { id: 'sw-4',  title: 'Fire breathes in, water breathes out', description: 'Open on Etna — lava hitting the sea, steam screaming — then cut to a body slipping under, silent. The mountain that can\'t stop breathing, against people who\'ve mastered not breathing at all.',                                        status: 'achieved',  shootId: 'shoot-sicily', achievedNote: '★ ETNA ERUPTED DURING SICILY SHOOT. The swing became real material. Not scripted — captured live. This is the opening.', achievedAt: '2026-07-04' },
-  { id: 'sw-5',  title: 'Surface to the ending, then sink',   description: "Open on Vito's Hall of Fame induction — the applause, the vindication — then hold a breath and descend back through everything it cost. The whole film as the held breath between the disgrace and the honour.",                             status: 'planned',   shootId: 'shoot-usa' },
-  { id: 'sw-6',  title: 'Free in the dark · the coda',        description: 'A night dive in bioluminescent water. The four weightless in total black, lit only by the glow they stir with their hands. Silent credits — only breathing, slowly returning to normal.',                                                    status: 'planned',   shootId: 'shoot-coda' },
-  { id: 'sw-7',  title: 'The volcano interview',              description: 'Vito on the black lava at golden hour, sea far below, Etna smoking behind him, talking about stillness. The film\'s whole world is water; here it stands on fire and earth.',                                                                status: 'planned',   shootId: 'shoot-sicily' },
-  { id: 'sw-8',  title: 'Two clocks',                         description: 'Split screen: Vito motionless for 29 minutes against Petar falling for three. Two ways to leave the world, side by side.',                                                                                                                 status: 'idea' },
-  { id: 'sw-9',  title: 'The watchers as a chorus',           description: "The card shows — and the cut goes not to Petar but to Zsófia's face in the half-second before she knows. The bond, caught in a reaction.",                                                                                                 status: 'planned',   shootId: 'shoot-sicily' },
-  { id: 'sw-10', title: 'Two friends, one record',            description: 'Sanda and Zsófia filmed apart, answering the same question — cut together so they almost finish each other\'s sentence.',                                                                                                                    status: 'idea' },
+  {
+    id: 'sw-1',
+    title: 'The score is their own bodies',
+    description: "The film's music built from real physiology — the 20-beat heart, the blood shift, the brain under low O2.",
+    whyItMatters: "Every doc about the sport uses a composer's score. This one uses the body the sport happens IN. The music can't lie about the depth — because it IS the depth.",
+    narrative: "Vito's lab becomes the orchestra. Ultrasound heartbeats, EEG oscillations, blood-oxygen graphs — mapped to real instrumentation. As the diver descends, the music becomes literally their physiology, slowed and warmed.",
+    visualNote: 'Ultrasound + graph overlays. Numbers on screen. The body, not the composer.',
+    soundNote: 'Slow-morphed heartbeat as bass. Blood-flow as ambient wash. Silence at bottom.',
+    dependencies: 'Requires Vito capture at Rijeka lab.',
+    status: 'planned',
+    shootId: 'shoot-rijeka-zagreb',
+  },
+  {
+    id: 'sw-2',
+    title: 'One dive, real time, no mercy',
+    description: 'A full record descent and ascent in a single unbroken shot — the actual duration, no editorial rescue.',
+    whyItMatters: "Every other film cuts for the audience's comfort. This one asks the audience to LIVE it. If Petar's dive is 3:15, the sequence is 3:15. No cheat.",
+    narrative: "Single camera, single continuous roll — down and back. No cuts. The audience holds their own breath. Some will fail before Petar does. That's the point.",
+    visualNote: 'One camera, one take, real time. Simple.',
+    soundNote: 'Only breath and water. Then silence at bottom. Then breath again.',
+    status: 'planned',
+  },
+  {
+    id: 'sw-3',
+    title: 'Four voices, one mind',
+    description: 'The descent monologue braided so tight the four become a single voice going into the dark.',
+    whyItMatters: "The bond made audible. Four separate people, edited into one continuous internal thought. The film's thesis — 'one person holds another' — expressed at the level of sound.",
+    narrative: "Petar, Vito, and Sanda in Croatian, Zsófia in English — sentences of their descent monologues cut so tight they finish each other. Not translation; the languages braid intentionally. Croatian and English become one mind.",
+    visualNote: 'Multiple divers in composite / rapid intercut / all descending.',
+    soundNote: 'Whisper-close ADR / multi-language braided monologue.',
+    status: 'planned',
+  },
+  {
+    id: 'sw-4',
+    title: 'Fire breathes in, water breathes out',
+    description: "Open on Etna — lava hitting the sea, steam screaming — then cut to a body slipping under, silent.",
+    whyItMatters: "The elemental collision. The mountain that can't stop breathing, against people who've mastered not breathing at all. The film's opening image, and its whole thesis in one cut.",
+    narrative: "Wide, static, red-hot lava rivers meeting cold sea. Steam explosion. Then hard cut — a single body sinking, blue silence, held. Two elements. One frame apart.",
+    visualNote: "★ ACHIEVED — Etna ACTUALLY erupted during Sicily shoot 2026-07-04. Real lava. Real steam. Not scripted.",
+    soundNote: 'Roar of eruption → immediate underwater silence. Cut IS the sound event.',
+    dependencies: 'Etna eruption footage secured Sicily shoot Day 4.',
+    status: 'achieved',
+    shootId: 'shoot-sicily',
+    achievedNote: '★ ETNA ERUPTED DURING SICILY SHOOT. The swing became real material. Not scripted — captured live. This is the opening.',
+    achievedAt: '2026-07-04',
+  },
+  {
+    id: 'sw-5',
+    title: 'Surface to the ending, then sink',
+    description: "Open on Vito's Hall of Fame induction — the applause, the vindication — then hold a breath and descend back through everything it cost.",
+    whyItMatters: "The whole film becomes the held breath between the disgrace and the honour. Ending-as-beginning frames the 2023 chapter as ALREADY resolved. The audience descends knowing the surface is safe — but the depth is not.",
+    narrative: "Ceremony. Standing ovation. Vito nods. Then a hard breath — and we descend, backwards through the film, into 2023, into the accusation, into the water, into what it cost.",
+    visualNote: 'Reverse structural time. Ceremony → 2023 → sea. Time as a dive.',
+    soundNote: 'Applause fading into breath-up. Silence. Water.',
+    status: 'planned',
+    shootId: 'shoot-usa',
+  },
+  {
+    id: 'sw-6',
+    title: 'Free in the dark · the coda',
+    description: 'A night dive in bioluminescent water. The four weightless in total black, lit only by the glow they stir with their hands.',
+    whyItMatters: "No records. No judges. No card. The wonder that started all of it. The film's answer to the question it opened: what is it really about? — this.",
+    narrative: "Silent credits: no music, only breathing slowly returning to normal, as the audience surfaces with them.",
+    visualNote: 'Pitch black. Bioluminescent trails from hands. Barely visible bodies.',
+    soundNote: 'Silence. Then, near end, breathing returning to normal, only.',
+    dependencies: 'Bioluminescent location to scout (Puerto Rico? Maldives? Adriatic in summer?)',
+    status: 'planned',
+    shootId: 'shoot-coda',
+  },
+  {
+    id: 'sw-7',
+    title: 'The volcano interview',
+    description: "Vito on the black lava at golden hour, sea far below, Etna smoking behind him, talking about stillness.",
+    whyItMatters: "The film's whole world is water. Here it stands on fire and earth. Two elements, one frame. Vito's stillness against the mountain's inability to be still.",
+    narrative: "Handheld, static frame. Vito seated on cooled black lava. Etna smoking. Sea 300m below. He talks — quietly — about what stillness means when the ground you sit on can't.",
+    visualNote: 'Black lava · Etna in mid-ground · Mediterranean in deep background.',
+    soundNote: 'Wind. Very distant volcano rumble. Vito quiet.',
+    status: 'planned',
+    shootId: 'shoot-sicily',
+  },
+  {
+    id: 'sw-8',
+    title: 'Two clocks',
+    description: 'Split screen: Vito motionless 29 minutes against Petar falling 3 minutes. Two ways to leave the world.',
+    whyItMatters: 'The film has two protagonists who both practice absence — one long, one deep. Side by side, we see they arrive at the same place through different math.',
+    narrative: 'Left frame: Vito, dry, floating, static — timer counts 29:00. Right frame: Petar, wet, plummeting, active — timer counts 3:00. Same emotional arrival, radically different bodies. Timers run in real proportion.',
+    visualNote: 'Precise 50/50 split. Same-scale timers.',
+    soundNote: 'Left: silent respirator air. Right: pressure, water, held breath.',
+    status: 'idea',
+  },
+  {
+    id: 'sw-9',
+    title: 'The watchers as a chorus',
+    description: "The card shows — and the cut goes not to Petar but to Zsófia's face in the half-second before she knows.",
+    whyItMatters: "The bond, caught in a reaction. The film's emotional centre isn't the diver — it's the person at the surface. Naming that visually every time a card shows.",
+    narrative: "Every attempt: right before the result is announced, cut to a watcher. Not Petar's face. HER face. HIS face. Their reaction becomes the news.",
+    visualNote: 'Faces in shallow focus, water blurred behind them.',
+    soundNote: 'Ambient boat. No dialogue. Then card announcement.',
+    status: 'planned',
+    shootId: 'shoot-sicily',
+  },
+  {
+    id: 'sw-10',
+    title: 'Two friends, one record',
+    description: "Sanda and Zsófia filmed apart, answering the same question — cut together so they almost finish each other's sentence.",
+    whyItMatters: "The film's thesis test-case. The record that passed between best friends could have broken them. It didn't. The cut proves it.",
+    narrative: "Same question, same lens, same simple background. But filmed a month apart, on different continents. Cut so their answers overlap on the vowels. They finish each other's sentences without knowing.",
+    visualNote: 'Identical framing. Different light. Same silence.',
+    soundNote: 'Their voices, together as they never were in the room.',
+    status: 'idea',
+  },
 ];
 
 /* ---------- The 4 Grammar Devices ---------- */
@@ -382,7 +506,9 @@ export const SEED_EVIDENCE_2023: Evidence2023[] = [
 /* ---------- Film crew (film-side, not talent) ---------- */
 
 export const SEED_CREW: CrewMember[] = [
-  { id: 'c-tomo', name: 'Tomislav Kovačić',  role: 'Producer / Director',  languages: ['hr','en'], link: 'terminimal.com' },
+  { id: 'c-tomo',      name: 'Tomislav Kovačić', role: 'Producer / Director',  languages: ['hr','en'], link: 'terminimal.com' },
+  { id: 'c-toni',      name: 'Toni',              role: 'Camera Operator',      languages: ['hr','en'] },
+  { id: 'c-christian', name: 'Christian',         role: 'Camera Operator',      languages: ['hr','en'] },
 ];
 
 /* ---------- Schedule phases + milestones ---------- */
@@ -410,12 +536,8 @@ export const SEED_SPONSORS: Sponsor[] = [];
 
 /* ---------- Risks (light) ---------- */
 
-export const SEED_RISKS: Risk[] = [
-  { id: 'risk-safety', title: 'Safety incident during a dive', probability: 'low', impact: 'high', description: 'Blackout, LMC, or serious injury during a record attempt.', mitigation: 'Always defer to the local safety team. The dive comes first, always. Camera never overrides safety.', category: 'safety-diver', probabilityScale: 2, impactScale: 5, status: 'mitigating' },
-  { id: 'risk-consent', title: 'Talent withdraws consent · esp. re 2023', probability: 'low', impact: 'high', description: 'One of the four (or family) asks material to be cut.', mitigation: 'Consent at every step. Right to stop, on any day, for any reason. Nothing goes in they haven\'t seen and agreed to.', category: 'talent', probabilityScale: 2, impactScale: 5, status: 'mitigating' },
-  { id: 'risk-weather', title: 'Weather cancels an attempt window', probability: 'high', impact: 'low', description: 'Common. Buffer days built in.', mitigation: 'Buffer day per shoot. Reschedule protocol.', category: 'weather', probabilityScale: 5, impactScale: 2, status: 'mitigating' },
-  { id: 'risk-legal-2023', title: '2023 chapter legal exposure', probability: 'low', impact: 'high', description: 'CMAS or third party takes issue with how 2023 is portrayed.', mitigation: 'Rigour, never spectacle. Source everything to public record + peer-reviewed paper. Legal review before lock.', category: 'legal', probabilityScale: 2, impactScale: 4, status: 'mitigating' },
-];
+/* Empty per user feedback — add as they emerge */
+export const SEED_RISKS: Risk[] = [];
 
 /* ---------- Contracts (starter set) ---------- */
 
@@ -458,9 +580,65 @@ export const SEED_FESTIVALS: FestivalSubmission[] = [
 export const SEED_SALES_AGENTS: SalesAgent[] = [];
 export const SEED_BROADCASTERS: Broadcaster[] = [];
 
+/* ---------- Spine · Ideas Workshop (v0.2) ----------
+   User will fill in as ideas emerge from team discussion. Seed one anchor. */
+
+export const SEED_SPINE_IDEAS: SpineIdea[] = [
+  {
+    id: 'spine-idea-1',
+    title: 'One person holds another in the world',
+    body: "The film's north-star thesis. The bond that makes the impossible possible. Mentorship, trust, love — the people who see more in us than we see in ourselves.",
+    status: 'leading',
+    votes: 4,
+    linkedThreadIds: ['t1'],
+    createdAt: '2026-06-01',
+    updatedAt: '2026-07-11',
+  },
+];
+
+/* ---------- Camera Team · Inventory (v0.2) ----------
+   Placeholder starter kit — user + Toni + Christian edit. Realistic gear
+   for a freediving documentary: underwater rigs are first-class. */
+
+export const SEED_CAMERAS: Camera[] = [
+  { id: 'cam-fx3-1',    brand: 'Sony',    model: 'FX3',                 kind: 'body',    sensor: 'Full-Frame CMOS',  maxResolution: '4K UHD', maxFrameRate: '120fps',                              ownership: 'owned',    operatorId: 'c-toni',      notes: 'Primary A-cam. Low-light king for below-deck + night dives.' },
+  { id: 'cam-fx3-2',    brand: 'Sony',    model: 'FX3',                 kind: 'body',    sensor: 'Full-Frame CMOS',  maxResolution: '4K UHD', maxFrameRate: '120fps',                              ownership: 'owned',    operatorId: 'c-christian', notes: 'B-cam · matched color with A-cam.' },
+  { id: 'cam-a7s3',     brand: 'Sony',    model: 'a7S III',              kind: 'body',    sensor: 'Full-Frame CMOS',  maxResolution: '4K UHD', maxFrameRate: '120fps',                              ownership: 'owned',    operatorId: 'c-tomo',      notes: 'Roam · watcher-cam · handheld.' },
+  { id: 'cam-c70',      brand: 'Canon',   model: 'C70',                  kind: 'body',    sensor: 'Super 35 DGO',     maxResolution: '4K',      maxFrameRate: '120fps',                              ownership: 'rented',   operatorId: 'c-toni',      notes: 'Set-piece cinema camera. Interviews.' },
+  { id: 'cam-uw-nauticam',brand: 'Nauticam', model: 'FX3 housing',        kind: 'uw-rig',  underwaterDepthM: 100,                                                                                    ownership: 'rented',   operatorId: 'c-christian', notes: 'FX3 housed. Primary underwater rig.' },
+  { id: 'cam-gopro',    brand: 'GoPro',   model: 'Hero 12 Black',        kind: 'action',                                                                                                              ownership: 'owned',                              notes: 'Multiple units. Rope-mount, chest-mount, bail-out.' },
+  { id: 'cam-drone',    brand: 'DJI',     model: 'Mavic 3 Pro',          kind: 'drone',                                                                                                                ownership: 'owned',    operatorId: 'c-christian', notes: 'Aerials. Boat approaches, wide land, coast.' },
+];
+
+export const SEED_LENSES: Lens[] = [
+  { id: 'lens-2470',  brand: 'Sony',       focal: '24-70mm', maxAperture: 'f/2.8',  mount: 'E',  type: 'photo', characterNotes: 'Everyday zoom, sharp, contrasty.',        ownership: 'owned',  operatorId: 'c-toni' },
+  { id: 'lens-70200', brand: 'Sony',       focal: '70-200mm',maxAperture: 'f/2.8',  mount: 'E',  type: 'photo', characterNotes: 'Compression + reach. Watcher-cam.',      ownership: 'owned',  operatorId: 'c-christian' },
+  { id: 'lens-16354', brand: 'Sony',       focal: '16-35mm', maxAperture: 'f/2.8',  mount: 'E',  type: 'photo', characterNotes: 'Wide interiors, boats.',                 ownership: 'owned',  operatorId: 'c-tomo' },
+  { id: 'lens-50gm',  brand: 'Sony',       focal: '50mm',    maxAperture: 'f/1.2',  mount: 'E',  type: 'photo', characterNotes: 'Fast prime. Portraits, interviews.',     ownership: 'owned',  operatorId: 'c-toni' },
+  { id: 'lens-85gm',  brand: 'Sony',       focal: '85mm',    maxAperture: 'f/1.4',  mount: 'E',  type: 'photo', characterNotes: 'Portrait king. The-face cam.',           ownership: 'owned',  operatorId: 'c-toni' },
+  { id: 'lens-cine',  brand: 'Cooke',      focal: '32mm',    maxAperture: 'T2.0',   mount: 'PL', type: 'cine',  characterNotes: 'Warm falloff, gentle bokeh. Set-piece.', ownership: 'rented', operatorId: 'c-toni' },
+  { id: 'lens-uw',    brand: 'Sony',       focal: '16-35mm', maxAperture: 'f/2.8',  mount: 'E',  type: 'photo', characterNotes: 'Housed for underwater.',                 ownership: 'rented', operatorId: 'c-christian' },
+];
+
+export const SEED_MICS: Microphone[] = [
+  { id: 'mic-lav-1',    brand: 'Sennheiser', model: 'MKE 2 Gold',    type: 'lav',        channels: 1, ownership: 'owned',  notes: 'Talent lav #1' },
+  { id: 'mic-lav-2',    brand: 'Sennheiser', model: 'MKE 2 Gold',    type: 'lav',        channels: 1, ownership: 'owned',  notes: 'Talent lav #2' },
+  { id: 'mic-lav-3',    brand: 'DPA',        model: '4060',           type: 'lav',        channels: 1, ownership: 'owned',  notes: 'Backup lav (waterproof)' },
+  { id: 'mic-boom',     brand: 'Sennheiser', model: 'MKH 416',        type: 'shotgun',    channels: 1, ownership: 'owned',  notes: 'Interview boom.' },
+  { id: 'mic-stereo',   brand: 'Rode',       model: 'NTG-3',          type: 'shotgun',    channels: 1, ownership: 'owned',  notes: 'Boom #2.' },
+  { id: 'mic-hydro',    brand: 'Aquarian',   model: 'H2a',            type: 'hydrophone', channels: 1, ownership: 'rented', notes: 'Underwater ambient. The sound of the deep.' },
+  { id: 'mic-ambisonic',brand: 'Zoom',       model: 'H3-VR',          type: 'stereo',     channels: 4, ownership: 'owned',  notes: 'Ambisonic room · atmos. For volcano scene + open water.' },
+];
+
+export const SEED_LIGHTS: Light[] = [
+  { id: 'light-aputure-1', brand: 'Aputure', model: '600d Pro',       type: 'led-panel', watts: 600, colorTempK: '5600K',      ownership: 'rented', notes: 'Interview key.' },
+  { id: 'light-aputure-2', brand: 'Aputure', model: 'Amaran 200x',    type: 'led-panel', watts: 200, colorTempK: '2700-6500K', ownership: 'owned',  notes: 'Fill / accent.' },
+  { id: 'light-nanlite',   brand: 'Nanlite', model: 'PavoTube II 30X',type: 'led-tube',  watts: 40,  colorTempK: 'RGB',        ownership: 'owned',  notes: 'Practical effects.' },
+  { id: 'light-uw',        brand: 'Kraken',  model: 'Hydra 15000',    type: 'battery',   watts: 150, colorTempK: '5000K',      ownership: 'rented', notes: 'Underwater dive light. Cave + night dive.' },
+];
+
 /* ---------- Empty seed containers ---------- */
 
-const EMPTY_SPINE_ANSWERS: SpineAnswer[] = [];
 const EMPTY_INTERVIEWS: Interview[] = [];
 
 /* ---------- Initial state factory ---------- */
@@ -474,8 +652,7 @@ export function makeInitialState(): AppState {
     talents: SEED_TALENTS,
     threads: SEED_THREADS,
     threadQuestions: SEED_THREAD_QUESTIONS,
-    spineQuestions: SEED_SPINE_QUESTIONS,
-    spineAnswers: EMPTY_SPINE_ANSWERS,
+    spineIdeas: SEED_SPINE_IDEAS,
     shoots: SEED_SHOOTS,
     shootDays: SEED_SHOOT_DAYS,
     coverageCams: SEED_COVERAGE_CAMS,
@@ -488,6 +665,10 @@ export function makeInitialState(): AppState {
     attempts: [],
     physiology: [],
     evidence2023: SEED_EVIDENCE_2023,
+    cameras: SEED_CAMERAS,
+    lenses: SEED_LENSES,
+    microphones: SEED_MICS,
+    lights: SEED_LIGHTS,
     crew: SEED_CREW,
     schedulePhases: SEED_SCHEDULE_PHASES,
     milestones: SEED_MILESTONES,

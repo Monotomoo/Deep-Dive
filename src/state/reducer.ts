@@ -3,6 +3,7 @@ import type {
   Asset,
   BiggerSwing,
   Broadcaster,
+  Camera,
   Contract,
   CoverageCam,
   CrewMember,
@@ -13,6 +14,9 @@ import type {
   GrammarDevice,
   Interview,
   JournalEntry,
+  Lens,
+  Light,
+  Microphone,
   Milestone,
   Note,
   PhysiologyDatum,
@@ -26,7 +30,7 @@ import type {
   Shoot,
   ShootDay,
   Sponsor,
-  SpineAnswer,
+  SpineIdea,
   Talent,
   TalentFour,
   Task,
@@ -65,9 +69,23 @@ export type Action =
   | { type: 'ADD_THREAD_Q'; question: ThreadQuestion }
   | { type: 'UPDATE_THREAD_Q'; id: string; patch: Partial<ThreadQuestion> }
   | { type: 'DELETE_THREAD_Q'; id: string }
-  /* Spine */
-  | { type: 'UPSERT_SPINE_ANSWER'; answer: SpineAnswer }
-  | { type: 'DELETE_SPINE_ANSWER'; id: string }
+  /* Spine · Ideas Workshop */
+  | { type: 'ADD_SPINE_IDEA'; idea: SpineIdea }
+  | { type: 'UPDATE_SPINE_IDEA'; id: string; patch: Partial<SpineIdea> }
+  | { type: 'DELETE_SPINE_IDEA'; id: string }
+  /* Camera Team · inventory */
+  | { type: 'ADD_CAMERA'; camera: Camera }
+  | { type: 'UPDATE_CAMERA'; id: string; patch: Partial<Camera> }
+  | { type: 'DELETE_CAMERA'; id: string }
+  | { type: 'ADD_LENS'; lens: Lens }
+  | { type: 'UPDATE_LENS'; id: string; patch: Partial<Lens> }
+  | { type: 'DELETE_LENS'; id: string }
+  | { type: 'ADD_MIC'; mic: Microphone }
+  | { type: 'UPDATE_MIC'; id: string; patch: Partial<Microphone> }
+  | { type: 'DELETE_MIC'; id: string }
+  | { type: 'ADD_LIGHT'; light: Light }
+  | { type: 'UPDATE_LIGHT'; id: string; patch: Partial<Light> }
+  | { type: 'DELETE_LIGHT'; id: string }
   /* Shoots */
   | { type: 'ADD_SHOOT'; shoot: Shoot }
   | { type: 'UPDATE_SHOOT'; id: string; patch: Partial<Shoot> }
@@ -218,17 +236,24 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'UPDATE_THREAD_Q': return { ...state, threadQuestions: upd(state.threadQuestions, action.id, action.patch) };
     case 'DELETE_THREAD_Q': return { ...state, threadQuestions: del(state.threadQuestions, action.id) };
 
-    /* Spine */
-    case 'UPSERT_SPINE_ANSWER': {
-      const exists = state.spineAnswers.some((a) => a.id === action.answer.id);
-      return {
-        ...state,
-        spineAnswers: exists
-          ? upd(state.spineAnswers, action.answer.id, action.answer)
-          : [...state.spineAnswers, action.answer],
-      };
-    }
-    case 'DELETE_SPINE_ANSWER': return { ...state, spineAnswers: del(state.spineAnswers, action.id) };
+    /* Spine · Ideas Workshop */
+    case 'ADD_SPINE_IDEA':    return { ...state, spineIdeas: [...state.spineIdeas, action.idea] };
+    case 'UPDATE_SPINE_IDEA': return { ...state, spineIdeas: upd(state.spineIdeas, action.id, action.patch) };
+    case 'DELETE_SPINE_IDEA': return { ...state, spineIdeas: del(state.spineIdeas, action.id) };
+
+    /* Camera Team */
+    case 'ADD_CAMERA':    return { ...state, cameras: [...state.cameras, action.camera] };
+    case 'UPDATE_CAMERA': return { ...state, cameras: upd(state.cameras, action.id, action.patch) };
+    case 'DELETE_CAMERA': return { ...state, cameras: del(state.cameras, action.id) };
+    case 'ADD_LENS':      return { ...state, lenses: [...state.lenses, action.lens] };
+    case 'UPDATE_LENS':   return { ...state, lenses: upd(state.lenses, action.id, action.patch) };
+    case 'DELETE_LENS':   return { ...state, lenses: del(state.lenses, action.id) };
+    case 'ADD_MIC':       return { ...state, microphones: [...state.microphones, action.mic] };
+    case 'UPDATE_MIC':    return { ...state, microphones: upd(state.microphones, action.id, action.patch) };
+    case 'DELETE_MIC':    return { ...state, microphones: del(state.microphones, action.id) };
+    case 'ADD_LIGHT':     return { ...state, lights: [...state.lights, action.light] };
+    case 'UPDATE_LIGHT':  return { ...state, lights: upd(state.lights, action.id, action.patch) };
+    case 'DELETE_LIGHT':  return { ...state, lights: del(state.lights, action.id) };
 
     /* Shoots */
     case 'ADD_SHOOT':          return { ...state, shoots: [...state.shoots, action.shoot] };

@@ -21,6 +21,7 @@ import { DevicesView } from './components/views/DevicesView';
 import { RecordsView } from './components/views/RecordsView';
 import { PhysiologyView } from './components/views/PhysiologyView';
 import { WatchersView } from './components/views/WatchersView';
+import { CameraTeamView } from './components/views/CameraTeamView';
 import { PitchView } from './components/views/PitchView';
 import { DistributionView } from './components/views/DistributionView';
 import { ContractsView } from './components/views/ContractsView';
@@ -65,6 +66,7 @@ function renderView(view: ViewKey) {
     case 'records':       return <RecordsView />;
     case 'physiology':    return <PhysiologyView />;
     case 'watchers':      return <WatchersView />;
+    case 'camera-team':   return <CameraTeamView />;
     case 'pitch':         return <PitchView />;
     case 'distribution':  return <DistributionView />;
     case 'contracts':     return <ContractsView />;

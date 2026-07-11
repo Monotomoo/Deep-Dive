@@ -22,6 +22,7 @@ export const en = {
   'nav.records':      'Records',
   'nav.physiology':   'Physiology',
   'nav.watchers':     'Watchers',
+  'nav.camera-team':  'Camera Team',
   'nav.pitch':        'Pitch',
   'nav.distribution': 'Distribution',
   'nav.contracts':    'Contracts',
@@ -108,13 +109,16 @@ export const en = {
   'threads.q.follow-up':          'follow up',
   'threads.q.retired':            'retired',
 
-  /* ---------- Spine (5 returning questions) ---------- */
-  'spine.title':                  'Spine',
-  'spine.subtitle':               '5 questions · every person · every shoot · the matrix that cuts together at the end',
-  'spine.matrix.header':          'the returning-questions matrix',
-  'spine.asked':                  'asked',
-  'spine.answered':               'answered',
-  'spine.not-yet':                'not yet',
+  /* ---------- Spine · Ideas Workshop ---------- */
+  'spine.title':                  'Spine · Ideas Workshop',
+  'spine.subtitle':               'candidate spines for the film · discuss, promote, drop · not locked yet',
+  'spine.add':                    'add spine idea',
+  'spine.status.idea':            'idea',
+  'spine.status.discussing':      'discussing',
+  'spine.status.leading':         'leading',
+  'spine.status.dropped':         'dropped',
+  'spine.votes':                  'votes',
+  'spine.empty':                  'No spine ideas yet. Add the first candidate — the film\'s core question is still open.',
 
   /* ---------- Shoots ---------- */
   'shoots.title':                 'The Shoots',
@@ -181,6 +185,29 @@ export const en = {
   /* ---------- Watchers ---------- */
   'watchers.title':               'Watcher Moments',
   'watchers.subtitle':            'the faces watching · the emotional centre of every attempt',
+
+  /* ---------- Camera Team + Inventory ---------- */
+  'camera-team.title':            'Camera Team',
+  'camera-team.subtitle':         'cameras · lenses · mics · lights · per-operator kit bag · per-shoot loadout',
+  'camera-team.tab.all':          'All inventory',
+  'camera-team.tab.bags':         'Kit bags',
+  'camera-team.tab.shoot':        'Per shoot',
+  'camera-team.cameras':          'Cameras',
+  'camera-team.lenses':           'Lenses',
+  'camera-team.mics':             'Microphones',
+  'camera-team.lights':           'Lights',
+  'camera-team.add.camera':       'add camera',
+  'camera-team.add.lens':         'add lens',
+  'camera-team.add.mic':          'add mic',
+  'camera-team.add.light':        'add light',
+  'camera-team.owner.owned':      'owned',
+  'camera-team.owner.rented':     'rented',
+  'camera-team.owner.borrowed':   'borrowed',
+  'camera-team.owner.coming':     'coming',
+  'camera-team.operator':         'operator',
+  'camera-team.no.operator':      'unassigned',
+  'camera-team.uw':               'UW rig',
+  'camera-team.assigned.to':      'assigned to',
 
   /* ---------- 2023 Chapter ---------- */
   'chapter-2023.title':           'The 2023 Chapter',

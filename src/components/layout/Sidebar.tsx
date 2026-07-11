@@ -69,6 +69,7 @@ const GROUPS: NavGroup[] = [
       { key: 'records',    labelKey: 'nav.records',    icon: Trophy },
       { key: 'physiology', labelKey: 'nav.physiology', icon: HeartPulse },
       { key: 'watchers',   labelKey: 'nav.watchers',   icon: Eye },
+      { key: 'camera-team',labelKey: 'nav.camera-team',icon: Activity },
     ],
   },
   {
@@ -90,9 +91,6 @@ const GROUPS: NavGroup[] = [
   },
 ];
 
-/* Silence unused-import warnings for icons that may not be picked up above.
-   Kept for potential future use. */
-void Activity;
 
 interface SidebarProps {
   /* Phase 11 — drawer-mode props for phone. On md+ these are ignored. */

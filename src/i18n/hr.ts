@@ -20,6 +20,7 @@ export const hr: Strings = {
   'nav.records':      'Rekordi',
   'nav.physiology':   'Fiziologija',
   'nav.watchers':     'Promatrači',
+  'nav.camera-team':  'Kamera tim',
   'nav.pitch':        'Pitch',
   'nav.distribution': 'Distribucija',
   'nav.contracts':    'Ugovori',
@@ -105,13 +106,16 @@ export const hr: Strings = {
   'threads.q.follow-up':          'nastavak',
   'threads.q.retired':            'umirovljeno',
 
-  /* ---------- Spine ---------- */
-  'spine.title':                  'Kičma',
-  'spine.subtitle':               '5 pitanja · svaka osoba · svako snimanje · matrica koja se u finalnoj montaži spaja',
-  'spine.matrix.header':          'matrica ponavljajućih pitanja',
-  'spine.asked':                  'postavljeno',
-  'spine.answered':               'odgovoreno',
-  'spine.not-yet':                'nije još',
+  /* ---------- Spine · Ideas Workshop ---------- */
+  'spine.title':                  'Kičma · Radionica ideja',
+  'spine.subtitle':               'kandidati za spinu filma · raspravljamo, promoviramo, odbacujemo · još nije zaključano',
+  'spine.add':                    'dodaj ideju',
+  'spine.status.idea':            'ideja',
+  'spine.status.discussing':      'raspravljamo',
+  'spine.status.leading':         'vodi',
+  'spine.status.dropped':         'odbačeno',
+  'spine.votes':                  'glasova',
+  'spine.empty':                  'Još nema ideja. Dodaj prvog kandidata — jezgra pitanja filma je još otvorena.',
 
   /* ---------- Shoots ---------- */
   'shoots.title':                 'Snimanja',
@@ -178,6 +182,29 @@ export const hr: Strings = {
   /* ---------- Watchers ---------- */
   'watchers.title':               'Trenuci promatranja',
   'watchers.subtitle':            'lica koja gledaju · emocionalni centar svakog pokušaja',
+
+  /* ---------- Camera Team + Inventory ---------- */
+  'camera-team.title':            'Kamera tim',
+  'camera-team.subtitle':         'kamere · objektivi · mikrofoni · svjetla · po operatoru · po shootu',
+  'camera-team.tab.all':          'Sav inventar',
+  'camera-team.tab.bags':         'Torbe',
+  'camera-team.tab.shoot':        'Po shootu',
+  'camera-team.cameras':          'Kamere',
+  'camera-team.lenses':           'Objektivi',
+  'camera-team.mics':             'Mikrofoni',
+  'camera-team.lights':           'Svjetla',
+  'camera-team.add.camera':       'dodaj kameru',
+  'camera-team.add.lens':         'dodaj objektiv',
+  'camera-team.add.mic':          'dodaj mikrofon',
+  'camera-team.add.light':        'dodaj svjetlo',
+  'camera-team.owner.owned':      'naše',
+  'camera-team.owner.rented':     'iznajmljeno',
+  'camera-team.owner.borrowed':   'posuđeno',
+  'camera-team.owner.coming':     'dolazi',
+  'camera-team.operator':         'operator',
+  'camera-team.no.operator':      'nedodijeljeno',
+  'camera-team.uw':               'podvodni rig',
+  'camera-team.assigned.to':      'dodijeljeno za',
 
   /* ---------- 2023 Chapter ---------- */
   'chapter-2023.title':           'Poglavlje 2023.',

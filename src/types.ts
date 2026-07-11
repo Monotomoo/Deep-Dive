@@ -112,35 +112,24 @@ export interface Thread {
   notes?: string;
 }
 
-/* ---------- The 5 Spine Questions (the returning matrix) ---------- */
+/* ---------- Spine · Ideas Workshop ----------
+   Not 5 locked questions — a live board of candidate spines for the film.
+   Add ideas, discuss them, promote leading ones, drop what stops working.
+   Later, once clear, the leading ideas graduate into locked structure. */
 
-export type SpineQuestionKey =
-  | 'bottom'
-  | 'holds'
-  | 'wound'
-  | 'without'
-  | 'toward';
+export type SpineIdeaStatus = 'idea' | 'discussing' | 'leading' | 'dropped';
 
-export interface SpineQuestion {
-  key: SpineQuestionKey;
-  text: string;
-  order: 1 | 2 | 3 | 4 | 5;
-  note: string;
-}
-
-/* Captured answer to a spine question by a person at a shoot */
-export interface SpineAnswer {
+export interface SpineIdea {
   id: string;
-  spineKey: SpineQuestionKey;
-  personKey: FourKey;
-  shootId: string;
-  asked: boolean;
-  answered: boolean;
-  quote?: string;
-  interviewId?: string;
-  moodNote?: string;
-  timecode?: string;
-  updatedAt?: string;
+  title: string;              // "the returning-question matrix"
+  body: string;               // longer description
+  status: SpineIdeaStatus;
+  ownerId?: string;
+  votes?: number;
+  linkedThreadIds?: string[];
+  notes?: string;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /* ---------- The 6 Shoots ---------- */
@@ -276,6 +265,13 @@ export interface BiggerSwing {
   shootId?: string;
   achievedNote?: string;
   achievedAt?: string;
+  /* Richer context per user feedback v0.2 */
+  whyItMatters?: string;
+  narrative?: string;
+  visualNote?: string;
+  soundNote?: string;
+  dependencies?: string;
+  referenceIds?: string[];
   notes?: string;
 }
 
@@ -459,6 +455,86 @@ export interface CrewMember {
   contact?: string;
   link?: string;
   languages?: string[];
+  notes?: string;
+}
+
+/* ---------- Camera Team · Inventory (v0.2) ---------- */
+
+export type KitOwnership = 'owned' | 'rented' | 'borrowed' | 'coming';
+
+export type CameraKind = 'body' | 'action' | 'drone' | 'uw-rig' | 'other';
+
+export interface Camera {
+  id: string;
+  brand: string;
+  model: string;
+  kind: CameraKind;
+  sensor?: string;
+  maxResolution?: string;
+  maxFrameRate?: string;
+  underwaterDepthM?: number;
+  ownership: KitOwnership;
+  operatorId?: string;               // crew id
+  assignedShootIds?: string[];
+  notes?: string;
+}
+
+export type LensType = 'photo' | 'cine' | 'anamorphic' | 'other';
+
+export interface Lens {
+  id: string;
+  brand: string;
+  focal: string;                     // "24-70mm" or "50mm"
+  maxAperture: string;               // "f/1.4"
+  mount: string;                     // "EF" | "RF" | "PL" | "E" · free-form
+  type: LensType;
+  characterNotes?: string;
+  ownership: KitOwnership;
+  operatorId?: string;
+  assignedShootIds?: string[];
+  notes?: string;
+}
+
+export type MicType =
+  | 'lav'
+  | 'boom'
+  | 'shotgun'
+  | 'hydrophone'
+  | 'stereo'
+  | 'omni'
+  | 'other';
+
+export interface Microphone {
+  id: string;
+  brand: string;
+  model: string;
+  type: MicType;
+  channels?: number;
+  ownership: KitOwnership;
+  operatorId?: string;
+  assignedShootIds?: string[];
+  notes?: string;
+}
+
+export type LightType =
+  | 'led-panel'
+  | 'led-tube'
+  | 'battery'
+  | 'hmi'
+  | 'tungsten'
+  | 'natural'
+  | 'other';
+
+export interface Light {
+  id: string;
+  brand: string;
+  model: string;
+  type: LightType;
+  watts?: number;
+  colorTempK?: string;
+  ownership: KitOwnership;
+  operatorId?: string;
+  assignedShootIds?: string[];
   notes?: string;
 }
 
@@ -754,6 +830,7 @@ export type ViewKey =
   | 'records'
   | 'physiology'
   | 'watchers'
+  | 'camera-team'
   /* Tell */
   | 'pitch'
   | 'distribution'
@@ -775,8 +852,7 @@ export interface AppState {
   talents: Talent[];
   threads: Thread[];
   threadQuestions: ThreadQuestion[];
-  spineQuestions: SpineQuestion[];
-  spineAnswers: SpineAnswer[];
+  spineIdeas: SpineIdea[];
   shoots: Shoot[];
   shootDays: ShootDay[];
   coverageCams: CoverageCam[];
@@ -789,6 +865,11 @@ export interface AppState {
   attempts: RecordAttempt[];
   physiology: PhysiologyDatum[];
   evidence2023: Evidence2023[];
+  /* Camera Team · inventory (v0.2) */
+  cameras: Camera[];
+  lenses: Lens[];
+  microphones: Microphone[];
+  lights: Light[];
   /* Support entities */
   crew: CrewMember[];
   schedulePhases: SchedulePhase[];

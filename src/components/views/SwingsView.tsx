@@ -33,14 +33,48 @@ export function SwingsView() {
             </h3>
             <ul className="space-y-3">
               {items.map((s) => (
-                <li key={s.id} className={`bg-[color:var(--color-paper-light)] border-[0.5px] rounded-[3px] p-4 ${s.status === 'achieved' ? 'border-[color:var(--color-brass)]' : 'border-[color:var(--color-border-paper)]'}`}>
-                  <div className="flex items-baseline gap-3">
-                    <span className="display-italic text-[18px] text-[color:var(--color-on-paper)] leading-snug">{s.title}</span>
+                <li key={s.id} className={`bg-[color:var(--color-paper-light)] border-[0.5px] rounded-[3px] p-5 ${s.status === 'achieved' ? 'border-[color:var(--color-brass)]' : 'border-[color:var(--color-border-paper)]'}`}>
+                  <div className="flex items-baseline gap-3 mb-2">
+                    <span className="display-italic text-[20px] text-[color:var(--color-on-paper)] leading-snug">{s.title}</span>
                     {s.status === 'achieved' && <span className="label-caps text-[9px] text-[color:var(--color-brass)]">★ ACHIEVED</span>}
                   </div>
-                  <p className="prose-body text-[13px] text-[color:var(--color-on-paper)] mt-2 leading-relaxed">{s.description}</p>
+                  <p className="prose-body italic text-[14px] text-[color:var(--color-on-paper)] leading-relaxed">{s.description}</p>
+
+                  {s.whyItMatters && (
+                    <div className="mt-3">
+                      <div className="label-caps text-[9px] text-[color:var(--color-brass-deep)]">why it matters</div>
+                      <p className="prose-body text-[13px] text-[color:var(--color-on-paper)] leading-relaxed mt-1">{s.whyItMatters}</p>
+                    </div>
+                  )}
+                  {s.narrative && (
+                    <div className="mt-3">
+                      <div className="label-caps text-[9px] text-[color:var(--color-brass-deep)]">narrative</div>
+                      <p className="prose-body text-[13px] text-[color:var(--color-on-paper)] leading-relaxed mt-1">{s.narrative}</p>
+                    </div>
+                  )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 mt-3">
+                    {s.visualNote && (
+                      <div className="text-[12px]">
+                        <span className="label-caps text-[9px] text-[color:var(--color-brass-deep)]">visual</span>
+                        <p className="prose-body italic text-[color:var(--color-on-paper)] mt-1">{s.visualNote}</p>
+                      </div>
+                    )}
+                    {s.soundNote && (
+                      <div className="text-[12px]">
+                        <span className="label-caps text-[9px] text-[color:var(--color-brass-deep)]">sound</span>
+                        <p className="prose-body italic text-[color:var(--color-on-paper)] mt-1">{s.soundNote}</p>
+                      </div>
+                    )}
+                  </div>
+                  {s.dependencies && (
+                    <div className="mt-3 text-[12px]">
+                      <span className="label-caps text-[9px] text-[color:var(--color-brass-deep)]">requires</span>
+                      <p className="prose-body italic text-[color:var(--color-on-paper-muted)] mt-1">{s.dependencies}</p>
+                    </div>
+                  )}
+
                   {s.achievedNote && (
-                    <div className="mt-2 pt-2 border-t-[0.5px] border-[color:var(--color-border-paper)]">
+                    <div className="mt-3 pt-3 border-t-[0.5px] border-[color:var(--color-border-paper)]">
                       <div className="label-caps text-[9px] text-[color:var(--color-brass-deep)]">{t('swings.achieved.at')} {s.achievedAt}</div>
                       <div className="display-italic italic text-[14px] text-[color:var(--color-brass-deep)] mt-1">{s.achievedNote}</div>
                     </div>
