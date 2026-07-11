@@ -3,6 +3,7 @@ import type {
   Asset,
   BiggerSwing,
   Broadcaster,
+  CalendarEvent,
   Camera,
   Contract,
   CoverageCam,
@@ -139,6 +140,9 @@ export type Action =
   | { type: 'ADD_MILESTONE'; milestone: Milestone }
   | { type: 'UPDATE_MILESTONE'; id: string; patch: Partial<Milestone> }
   | { type: 'DELETE_MILESTONE'; id: string }
+  | { type: 'ADD_CALENDAR_EVENT'; event: CalendarEvent }
+  | { type: 'UPDATE_CALENDAR_EVENT'; id: string; patch: Partial<CalendarEvent> }
+  | { type: 'DELETE_CALENDAR_EVENT'; id: string }
   | { type: 'ADD_SPONSOR'; sponsor: Sponsor }
   | { type: 'UPDATE_SPONSOR'; id: string; patch: Partial<Sponsor> }
   | { type: 'DELETE_SPONSOR'; id: string }
@@ -319,6 +323,9 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'ADD_MILESTONE':  return { ...state, milestones: [...state.milestones, action.milestone] };
     case 'UPDATE_MILESTONE':return { ...state, milestones: upd(state.milestones, action.id, action.patch) };
     case 'DELETE_MILESTONE':return { ...state, milestones: del(state.milestones, action.id) };
+    case 'ADD_CALENDAR_EVENT':    return { ...state, calendarEvents: [...state.calendarEvents, action.event] };
+    case 'UPDATE_CALENDAR_EVENT': return { ...state, calendarEvents: upd(state.calendarEvents, action.id, action.patch) };
+    case 'DELETE_CALENDAR_EVENT': return { ...state, calendarEvents: del(state.calendarEvents, action.id) };
 
     /* Sponsors + Risks + Contracts + Journal */
     case 'ADD_SPONSOR':    return { ...state, sponsors: [...state.sponsors, action.sponsor] };

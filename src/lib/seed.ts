@@ -6,6 +6,7 @@ import type {
   AppState,
   BiggerSwing,
   Broadcaster,
+  CalendarEvent,
   Camera,
   CashflowQuarter,
   Contract,
@@ -92,6 +93,7 @@ export const SEED_FOUR: TalentFour[] = [
     epithet: "the one everyone watches · finds peace in the place of death",
     bio: "Broke a 17-year no-fins record. Holds the men's free-immersion world record. Came to the sport a few years ago from beach rescue and swimming. Called the sport's 'bad boy,' a target since 2023, carrying it with defiance. In many ways the spine of the whole story — and the mentor's mirror.",
     arcNote: 'the spine of the whole story',
+    colorHint: '#d96c3d',              // coral · Etna fire · gravity
   },
   {
     id: 'four-vito',
@@ -104,6 +106,7 @@ export const SEED_FOUR: TalentFour[] = [
     epithet: 'the mentor · the scientist studying the sport',
     bio: "The mentor at the centre of all four. Goes long rather than deep — Guinness record of nearly 29 minutes without breathing. Teaching staff of the University of Rijeka's centre for diving and hyperbaric medicine. One of the protagonists is the scientist studying the sport. By his own admission, might have left freediving entirely if not for Petar; instead he coaches champions who surpass him. His honesty is the emotional core.",
     arcNote: 'the emotional core of the entire film',
+    colorHint: '#3d7a94',              // dock teal · scientist mind · deep sea
   },
   {
     id: 'four-sanda',
@@ -116,6 +119,7 @@ export const SEED_FOUR: TalentFour[] = [
     epithet: 'the first Croatian woman past 100m',
     bio: 'Former free-immersion world-record holder. Multiple national champion. Coached by Vito, partnered with him — and best friends with Zsófia, the woman who took her record. Never "a partner who dives" — a world-record holder whose story the film is determined to tell with its full weight.',
     arcNote: 'the deep that belongs only to her',
+    colorHint: '#6f8a72',              // olive · grounded · quiet
   },
   {
     id: 'four-zsofia',
@@ -128,6 +132,7 @@ export const SEED_FOUR: TalentFour[] = [
     epithet: 'the outsider who can still see clearly',
     bio: "Triathlete three years ago, now a free-immersion world-record holder at 105m — one metre deeper than the most celebrated woman in the sport — and holder of multiple dynamic records, first woman past 300m in a pool. Petar's partner. Sanda's best friend. Her interviews are in English — a second nationality threading the film international.",
     arcNote: "the audience's way in · the wonder, the trust, the discovery",
+    colorHint: '#e39a5b',              // warm amber · radiant newcomer · dawn
   },
 ];
 
@@ -208,6 +213,7 @@ export const SEED_SHOOTS: Shoot[] = [
     captures: ['who they are · at home', 'the bonds, seen', 'the family that watched it begin', 'first breath-up templates', 'grey winter Adriatic as the "before"'],
     presentFour: ['petar','vito','sanda','zsofia'],
     bible: '# Krk — the "before"\n\nSoft opening. First shoot. The four at home, in their home water. Establishes the world before Sicily disrupts it.',
+    colorHint: '#4c7a8a',            // steel-teal · winter Adriatic
     notes: 'Done · went beautifully.',
   },
   {
@@ -224,6 +230,7 @@ export const SEED_SHOOTS: Shoot[] = [
     presentFour: ['petar','vito','sanda','zsofia'],
     bible: '# Sicily · 1-6 July 2026\n\nNot a film about depth — a film about who waits for you at the surface.\n\n## The stakes\nPetar attacks a monofin world record: a new discipline for him, the no-fins purist going for raw depth. Could make history. Could miss. Both outcomes are the film.\n\n## Coverage\n- **C1 — the face** · Petar\'s face at surface, every dive · locked · lav on Petar\n- **C2 — the moment + watchers** · turn to the three faces the instant the card shows\n- **C3 — roam** · wider scene · safety team · a quiet word after\n\n## Rules\n- The dive comes first · we shoot around, never in the way\n- Sicily is light · no heavy sit-downs · 2023 stays gentle\n- Two copies before anyone sleeps',
     wonderfulness: '★ Etna erupted DURING the shoot. The "Fire breathes in, water breathes out" swing became real — captured live. Not the world record, but the film gained something a script couldn\'t buy.',
+    colorHint: '#d96c3d',            // Etna coral
     notes: 'Completed spectacularly. No WR but Etna erupted — the film opening writes itself.',
   },
   {
@@ -239,6 +246,7 @@ export const SEED_SHOOTS: Shoot[] = [
     captures: ['the deep conversations · the inner world', 'the 2023 chapter when it feels right', 'training camps · breathing exercises · daily discipline', 'a real competition', 'if it happens — a record', 'the sport laid bare, from the inside'],
     presentFour: ['petar','vito','sanda','zsofia'],
     bible: '# Lastovo — the soul, and the discipline\n\nHolds the most honest conversations AND the first real cinematic presentation of freediving as a sport. No film has shown the sport from the inside like this.\n\n## The 2023 conversation\nOnly here. Only when it\'s right. Never pushed. The wound never gets opened for a schedule.\n\n## The sport, laid bare\nDawn on the dock: breath-holds, the training camp, a real competition, maybe a record.',
+    colorHint: '#6f8a72',            // deep olive · Lastovo forests
     notes: 'The soul-shoot. And the definitive document of the discipline.',
   },
   {
@@ -254,6 +262,7 @@ export const SEED_SHOOTS: Shoot[] = [
     captures: ['the competition · the world level', 'watcher moments at scale', 'the international dive community around the four', 'more spine + thread answers, transformed by the world stage'],
     presentFour: ['petar','vito','sanda','zsofia'],
     bible: '# Cyprus · autumn\n\nThe world stage. Where the sport meets the world. Coverage template: C1/C2/C3 as Sicily. Watcher moments prioritized.',
+    colorHint: '#c9a961',            // Mediterranean gold
   },
   {
     id: 'shoot-rijeka-zagreb',
@@ -266,6 +275,7 @@ export const SEED_SHOOTS: Shoot[] = [
     captures: ['Vito\'s lab · the ultrasound, the thermal, the brain scan', 'the score-as-body swing · physiology as music source', 'body-as-witness device · the data testifies', 'Vito the scientist studying Vito the subject'],
     presentFour: ['vito'],
     bible: '# Rijeka/Zagreb · the science\n\nUniversity of Rijeka, hyperbaric medicine research centre. Vito as subject AND researcher.\n\n## Score priority\nThe film\'s music built from real physiology captured here. Twenty-beat heart, blood shift, brain under low O2.',
+    colorHint: '#3d7a94',            // dock teal · science
   },
   {
     id: 'shoot-usa',
@@ -317,6 +327,7 @@ The RV footage is the "long breath" of the film — after every underwater seque
 - Meal / camp discipline
 - Music we play in the RV
 - Who drives what stretch`,
+    colorHint: '#a05133',            // deep coral · desert dusk
   },
   {
     id: 'shoot-coda',
@@ -329,6 +340,7 @@ The RV footage is the "long breath" of the film — after every underwater seque
     captures: ['the four weightless in total black', 'lit only by the glow they stir with their hands', 'silent credits · only breathing returning to normal', 'the audience surfaces with them'],
     presentFour: ['petar','vito','sanda','zsofia'],
     bible: '# The coda — free in the dark\n\nA night dive in bioluminescent water. The four weightless in total black, lit only by the glow. No records, no judges, no card.\n\nThen silent credits: no music, only breathing slowly returning to normal, as the audience surfaces with them.',
+    colorHint: '#123c68',            // deep sea navy · bioluminescent black
   },
 ];
 
@@ -637,6 +649,12 @@ export const SEED_LIGHTS: Light[] = [
   { id: 'light-uw',        brand: 'Kraken',  model: 'Hydra 15000',    type: 'battery',   watts: 150, colorTempK: '5000K',      ownership: 'rented', notes: 'Underwater dive light. Cave + night dive.' },
 ];
 
+/* ---------- Calendar Events (v0.3) ----------
+   Empty by default — the composed view will also render shoots + milestones
+   as ghost events, so the calendar looks alive on first load. */
+
+export const SEED_CALENDAR_EVENTS: CalendarEvent[] = [];
+
 /* ---------- Empty seed containers ---------- */
 
 const EMPTY_INTERVIEWS: Interview[] = [];
@@ -672,6 +690,7 @@ export function makeInitialState(): AppState {
     crew: SEED_CREW,
     schedulePhases: SEED_SCHEDULE_PHASES,
     milestones: SEED_MILESTONES,
+    calendarEvents: SEED_CALENDAR_EVENTS,
     sponsors: SEED_SPONSORS,
     risks: SEED_RISKS,
     contracts: SEED_CONTRACTS,

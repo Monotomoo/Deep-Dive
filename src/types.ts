@@ -64,6 +64,7 @@ export interface TalentFour {
   bio: string;
   contact?: string;
   imageBase64?: string;
+  colorHint?: string;        // signature color (hex) — used in calendar dots
   /* Emotional-arc anchors (from Film Bible) */
   arcNote: string;           // one-line — "the spine of the whole story"
   interiorityNote?: string;
@@ -164,6 +165,7 @@ export interface Shoot {
   presentFour: FourKey[];
   bible: string;
   wonderfulness?: string;
+  colorHint?: string;             // signature color · hex · used in calendar chip borders
   notes?: string;
 }
 
@@ -538,6 +540,36 @@ export interface Light {
   notes?: string;
 }
 
+/* ---------- Calendar Events (v0.3) ----------
+   User-managed events living on the calendar / timeline. Composed view
+   also renders shoots + milestones as read-only ghosts. */
+
+export type CalendarEventKind =
+  | 'shoot'
+  | 'milestone'
+  | 'meeting'
+  | 'travel'
+  | 'delivery'
+  | 'personal'
+  | 'other';
+
+export type RecurrenceRule = 'daily' | 'weekly' | 'monthly';
+
+export interface CalendarEvent {
+  id: string;
+  title: string;
+  startDate: string;              // ISO YYYY-MM-DD
+  endDate?: string;               // ISO YYYY-MM-DD (multi-day range, inclusive)
+  kind: CalendarEventKind;
+  shootId?: string;
+  personKeys?: FourKey[];
+  notes?: string;
+  colorHint?: string;             // optional override hex
+  /* Recurrence (v0.5) */
+  recurrence?: RecurrenceRule;    // if set, event repeats
+  recurrenceEnd?: string;         // ISO YYYY-MM-DD · last possible occurrence (inclusive)
+}
+
 /* ---------- Schedule (phases + milestones) ---------- */
 
 export interface SchedulePhase {
@@ -874,6 +906,7 @@ export interface AppState {
   crew: CrewMember[];
   schedulePhases: SchedulePhase[];
   milestones: Milestone[];
+  calendarEvents: CalendarEvent[];
   sponsors: Sponsor[];
   risks: Risk[];
   contracts: Contract[];

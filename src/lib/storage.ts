@@ -47,6 +47,7 @@ function migrateState(loaded: Partial<AppState>): AppState {
     crew: loaded.crew ?? defaults.crew,
     schedulePhases: loaded.schedulePhases ?? defaults.schedulePhases,
     milestones: loaded.milestones ?? defaults.milestones,
+    calendarEvents: loaded.calendarEvents ?? defaults.calendarEvents,
     sponsors: loaded.sponsors ?? defaults.sponsors,
     risks: loaded.risks ?? defaults.risks,
     contracts: loaded.contracts ?? defaults.contracts,
