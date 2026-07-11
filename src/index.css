@@ -1,0 +1,310 @@
+@import 'tailwindcss';
+
+/* Fraunces — variable serif, optical-sized. Italic axis used heavily for editorial display. */
+@import '@fontsource/fraunces/400.css';
+@import '@fontsource/fraunces/500.css';
+@import '@fontsource/fraunces/400-italic.css';
+@import '@fontsource/fraunces/500-italic.css';
+
+/* Spectral — designed by Production Type for long-form on-screen reading. */
+@import '@fontsource/spectral/400.css';
+@import '@fontsource/spectral/500.css';
+@import '@fontsource/spectral/400-italic.css';
+
+/* Inter — UI labels, small caps tracked, navigation. */
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/500.css';
+@import '@fontsource/inter/600.css';
+
+/*
+  Deep Dive · 2026 — "Two worlds, one film" tokens
+  Dynamic above the surface, sacred below it. The cut between those two
+  worlds IS the film. Warm alive paper for daylight surfaces; deep sacred
+  navy for chrome; Etna coral (the mountain that erupted) as the warmth
+  that replaces brass — the bond, the fire, the hand reaching.
+*/
+@theme {
+  /* Surfaces */
+  --color-chrome: #0a2b4f;         /* sacred deep · below the surface */
+  --color-chrome-deep: #041531;
+  --color-chrome-elevated: #123c68;
+  --color-paper: #f4ecdc;           /* warm cream · alive above */
+  --color-paper-light: #faf4e6;
+  --color-paper-deep: #e6dcc4;
+  --color-paper-card: #fdf8ec;
+
+  /* Transitional steel — bridge water */
+  --color-steel: #2f4b6e;
+  --color-steel-light: #4c6b93;
+
+  /* Text on chrome */
+  --color-on-chrome: #f4ecdc;
+  --color-on-chrome-muted: rgba(244, 236, 220, 0.62);
+  --color-on-chrome-faint: rgba(244, 236, 220, 0.36);
+
+  /* Text on paper */
+  --color-on-paper: #0a2b4f;
+  --color-on-paper-muted: rgba(10, 43, 79, 0.62);
+  --color-on-paper-faint: rgba(10, 43, 79, 0.4);
+
+  /* Borders */
+  --color-border-chrome: rgba(244, 236, 220, 0.1);
+  --color-border-chrome-strong: rgba(244, 236, 220, 0.2);
+  --color-border-paper: rgba(10, 43, 79, 0.11);
+  --color-border-paper-strong: rgba(10, 43, 79, 0.22);
+  --color-border-brass: rgba(217, 108, 61, 0.45);  /* coral border */
+
+  /* Accents · brass IS coral in Deep Dive */
+  --color-dock: #3d7a94;            /* bright surface teal — interactive */
+  --color-dock-deep: #2b5a72;
+  --color-brass: #d96c3d;           /* ETNA coral · the fire that erupted */
+  --color-brass-deep: #b54f26;
+  --color-olive: #6f8a72;           /* success · sea-plant green */
+  --color-olive-deep: #556f5a;
+  --color-coral: #d96c3d;
+  --color-coral-deep: #b54f26;
+
+  /* Status */
+  --color-success: #6f8a72;
+  --color-warn: #d9a93e;
+  --color-danger: #c94a3a;          /* darker coral, still in family */
+
+  /* Fonts */
+  --font-serif: 'Fraunces', 'Georgia', serif;
+  --font-body: 'Spectral', 'Georgia', serif;
+  --font-sans: 'Inter', system-ui, sans-serif;
+
+  /* Type scale */
+  --text-micro: 10.5px;
+  --text-tag: 11px;
+  --text-body: 14.5px;
+  --text-section: 16px;
+  --text-kpi: 56px;
+  --text-page: 52px;
+  --text-display: 96px;
+
+  /* Radii */
+  --radius-card: 4px;
+  --radius-pill: 999px;
+
+  /* Motion */
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --dur-fast: 150ms;
+  --dur-base: 250ms;
+  --dur-slow: 400ms;
+}
+
+/* Base resets */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+html {
+  background: var(--color-paper);
+  /* iOS Safari: respect dynamic viewport (account for browser chrome). */
+  height: 100%;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: var(--text-body);
+  color: var(--color-on-paper);
+  background: var(--color-paper);
+  font-feature-settings: 'tnum' 1, 'cv02' 1, 'cv03' 1, 'cv04' 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  text-rendering: optimizeLegibility;
+  overflow: hidden;
+  /* iOS Safari: kill the grey tap-highlight on touch. We render our own active states. */
+  -webkit-tap-highlight-color: transparent;
+  /* Prevent overscroll bounce on iOS (containers handle their own scroll). */
+  overscroll-behavior: none;
+}
+
+/* Phase 11 — touch device tap targets.
+   On coarse-pointer (touch) devices, bump small actionable elements to 44×44. */
+@media (pointer: coarse) {
+  button, [role="button"], a {
+    min-height: 32px;
+  }
+}
+
+::selection {
+  background: rgba(61, 114, 128, 0.25);
+  color: var(--color-on-paper);
+}
+
+/*
+  Paper texture — like light through water.
+  Multiply blend, low opacity, deep-blue tinted noise. Reads like the
+  film's tone: alive but with something sacred underneath.
+*/
+body::after {
+  content: '';
+  position: fixed;
+  inset: -10%;
+  pointer-events: none;
+  z-index: 9999;
+  opacity: 0.04;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='280'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch' seed='5'/><feColorMatrix values='0 0 0 0 0.04  0 0 0 0 0.17  0 0 0 0 0.31  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 280px 280px;
+  mix-blend-mode: multiply;
+  animation: grain-shift 1.4s steps(8) infinite;
+}
+
+@keyframes grain-shift {
+  0%   { transform: translate(0, 0); }
+  10%  { transform: translate(-2%, -4%); }
+  20%  { transform: translate(-6%, 2%); }
+  30%  { transform: translate(3%, -8%); }
+  40%  { transform: translate(-1%, 8%); }
+  50%  { transform: translate(-5%, 3%); }
+  60%  { transform: translate(6%, 0); }
+  70%  { transform: translate(0, 5%); }
+  80%  { transform: translate(2%, -5%); }
+  90%  { transform: translate(-4%, 3%); }
+  100% { transform: translate(0, 0); }
+}
+
+/* Letterbox bars (splash + print) */
+.letterbox-top,
+.letterbox-bottom {
+  position: fixed;
+  left: 0;
+  right: 0;
+  background: var(--color-chrome-deep);
+  z-index: 100;
+  pointer-events: none;
+}
+.letterbox-top { top: 0; }
+.letterbox-bottom { bottom: 0; }
+
+/* Subtle vignette for splash + hero areas */
+.vignette::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    ellipse at center,
+    transparent 50%,
+    rgba(0, 0, 0, 0.32) 100%
+  );
+}
+
+/*
+  Editorial typography utilities
+*/
+
+/* Small-caps tracked label (Inter, used for technical labels and section heads) */
+.label-caps {
+  font-family: var(--font-sans);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+/* Italic serif display (Fraunces) */
+.display-italic {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  line-height: 1.05;
+  letter-spacing: -0.01em;
+}
+
+/* Body prose (Spectral) */
+.prose-body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+/* Hairline brass divider — used between sections */
+.rule-brass {
+  border-top: 0.5px solid var(--color-border-brass);
+}
+
+/* Ornamental section mark — small italic asterisk in brass, centered */
+.ornament-mark::before {
+  content: '*';
+  display: block;
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-size: 16px;
+  color: var(--color-brass);
+  text-align: center;
+  margin: 0 auto;
+}
+
+/* Custom scrollbar — paper aesthetic */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(14, 30, 54, 0.15);
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(14, 30, 54, 0.3);
+}
+
+.scrollbar-chrome::-webkit-scrollbar-thumb {
+  background: rgba(242, 234, 217, 0.1);
+}
+.scrollbar-chrome::-webkit-scrollbar-thumb:hover {
+  background: rgba(242, 234, 217, 0.2);
+}
+
+/* Focus ring — dock teal */
+*:focus-visible {
+  outline: 1.5px solid var(--color-dock);
+  outline-offset: 3px;
+  border-radius: 1px;
+}
+
+/* Print mode */
+@media print {
+  @page {
+    size: A4;
+    margin: 18mm 16mm;
+  }
+  body::after { display: none; }
+  body {
+    overflow: visible;
+    background: white;
+  }
+  html { background: white; }
+  .no-print { display: none !important; }
+  aside { display: none !important; }
+  /* Allow content to flow naturally without scrolling viewport */
+  .h-screen { height: auto !important; }
+  .overflow-hidden { overflow: visible !important; }
+  .overflow-y-auto { overflow: visible !important; }
+  /* Each pitch-deck slide on its own A4 page */
+  .print-slide {
+    break-inside: avoid;
+    page-break-inside: avoid;
+    page-break-after: always;
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+  }
+  .print-slide:last-child { page-break-after: auto; }
+}
