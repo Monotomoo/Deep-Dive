@@ -399,7 +399,7 @@ function TopicsSegment({ onAdd, onFocus }: { onAdd: () => void; onFocus: (ref: E
             >
               <div className="display-italic text-[18px] text-[color:var(--color-on-paper)] leading-tight mb-1">{top.title}</div>
               <p className="prose-body italic text-[12.5px] text-[color:var(--color-on-paper-muted)] leading-snug flex-1">
-                {top.question}
+                “{top.question}”
               </p>
               <div className="flex flex-wrap items-center gap-1.5 mt-3 pt-2 border-t-[0.5px] border-[color:var(--color-border-paper)]">
                 {(top.threadIds ?? []).map((tid) => {
