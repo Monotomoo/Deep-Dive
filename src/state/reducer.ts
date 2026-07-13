@@ -5,6 +5,8 @@ import type {
   Broadcaster,
   CalendarEvent,
   Camera,
+  ChoirEntry,
+  ChoirQuestion,
   Contract,
   CoverageCam,
   CrewMember,
@@ -13,12 +15,17 @@ import type {
   FestivalSubmission,
   FourKey,
   GrammarDevice,
+  Holder,
+  HubIdea,
   Interview,
   JournalEntry,
   Lens,
+  LifeEvent,
   Light,
   Microphone,
   Milestone,
+  MotifChain,
+  MotifItem,
   Note,
   PhysiologyDatum,
   RecordAttempt,
@@ -32,11 +39,17 @@ import type {
   ShootDay,
   Sponsor,
   SpineIdea,
+  StoryEvent,
   Talent,
   TalentFour,
   Task,
   Thread,
   ThreadQuestion,
+  Topic,
+  TripCostLine,
+  TripDay,
+  TripStop,
+  UsaTrip,
   ViewKey,
   WatcherMoment,
 } from '../types';
@@ -143,6 +156,50 @@ export type Action =
   | { type: 'ADD_CALENDAR_EVENT'; event: CalendarEvent }
   | { type: 'UPDATE_CALENDAR_EVENT'; id: string; patch: Partial<CalendarEvent> }
   | { type: 'DELETE_CALENDAR_EVENT'; id: string }
+  /* v0.6 — Surface (holders) */
+  | { type: 'ADD_HOLDER'; holder: Holder }
+  | { type: 'UPDATE_HOLDER'; id: string; patch: Partial<Holder> }
+  | { type: 'DELETE_HOLDER'; id: string }
+  /* v0.6 — Choir (questions + entries) */
+  | { type: 'ADD_CHOIR_QUESTION'; question: ChoirQuestion }
+  | { type: 'UPDATE_CHOIR_QUESTION'; id: string; patch: Partial<ChoirQuestion> }
+  | { type: 'DELETE_CHOIR_QUESTION'; id: string }
+  | { type: 'ADD_CHOIR_ENTRY'; entry: ChoirEntry }
+  | { type: 'UPDATE_CHOIR_ENTRY'; id: string; patch: Partial<ChoirEntry> }
+  | { type: 'DELETE_CHOIR_ENTRY'; id: string }
+  /* v0.6 — Life Mosaic (life events) */
+  | { type: 'ADD_LIFE_EVENT'; event: LifeEvent }
+  | { type: 'UPDATE_LIFE_EVENT'; id: string; patch: Partial<LifeEvent> }
+  | { type: 'DELETE_LIFE_EVENT'; id: string }
+  /* v0.6 — Resonance (motif chains + items) */
+  | { type: 'ADD_MOTIF_CHAIN'; chain: MotifChain }
+  | { type: 'UPDATE_MOTIF_CHAIN'; id: string; patch: Partial<MotifChain> }
+  | { type: 'DELETE_MOTIF_CHAIN'; id: string }
+  | { type: 'ADD_MOTIF_ITEM'; chainId: string; item: MotifItem }
+  | { type: 'UPDATE_MOTIF_ITEM'; chainId: string; itemId: string; patch: Partial<MotifItem> }
+  | { type: 'DELETE_MOTIF_ITEM'; chainId: string; itemId: string }
+  /* v0.8 — story graph + idea hub */
+  | { type: 'ADD_STORY_EVENT'; event: StoryEvent }
+  | { type: 'UPDATE_STORY_EVENT'; id: string; patch: Partial<StoryEvent> }
+  | { type: 'DELETE_STORY_EVENT'; id: string }
+  | { type: 'ADD_TOPIC'; topic: Topic }
+  | { type: 'UPDATE_TOPIC'; id: string; patch: Partial<Topic> }
+  | { type: 'DELETE_TOPIC'; id: string }
+  | { type: 'ADD_HUB_IDEA'; idea: HubIdea }
+  | { type: 'UPDATE_HUB_IDEA'; id: string; patch: Partial<HubIdea> }
+  | { type: 'DELETE_HUB_IDEA'; id: string }
+  /* v0.9 — USA trip */
+  | { type: 'UPDATE_TRIP'; patch: Partial<UsaTrip> }
+  | { type: 'ADD_TRIP_STOP'; stop: TripStop }
+  | { type: 'UPDATE_TRIP_STOP'; id: string; patch: Partial<TripStop> }
+  | { type: 'DELETE_TRIP_STOP'; id: string }
+  | { type: 'REORDER_TRIP_STOPS'; ids: string[] }
+  | { type: 'ADD_TRIP_COST'; cost: TripCostLine }
+  | { type: 'UPDATE_TRIP_COST'; id: string; patch: Partial<TripCostLine> }
+  | { type: 'DELETE_TRIP_COST'; id: string }
+  | { type: 'ADD_TRIP_DAY'; day: TripDay }
+  | { type: 'UPDATE_TRIP_DAY'; id: string; patch: Partial<TripDay> }
+  | { type: 'DELETE_TRIP_DAY'; id: string }
   | { type: 'ADD_SPONSOR'; sponsor: Sponsor }
   | { type: 'UPDATE_SPONSOR'; id: string; patch: Partial<Sponsor> }
   | { type: 'DELETE_SPONSOR'; id: string }
@@ -326,6 +383,83 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'ADD_CALENDAR_EVENT':    return { ...state, calendarEvents: [...state.calendarEvents, action.event] };
     case 'UPDATE_CALENDAR_EVENT': return { ...state, calendarEvents: upd(state.calendarEvents, action.id, action.patch) };
     case 'DELETE_CALENDAR_EVENT': return { ...state, calendarEvents: del(state.calendarEvents, action.id) };
+
+    /* v0.6 — Surface (holders) */
+    case 'ADD_HOLDER':    return { ...state, holders: [...state.holders, action.holder] };
+    case 'UPDATE_HOLDER': return { ...state, holders: upd(state.holders, action.id, action.patch) };
+    case 'DELETE_HOLDER': return { ...state, holders: del(state.holders, action.id) };
+
+    /* v0.6 — Choir */
+    case 'ADD_CHOIR_QUESTION':    return { ...state, choirQuestions: [...state.choirQuestions, action.question] };
+    case 'UPDATE_CHOIR_QUESTION': return { ...state, choirQuestions: upd(state.choirQuestions, action.id, action.patch) };
+    case 'DELETE_CHOIR_QUESTION': return {
+      ...state,
+      choirQuestions: del(state.choirQuestions, action.id),
+      choirEntries: state.choirEntries.filter((e) => e.questionId !== action.id),
+    };
+    case 'ADD_CHOIR_ENTRY':    return { ...state, choirEntries: [...state.choirEntries, action.entry] };
+    case 'UPDATE_CHOIR_ENTRY': return { ...state, choirEntries: upd(state.choirEntries, action.id, action.patch) };
+    case 'DELETE_CHOIR_ENTRY': return { ...state, choirEntries: del(state.choirEntries, action.id) };
+
+    /* v0.6 — Life Mosaic */
+    case 'ADD_LIFE_EVENT':    return { ...state, lifeEvents: [...state.lifeEvents, action.event] };
+    case 'UPDATE_LIFE_EVENT': return { ...state, lifeEvents: upd(state.lifeEvents, action.id, action.patch) };
+    case 'DELETE_LIFE_EVENT': return { ...state, lifeEvents: del(state.lifeEvents, action.id) };
+
+    /* v0.6 — Resonance */
+    case 'ADD_MOTIF_CHAIN':    return { ...state, motifChains: [...state.motifChains, action.chain] };
+    case 'UPDATE_MOTIF_CHAIN': return { ...state, motifChains: upd(state.motifChains, action.id, action.patch) };
+    case 'DELETE_MOTIF_CHAIN': return { ...state, motifChains: del(state.motifChains, action.id) };
+    case 'ADD_MOTIF_ITEM':     return {
+      ...state,
+      motifChains: state.motifChains.map((c) =>
+        c.id === action.chainId ? { ...c, items: [...c.items, action.item] } : c,
+      ),
+    };
+    case 'UPDATE_MOTIF_ITEM':  return {
+      ...state,
+      motifChains: state.motifChains.map((c) =>
+        c.id === action.chainId
+          ? { ...c, items: c.items.map((it) => (it.id === action.itemId ? { ...it, ...action.patch } : it)) }
+          : c,
+      ),
+    };
+    case 'DELETE_MOTIF_ITEM':  return {
+      ...state,
+      motifChains: state.motifChains.map((c) =>
+        c.id === action.chainId ? { ...c, items: c.items.filter((it) => it.id !== action.itemId) } : c,
+      ),
+    };
+
+    /* v0.8 — story graph + idea hub */
+    case 'ADD_STORY_EVENT':    return { ...state, storyEvents: [...state.storyEvents, action.event] };
+    case 'UPDATE_STORY_EVENT': return { ...state, storyEvents: upd(state.storyEvents, action.id, action.patch) };
+    case 'DELETE_STORY_EVENT': return { ...state, storyEvents: del(state.storyEvents, action.id) };
+    case 'ADD_TOPIC':          return { ...state, topics: [...state.topics, action.topic] };
+    case 'UPDATE_TOPIC':       return { ...state, topics: upd(state.topics, action.id, action.patch) };
+    case 'DELETE_TOPIC':       return { ...state, topics: del(state.topics, action.id) };
+    case 'ADD_HUB_IDEA':       return { ...state, hubIdeas: [...state.hubIdeas, action.idea] };
+    case 'UPDATE_HUB_IDEA':    return { ...state, hubIdeas: upd(state.hubIdeas, action.id, action.patch) };
+    case 'DELETE_HUB_IDEA':    return { ...state, hubIdeas: del(state.hubIdeas, action.id) };
+
+    /* v0.9 — USA trip */
+    case 'UPDATE_TRIP':        return { ...state, usaTrip: { ...state.usaTrip, ...action.patch } };
+    case 'ADD_TRIP_STOP':      return { ...state, usaTrip: { ...state.usaTrip, stops: [...state.usaTrip.stops, action.stop] } };
+    case 'UPDATE_TRIP_STOP':   return { ...state, usaTrip: { ...state.usaTrip, stops: upd(state.usaTrip.stops, action.id, action.patch) } };
+    case 'DELETE_TRIP_STOP':   return { ...state, usaTrip: { ...state.usaTrip, stops: del(state.usaTrip.stops, action.id) } };
+    case 'REORDER_TRIP_STOPS': return {
+      ...state,
+      usaTrip: {
+        ...state.usaTrip,
+        stops: action.ids.map((id) => state.usaTrip.stops.find((s) => s.id === id)).filter((s): s is TripStop => !!s),
+      },
+    };
+    case 'ADD_TRIP_COST':      return { ...state, usaTrip: { ...state.usaTrip, costs: [...state.usaTrip.costs, action.cost] } };
+    case 'UPDATE_TRIP_COST':   return { ...state, usaTrip: { ...state.usaTrip, costs: upd(state.usaTrip.costs, action.id, action.patch) } };
+    case 'DELETE_TRIP_COST':   return { ...state, usaTrip: { ...state.usaTrip, costs: del(state.usaTrip.costs, action.id) } };
+    case 'ADD_TRIP_DAY':       return { ...state, usaTrip: { ...state.usaTrip, days: [...state.usaTrip.days, action.day] } };
+    case 'UPDATE_TRIP_DAY':    return { ...state, usaTrip: { ...state.usaTrip, days: upd(state.usaTrip.days, action.id, action.patch) } };
+    case 'DELETE_TRIP_DAY':    return { ...state, usaTrip: { ...state.usaTrip, days: del(state.usaTrip.days, action.id) } };
 
     /* Sponsors + Risks + Contracts + Journal */
     case 'ADD_SPONSOR':    return { ...state, sponsors: [...state.sponsors, action.sponsor] };

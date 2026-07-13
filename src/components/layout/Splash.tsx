@@ -2,174 +2,63 @@ import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { markSplashSeen } from '../../lib/storage';
 
-/* Deep Dive epigraph — the film's north star */
-const DEEP_DIVE_EPIGRAPH = {
-  line: 'one person holds another in the world',
-};
-
-type Phase =
-  | 'fade-in'
-  | 'letterbox-in'
-  | 'title'
-  | 'subtitle'
-  | 'epigraph'
-  | 'hold'
-  | 'letterbox-out'
-  | 'done';
+/* A short, simple open — "Deep Dive" and the epigraph fade up on deep water,
+   hold a beat, then fade away into the app. ~2 seconds, auto-enters, no click
+   required (a click just skips the last half-second). */
 
 interface Props {
   onComplete: () => void;
 }
 
-/*
-  Editorial cinematic open.
-  Letterbox bars in → italic Fraunces "Deep Dive" fades in + drifts up →
-  italic subtitle "a feature and a series" fades in → epigraph fades in →
-  hold → letterbox bars expand outward → reveal app.
-  Total ~4.5s. Click anywhere to skip.
-*/
+type Phase = 'in' | 'hold' | 'out' | 'done';
+
 export function Splash({ onComplete }: Props) {
-  const [phase, setPhase] = useState<Phase>('fade-in');
+  const [phase, setPhase] = useState<Phase>('in');
 
   useEffect(() => {
     const advance = (n: Phase, ms: number) => {
       const id = window.setTimeout(() => setPhase(n), ms);
       return () => window.clearTimeout(id);
     };
-    if (phase === 'fade-in')       return advance('letterbox-in', 200);
-    if (phase === 'letterbox-in')  return advance('title', 600);
-    if (phase === 'title')         return advance('subtitle', 1100);
-    if (phase === 'subtitle')      return advance('epigraph', 700);
-    if (phase === 'epigraph')      return advance('hold', 600);
-    if (phase === 'hold')          return advance('letterbox-out', 700);
-    if (phase === 'letterbox-out') return advance('done', 750);
+    if (phase === 'in')   return advance('hold', 600);
+    if (phase === 'hold') return advance('out', 850);
+    if (phase === 'out')  return advance('done', 500);
     if (phase === 'done') {
       markSplashSeen();
-      const t = window.setTimeout(onComplete, 250);
-      return () => window.clearTimeout(t);
+      const id = window.setTimeout(onComplete, 60);
+      return () => window.clearTimeout(id);
     }
     // onComplete is stable (useCallback in parent); intentionally omitted
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase]);
 
-  function skip() {
-    if (phase === 'done') return;
-    setPhase('letterbox-out');
-  }
-
-  const titleVisible =
-    phase === 'title' ||
-    phase === 'subtitle' ||
-    phase === 'epigraph' ||
-    phase === 'hold' ||
-    phase === 'letterbox-out';
-
-  const subtitleVisible =
-    phase === 'subtitle' ||
-    phase === 'epigraph' ||
-    phase === 'hold' ||
-    phase === 'letterbox-out';
-
-  const epigraphVisible =
-    phase === 'epigraph' || phase === 'hold' || phase === 'letterbox-out';
-
-  const lettersIn =
-    phase === 'letterbox-in' ||
-    phase === 'title' ||
-    phase === 'subtitle' ||
-    phase === 'epigraph' ||
-    phase === 'hold';
-
-  const lettersOut = phase === 'letterbox-out' || phase === 'done';
+  const visible = phase === 'in' || phase === 'hold';
 
   return (
     <AnimatePresence>
       {phase !== 'done' && (
         <motion.div
           key="splash"
-          className="fixed inset-0 z-[200] bg-black flex items-center justify-center cursor-pointer overflow-hidden"
-          onClick={skip}
+          className="fixed inset-0 z-[200] flex items-center justify-center overflow-hidden cursor-pointer"
+          style={{ background: 'radial-gradient(ellipse at center, #0a2b4f 0%, #041531 62%, #000 100%)' }}
           initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          exit={{ opacity: 0 }}
-          transition={{ duration: 0.35 }}
+          animate={{ opacity: phase === 'out' ? 0 : 1 }}
+          transition={{ duration: 0.5, ease: [0.16, 1, 0.3, 1] }}
+          onClick={() => setPhase('out')}
         >
-          {/* Letterbox bars */}
           <motion.div
-            className="absolute left-0 right-0 bg-[color:var(--color-chrome-deep)]"
-            initial={{ top: -120, height: 100 }}
-            animate={{
-              top: lettersIn ? 0 : lettersOut ? -260 : -120,
-              height: lettersIn ? 90 : lettersOut ? 260 : 100,
-            }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          />
-          <motion.div
-            className="absolute left-0 right-0 bg-[color:var(--color-chrome-deep)]"
-            initial={{ bottom: -120, height: 100 }}
-            animate={{
-              bottom: lettersIn ? 0 : lettersOut ? -260 : -120,
-              height: lettersIn ? 90 : lettersOut ? 260 : 100,
-            }}
-            transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-          />
-
-          {/* Vignette */}
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background:
-                'radial-gradient(ellipse at center, transparent 35%, rgba(0,0,0,0.6) 100%)',
-            }}
-          />
-
-          {/* Center stage */}
-          <div className="relative text-center px-10 max-w-3xl">
-            <AnimatePresence>
-              {titleVisible && (
-                <motion.h1
-                  key="title"
-                  initial={{ opacity: 0, y: 14 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ duration: 0.95, ease: [0.16, 1, 0.3, 1] }}
-                  className="display-italic text-[clamp(72px,11vw,128px)] text-[color:var(--color-paper)] leading-[0.95]"
-                >
-                  Deep&nbsp;Dive
-                </motion.h1>
-              )}
-            </AnimatePresence>
-            <AnimatePresence>
-              {subtitleVisible && (
-                <motion.div
-                  key="subtitle"
-                  initial={{ opacity: 0, y: 8 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
-                  className="prose-body italic text-[18px] text-[color:var(--color-brass)] mt-7"
-                >
-                  a feature and a series
-                </motion.div>
-              )}
-            </AnimatePresence>
-            <AnimatePresence>
-              {epigraphVisible && (
-                <motion.div
-                  key="epigraph"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ duration: 0.6 }}
-                  className="prose-body italic text-[13px] text-[color:var(--color-on-chrome-faint)] mt-4 tracking-wide"
-                >
-                  {DEEP_DIVE_EPIGRAPH.line}
-                </motion.div>
-              )}
-            </AnimatePresence>
-          </div>
-
-          <div className="absolute bottom-6 right-9 label-caps text-[color:var(--color-on-chrome-faint)]">
-            click to skip
-          </div>
+            className="text-center px-10"
+            initial={{ opacity: 0, y: 12 }}
+            animate={{ opacity: visible ? 1 : 0, y: visible ? 0 : -6 }}
+            transition={{ duration: 0.7, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <h1 className="display-italic text-[clamp(64px,10vw,116px)] text-[color:var(--color-paper)] leading-[0.95]">
+              Deep&nbsp;Dive
+            </h1>
+            <div className="prose-body italic text-[13px] md:text-[15px] text-[color:var(--color-brass)] mt-5 tracking-wide">
+              one person holds another in the world
+            </div>
+          </motion.div>
         </motion.div>
       )}
     </AnimatePresence>

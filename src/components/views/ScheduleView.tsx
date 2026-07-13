@@ -761,17 +761,27 @@ function TimelineView({ events, selection, onSelect, onEventClick, onReschedule 
   const { state } = useApp();
   const t = useT();
   const totalDays = differenceInDays(RANGE_END, RANGE_START) + 1;
-  const pxPerDay = 3;
+  const pxPerDay = 4.6;
   const totalWidth = totalDays * pxPerDay;
+  const HEADER_H = 54;
+  const LANE_H = 52;
 
   const [dragPreview, setDragPreview] = useState<{ id: string; leftOffset: number } | null>(null);
 
+  const activeKinds = useMemo(() => KIND_KEYS.filter((k) => events.some((e) => e.kind === k)), [events]);
+
   const monthMarkers = useMemo(() => {
-    const markers: { date: Date; label: string; offset: number }[] = [];
+    const markers: { date: Date; label: string; offset: number; isYear: boolean; even: boolean }[] = [];
     let d = new Date(RANGE_START);
     while (d <= RANGE_END) {
-      const label = `${t(`schedule.month.${format(d, 'MMM').toLowerCase()}` as StringKey).substring(0,3)} ${format(d, 'yy')}`;
-      markers.push({ date: new Date(d), label, offset: differenceInDays(d, RANGE_START) * pxPerDay });
+      const label = t(`schedule.month.${format(d, 'MMM').toLowerCase()}` as StringKey).substring(0, 3);
+      markers.push({
+        date: new Date(d),
+        label,
+        offset: differenceInDays(d, RANGE_START) * pxPerDay,
+        isYear: d.getMonth() === 0,
+        even: d.getMonth() % 2 === 0,
+      });
       d = addMonths(d, 1);
     }
     return markers;
@@ -817,79 +827,125 @@ function TimelineView({ events, selection, onSelect, onEventClick, onReschedule 
     window.addEventListener('pointerup', onUp);
   }
 
+  const gridH = HEADER_H + activeKinds.length * LANE_H;
+
   return (
-    <div className="bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-border-paper)] rounded-[3px]">
-      <div className="overflow-x-auto">
-        <div className="relative" style={{ width: `${totalWidth}px`, minWidth: '100%' }}>
-          <div className="relative h-12 border-b-[0.5px] border-[color:var(--color-border-paper)]">
+    <div className="flex bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-border-paper)] rounded-[4px] overflow-hidden">
+      {/* Fixed left rail — lane labels stay put while the timeline scrolls */}
+      <div className="shrink-0 w-[128px] border-r-[0.5px] border-[color:var(--color-border-paper-strong)] bg-[color:var(--color-paper-card)]">
+        <div style={{ height: HEADER_H }} className="border-b-[0.5px] border-[color:var(--color-border-paper)] flex items-end px-3 pb-2">
+          <span className="label-caps text-[9px] text-[color:var(--color-brass-deep)]">lanes</span>
+        </div>
+        {activeKinds.map((kind) => (
+          <div key={kind} style={{ height: LANE_H }} className="flex items-center gap-2 px-3 border-b-[0.5px] border-[color:var(--color-border-paper)] last:border-0">
+            <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ background: KIND_COLORS[kind] }} />
+            <span className="font-sans text-[11px] text-[color:var(--color-on-paper)] leading-tight">{t(`schedule.kind.${kind}` as StringKey)}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Scrollable timeline */}
+      <div className="overflow-x-auto flex-1 scrollbar-chrome">
+        <div className="relative" style={{ width: `${totalWidth}px`, height: gridH }}>
+          {/* Alternating month background bands */}
+          {monthMarkers.map((m, i) => {
+            const next = monthMarkers[i + 1];
+            const w = (next ? next.offset : totalWidth) - m.offset;
+            return (
+              <div
+                key={`band-${m.date.toISOString()}`}
+                className="absolute top-0"
+                style={{ left: m.offset, width: w, height: gridH, background: m.even ? 'transparent' : 'rgba(10,43,79,0.025)' }}
+              />
+            );
+          })}
+
+          {/* Month grid lines */}
+          {monthMarkers.map((m) => (
+            <div
+              key={`line-${m.date.toISOString()}`}
+              className="absolute top-0 pointer-events-none"
+              style={{ left: m.offset, height: gridH, borderLeft: m.isYear ? '1px solid rgba(10,43,79,0.18)' : '0.5px solid rgba(10,43,79,0.07)' }}
+            />
+          ))}
+
+          {/* Header */}
+          <div className="absolute top-0 left-0 right-0" style={{ height: HEADER_H }}>
             {monthMarkers.map((m) => (
-              <div key={m.date.toISOString()} className="absolute top-0 h-full" style={{ left: `${m.offset}px` }}>
-                <div className="absolute top-0 left-0 h-full border-l-[0.5px] border-[color:var(--color-border-paper)]" />
-                <div className="absolute top-2 left-1 label-caps text-[9px] text-[color:var(--color-brass-deep)] whitespace-nowrap">
+              <div key={`hdr-${m.date.toISOString()}`} className="absolute top-0" style={{ left: m.offset }}>
+                {m.isYear && (
+                  <div className="absolute top-2 left-1.5 display-italic text-[17px] text-[color:var(--color-brass)] leading-none whitespace-nowrap">
+                    {format(m.date, 'yyyy')}
+                  </div>
+                )}
+                <div className="absolute left-1.5 label-caps text-[8px] text-[color:var(--color-on-paper-muted)] whitespace-nowrap" style={{ top: m.isYear ? 30 : 20 }}>
                   {m.label}
                 </div>
               </div>
             ))}
-            {todayOffset > 0 && todayOffset < totalWidth && (
-              <div className="absolute top-0 h-full border-l-2 border-[color:var(--color-brass)] pointer-events-none" style={{ left: `${todayOffset}px` }}>
-                <div className="absolute top-0 left-0.5 label-caps text-[9px] text-[color:var(--color-brass)]">{t('schedule.today')}</div>
-              </div>
-            )}
           </div>
 
-          <div className="relative">
-            {KIND_KEYS.map((kind, laneIdx) => {
-              const laneEvents = events.filter((e) => e.kind === kind);
-              if (laneEvents.length === 0) return null;
-              return (
-                <div key={kind} className={`relative h-10 ${laneIdx > 0 ? 'border-t-[0.5px] border-[color:var(--color-border-paper)]' : ''}`}>
-                  <div className="absolute left-2 top-1 label-caps text-[9px] text-[color:var(--color-brass-deep)] z-10 bg-[color:var(--color-paper-light)] pr-2">
-                    {t(`schedule.kind.${kind}` as StringKey)}
-                  </div>
-                  {todayOffset > 0 && todayOffset < totalWidth && (
-                    <div className="absolute top-0 h-full border-l-[1px] border-[color:var(--color-brass)]/40 pointer-events-none" style={{ left: `${todayOffset}px` }} />
-                  )}
-                  {laneEvents.map((e) => {
-                    const start = parseISO(e.startDate);
-                    const end = e.endDate ? parseISO(e.endDate) : start;
-                    const leftDays = differenceInDays(start, RANGE_START);
-                    const durationDays = differenceInDays(end, start) + 1;
-                    const preview = dragPreview?.id === e.id;
-                    const left = preview ? (dragPreview?.leftOffset ?? 0) : leftDays * pxPerDay;
-                    const width = Math.max(durationDays * pxPerDay, 6);
-                    const shoot = e.shootId ? state.shoots.find((s) => s.id === e.shootId) : null;
-                    const isSel = selection.has(e.id);
-                    return (
-                      <div
-                        key={e.id}
-                        onPointerDown={(ev) => onBarPointerDown(ev, e)}
-                        className={`absolute top-4 h-5 rounded-[2px] hover:ring-1 hover:ring-[color:var(--color-brass)] transition-shadow ${e.draggable && !e.isRecurrenceInstance ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} ${isSel ? 'ring-2 ring-[color:var(--color-brass)]' : ''}`}
-                        style={{
-                          left: `${left}px`,
-                          width: `${width}px`,
-                          background: KIND_COLORS[e.kind],
-                          borderLeft: `3px solid ${shoot?.colorHint ?? (e.source !== 'user' ? `color-mix(in srgb, ${KIND_COLORS[e.kind]} 60%, black)` : KIND_COLORS[e.kind])}`,
-                          opacity: preview ? 0.6 : (e.source !== 'user' ? 0.85 : 1),
-                        }}
-                        title={`${e.title} · ${e.startDate}${e.endDate ? ` → ${e.endDate}` : ''}${e.recurring ? ' · repeats' : ''}`}
-                      >
-                        {width > 40 && (
-                          <div className="px-1.5 text-[9px] leading-tight text-[color:var(--color-paper)] truncate flex items-center gap-1 h-full">
-                            {(e.personKeys ?? []).map((pk) => {
-                              const p = state.four.find((f) => f.key === pk);
-                              return <span key={pk} className="w-1.5 h-1.5 rounded-full shrink-0 border border-[color:var(--color-paper)]/40" style={{ background: p?.colorHint ?? 'var(--color-paper)' }} />;
-                            })}
-                            <span className="truncate">{e.title}</span>
-                            {e.recurring && <Repeat size={7} className="opacity-70" />}
-                          </div>
-                        )}
-                      </div>
-                    );
-                  })}
-                </div>
-              );
-            })}
-          </div>
+          {/* Today marker */}
+          {todayOffset > 0 && todayOffset < totalWidth && (
+            <div className="absolute top-0 pointer-events-none z-20" style={{ left: todayOffset, height: gridH }}>
+              <div className="absolute top-0 h-full w-[2px]" style={{ background: 'linear-gradient(to bottom, var(--color-brass), transparent)' }} />
+              <div className="absolute top-1 -translate-x-1/2 left-0 px-1.5 py-0.5 rounded-full bg-[color:var(--color-brass)] text-[color:var(--color-paper-light)] text-[8px] tracking-wide uppercase whitespace-nowrap">
+                {t('schedule.today')}
+              </div>
+            </div>
+          )}
+
+          {/* Lanes */}
+          {activeKinds.map((kind, laneIdx) => {
+            const laneEvents = events.filter((e) => e.kind === kind);
+            return (
+              <div
+                key={kind}
+                className="absolute left-0 right-0 border-b-[0.5px] border-[color:var(--color-border-paper)]"
+                style={{ top: HEADER_H + laneIdx * LANE_H, height: LANE_H }}
+              >
+                {laneEvents.map((e) => {
+                  const start = parseISO(e.startDate);
+                  const end = e.endDate ? parseISO(e.endDate) : start;
+                  const leftDays = differenceInDays(start, RANGE_START);
+                  const durationDays = differenceInDays(end, start) + 1;
+                  const preview = dragPreview?.id === e.id;
+                  const left = preview ? (dragPreview?.leftOffset ?? 0) : leftDays * pxPerDay;
+                  const width = Math.max(durationDays * pxPerDay, 8);
+                  const shoot = e.shootId ? state.shoots.find((s) => s.id === e.shootId) : null;
+                  const isSel = selection.has(e.id);
+                  const accent = shoot?.colorHint ?? KIND_COLORS[e.kind];
+                  return (
+                    <div
+                      key={e.id}
+                      onPointerDown={(ev) => onBarPointerDown(ev, e)}
+                      className={`absolute h-7 rounded-[5px] shadow-[0_1px_3px_rgba(10,30,54,0.18)] hover:shadow-[0_2px_8px_rgba(10,30,54,0.28)] transition-shadow ${e.draggable && !e.isRecurrenceInstance ? 'cursor-grab active:cursor-grabbing' : 'cursor-pointer'} ${isSel ? 'ring-2 ring-[color:var(--color-brass)] ring-offset-1 ring-offset-[color:var(--color-paper-light)]' : ''}`}
+                      style={{
+                        left: `${left}px`,
+                        width: `${width}px`,
+                        top: (LANE_H - 28) / 2,
+                        background: `linear-gradient(180deg, color-mix(in srgb, ${KIND_COLORS[e.kind]} 92%, white) 0%, ${KIND_COLORS[e.kind]} 100%)`,
+                        borderLeft: `3px solid ${accent}`,
+                        opacity: preview ? 0.55 : (e.source !== 'user' ? 0.9 : 1),
+                      }}
+                      title={`${e.title} · ${e.startDate}${e.endDate ? ` → ${e.endDate}` : ''}${e.recurring ? ' · repeats' : ''}`}
+                    >
+                      {width > 46 && (
+                        <div className="px-2 text-[10px] leading-tight text-[color:var(--color-paper)] truncate flex items-center gap-1 h-full">
+                          {(e.personKeys ?? []).map((pk) => {
+                            const p = state.four.find((f) => f.key === pk);
+                            return <span key={pk} className="w-1.5 h-1.5 rounded-full shrink-0 border border-[color:var(--color-paper)]/50" style={{ background: p?.colorHint ?? 'var(--color-paper)' }} />;
+                          })}
+                          <span className="truncate font-sans">{e.title}</span>
+                          {e.recurring && <Repeat size={8} className="opacity-70 shrink-0" />}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })}
         </div>
       </div>
     </div>

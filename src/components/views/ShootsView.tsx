@@ -1,13 +1,16 @@
 import { useState } from 'react';
-import { Plus, Trash2, Edit3, Check, X } from 'lucide-react';
+import { Plus, Trash2, Edit3, Check, X, Share2 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import { useT } from '../../i18n';
+import { ConnectionDrawer } from '../ConnectionDrawer';
+import { VIEW_FOR_ENTITY, type EntityRef } from '../../lib/connections';
 import type { Shoot, ShootDay } from '../../types';
 
 export function ShootsView() {
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const t = useT();
   const [openId, setOpenId] = useState<string | null>('shoot-sicily');
+  const [focusRef, setFocusRef] = useState<EntityRef | null>(null);
 
   return (
     <div className="space-y-6 max-w-[1400px]">
@@ -20,14 +23,18 @@ export function ShootsView() {
 
       <ul className="space-y-3">
         {state.shoots.map((s) => (
-          <ShootCard key={s.id} shoot={s} isOpen={openId === s.id} onToggle={() => setOpenId(openId === s.id ? null : s.id)} />
+          <ShootCard key={s.id} shoot={s} isOpen={openId === s.id} onToggle={() => setOpenId(openId === s.id ? null : s.id)}
+            onConnections={() => setFocusRef({ type: 'shoot', id: s.id })} />
         ))}
       </ul>
+
+      <ConnectionDrawer focus={focusRef} onClose={() => setFocusRef(null)}
+        onEdit={(ref) => { if (ref.type !== 'shoot') { dispatch({ type: 'SET_VIEW', view: VIEW_FOR_ENTITY[ref.type] }); setFocusRef(null); } }} />
     </div>
   );
 }
 
-function ShootCard({ shoot, isOpen, onToggle }: { shoot: Shoot; isOpen: boolean; onToggle: () => void }) {
+function ShootCard({ shoot, isOpen, onToggle, onConnections }: { shoot: Shoot; isOpen: boolean; onToggle: () => void; onConnections: () => void }) {
   const { state, dispatch } = useApp();
   const t = useT();
   const days = state.shootDays.filter((d) => d.shootId === shoot.id).sort((a, b) => a.dayNum - b.dayNum);
@@ -44,7 +51,7 @@ function ShootCard({ shoot, isOpen, onToggle }: { shoot: Shoot; isOpen: boolean;
           <div>
             <div className="flex items-baseline gap-2">
               <span className={`label-caps text-[9px] ${statusColor(shoot.status)}`}>{shoot.status}</span>
-              {shoot.wonderfulness && <span className="label-caps text-[9px] text-[color:var(--color-brass)]">★ miracle</span>}
+              {shoot.wonderfulness && <span className="label-caps text-[9px] text-[color:var(--color-brass-deep)]">★ captured</span>}
             </div>
             <div className="display-italic text-[24px] text-[color:var(--color-on-paper)] leading-tight mt-1">{shoot.title}</div>
             <div className="prose-body italic text-[12px] text-[color:var(--color-on-paper-muted)]">{shoot.location}</div>
@@ -58,6 +65,10 @@ function ShootCard({ shoot, isOpen, onToggle }: { shoot: Shoot; isOpen: boolean;
 
       {isOpen && (
         <div className="mt-4 pt-4 border-t-[0.5px] border-[color:var(--color-border-paper)] space-y-4">
+          <button type="button" onClick={onConnections}
+            className="flex items-center gap-1.5 px-2.5 py-1 rounded-[3px] border-[0.5px] border-[color:var(--color-brass)] text-[color:var(--color-brass)] text-[11px] hover:bg-[color:var(--color-brass)] hover:text-[color:var(--color-paper-light)] transition-colors">
+            <Share2 size={11} /> See all connections
+          </button>
           <EditableField label={t('shoots.spirit')} value={shoot.spirit} onSave={(v) => patch({ spirit: v })} multiline />
 
           {shoot.wonderfulness && (

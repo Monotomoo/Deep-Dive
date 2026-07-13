@@ -12,7 +12,7 @@ export function CameraTeamView() {
   const t = useT();
   const [tab, setTab] = useState<Tab>('all');
 
-  const operators = state.crew.filter((c) => c.role.toLowerCase().includes('camera') || c.role.toLowerCase().includes('director'));
+  const operators = state.crew.filter((c) => c.role.toLowerCase().includes('camera'));
 
   return (
     <div className="space-y-6 max-w-[1400px]">

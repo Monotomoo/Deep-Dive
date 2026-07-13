@@ -5,7 +5,8 @@ import tailwindcss from '@tailwindcss/vite';
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    port: 5173,
+    /* Honor the preview harness's assigned port (PORT env); else 5173 + auto-fallback. */
+    port: Number(process.env.PORT) || 5173,
     strictPort: false,
     open: false
   },

@@ -15,3 +15,11 @@ Thumbs.db
 .claude/
 .vercel/
 *.tsbuildinfo
+
+# Private production / planning docs — kept out of the public repo.
+# Delete a line here if you want that document versioned.
+COPRODUCER-SHORTLIST.md
+IDFA-FORUM-ENTRY-DRAFT.md
+MASTER-PLAN.md
+RELEASES-DRAFT.md
+US-FUNDS.md

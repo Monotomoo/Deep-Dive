@@ -11,6 +11,20 @@ export function Chapter2023View() {
         <p className="prose-body italic text-[14px] text-[color:var(--color-on-paper-muted)] mt-0.5">{t('chapter-2023.subtitle')}</p>
       </header>
 
+      {/* Draft / unverified warning — this chapter touches real people and a
+         real, sensitive case; nothing here is confirmed yet. */}
+      <section
+        className="rounded-[3px] border-[0.5px] border-[color:var(--color-coral)] p-4"
+        style={{ background: 'color-mix(in oklab, var(--color-coral) 8%, transparent)' }}
+      >
+        <div className="label-caps text-[10px] text-[color:var(--color-coral)] mb-1.5">⚠ draft · needs editing</div>
+        <p className="prose-body text-[13px] text-[color:var(--color-on-paper)] leading-relaxed">
+          This is a <span className="italic">draft version composed for the start</span>, and some of the information here is
+          unverified. Treat every line as provisional — it needs to be checked, sourced, and confirmed with
+          Petar, Vito, Sanda and Zsófia before any of it is used or shown.
+        </p>
+      </section>
+
       <section className="bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-brass)] rounded-[3px] p-6">
         <div className="label-caps text-[10px] text-[color:var(--color-brass-deep)] mb-2">the case, in one line</div>
         <p className="display-italic italic text-[18px] text-[color:var(--color-on-paper)] leading-snug">

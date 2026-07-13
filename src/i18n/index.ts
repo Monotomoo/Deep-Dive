@@ -4,7 +4,7 @@ import { hr } from './hr';
 
 export type Locale = 'en' | 'hr';
 
-const DICTS: Record<Locale, Strings> = { en, hr };
+const DICTS: Record<Locale, Partial<Strings>> = { en, hr };
 
 /* ---------- Translation hook ----------
    Usage:

@@ -1,102 +1,242 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
+import {
+  Anchor, CalendarRange, Clapperboard, Lightbulb, MapPin, Music, Network,
+  Plus, Route, Sparkles, X,
+} from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import { useT } from '../../i18n';
+import type { ShootDay, ViewKey } from '../../types';
+
+/* Overview · the base for everything.
+   The thesis, the pulse, quick jump-offs to every module, and a
+   location-based shoot-planning board where the film gets planned by
+   where it happens — Krk, Sicily, Lastovo, the USA road-trip, and on. */
 
 export function OverviewView() {
-  const { state } = useApp();
+  const { state, dispatch } = useApp();
   const t = useT();
+  const [drafts, setDrafts] = useState<Record<string, string>>({});
+  const [showWelcome, setShowWelcome] = useState(() => {
+    try { return localStorage.getItem('deep-dive-beta-welcome') !== '1'; } catch { return false; }
+  });
+  function dismissWelcome() {
+    try { localStorage.setItem('deep-dive-beta-welcome', '1'); } catch { /* noop */ }
+    setShowWelcome(false);
+  }
 
   const stats = useMemo(() => {
     const shootsDone = state.shoots.filter((s) => s.status === 'completed').length;
     const shootsPlanned = state.shoots.filter((s) => s.status === 'planned' || s.status === 'confirmed').length;
     const threadsActive = state.threads.filter((th) => th.status === 'active' || th.status === 'ready').length;
-    const spineIdeas = state.spineIdeas.length;
-    const spineLeading = state.spineIdeas.filter((i) => i.status === 'leading').length;
     const swingsAchieved = state.swings.filter((s) => s.status === 'achieved' || s.status === 'in-cut' || s.status === 'in-final').length;
+    const interviewsPlanned = state.interviews.filter((iv) => iv.status === 'planned').length;
+    const ideasHot = state.hubIdeas.filter((i) => i.status === 'hot').length;
     const nextShoot = state.shoots.find((s) => s.status === 'planned' || s.status === 'confirmed');
     const doneShoot = state.shoots.find((s) => s.status === 'completed' && s.wonderfulness);
 
-    /* Countdown to next shoot */
     let daysToNext: number | null = null;
     if (nextShoot?.startDate) {
       const target = new Date(nextShoot.startDate).getTime();
-      const now = new Date('2026-07-11').getTime();     // hardcode session date since environment lacks Date.now
+      const now = new Date('2026-07-12').getTime();
       daysToNext = Math.round((target - now) / (1000 * 60 * 60 * 24));
     }
-
-    /* Recent journal (top 3) */
     const recent = [...state.journalEntries].sort((a, b) => (a.date > b.date ? -1 : 1)).slice(0, 3);
-
-    return { shootsDone, shootsPlanned, threadsActive, spineIdeas, spineLeading, swingsAchieved, nextShoot, doneShoot, daysToNext, recent };
+    return { shootsDone, shootsPlanned, threadsActive, swingsAchieved, interviewsPlanned, ideasHot, nextShoot, doneShoot, daysToNext, recent };
   }, [state]);
 
+  function go(view: ViewKey) { dispatch({ type: 'SET_VIEW', view }); }
+
+  function addDay(shootId: string) {
+    const text = (drafts[shootId] ?? '').trim();
+    if (!text) return;
+    const shoot = state.shoots.find((s) => s.id === shootId);
+    const existing = state.shootDays.filter((d) => d.shootId === shootId);
+    const dayNum = existing.reduce((m, d) => Math.max(m, d.dayNum), 0) + 1;
+    const day: ShootDay = {
+      id: `sd-${Math.random().toString(36).slice(2, 8)}`,
+      shootId, dayNum, date: shoot?.startDate ?? '', plan: text, done: false,
+    };
+    dispatch({ type: 'ADD_SHOOT_DAY', day });
+    setDrafts((d) => ({ ...d, [shootId]: '' }));
+  }
+
+  const JUMPS: { view: ViewKey; label: string; icon: typeof Anchor }[] = [
+    { view: 'cast', label: 'Cast · Story', icon: Clapperboard },
+    { view: 'idea-hub', label: 'Idea Hub', icon: Lightbulb },
+    { view: 'usa-trip', label: 'USA Trip', icon: Route },
+    { view: 'surface', label: 'Surface', icon: Anchor },
+    { view: 'neuron', label: 'Neuron', icon: Network },
+    { view: 'schedule', label: 'Schedule', icon: CalendarRange },
+    { view: 'shoots', label: 'Shoots', icon: MapPin },
+    { view: 'choir', label: 'Choir', icon: Music },
+    { view: 'swings', label: 'Bigger Swings', icon: Sparkles },
+  ];
+
   return (
-    <div className="space-y-10 max-w-[1200px]">
+    <div className="space-y-9 max-w-[1200px]">
+      {showWelcome && (
+        <div className="relative bg-[color:var(--color-chrome)] rounded-[4px] p-6 pr-12">
+          <button type="button" onClick={dismissWelcome} className="absolute top-3 right-3 text-[color:var(--color-paper-light)]/50 hover:text-[color:var(--color-paper-light)]"><X size={16} /></button>
+          <div className="label-caps text-[9px] text-[color:var(--color-brass)] mb-2">a beta · for the four, and the crew</div>
+          <p className="prose-body italic text-[16px] text-[color:var(--color-paper-light)] leading-relaxed max-w-[760px]">
+            Petar, Vito, Sanda, Zsófia — and everyone making this with us: this is the film as a living thing.
+            Every part of it is here to explore and to argue with. Nothing is final. Move it around, break it, tell us what's wrong.
+          </p>
+          <div className="flex items-center gap-3 mt-4">
+            <button type="button" onClick={() => { dismissWelcome(); go('cast'); }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] bg-[color:var(--color-brass)] text-[color:var(--color-paper-light)] text-[12px] hover:bg-[color:var(--color-brass-deep)] transition-colors">
+              <Clapperboard size={12} /> Meet the cast &amp; story
+            </button>
+            <span className="text-[10px] text-[color:var(--color-paper-light)]/40 tracking-wide">press ⌘K anywhere to search the whole film</span>
+          </div>
+        </div>
+      )}
+
       <header>
         <div className="display-italic italic text-[48px] text-[color:var(--color-on-paper)] leading-tight">{t('overview.epigraph')}</div>
-        <p className="prose-body italic text-[16px] text-[color:var(--color-on-paper-muted)] mt-3 max-w-[720px]">
-          {t('overview.tagline')}
-        </p>
+        <p className="prose-body italic text-[16px] text-[color:var(--color-on-paper-muted)] mt-3 max-w-[720px]">{t('overview.tagline')}</p>
       </header>
 
       {stats.doneShoot?.wonderfulness && (
-        <section className="bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-brass)] rounded-[3px] p-6">
+        <section className="bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-border-paper)] rounded-[3px] p-6" style={{ borderLeftWidth: 3, borderLeftColor: 'var(--color-brass)' }}>
           <div className="flex items-baseline gap-3 mb-2">
-            <span className="label-caps text-[10px] text-[color:var(--color-brass)]">★ documentary miracle · achieved</span>
+            <span className="label-caps text-[10px] text-[color:var(--color-brass-deep)]">already captured</span>
             <span className="prose-body italic text-[11px] text-[color:var(--color-brass-deep)]">{stats.doneShoot.title}</span>
           </div>
-          <p className="display-italic italic text-[20px] text-[color:var(--color-on-paper)] leading-snug">{stats.doneShoot.wonderfulness}</p>
+          <p className="prose-body text-[15px] text-[color:var(--color-on-paper)] leading-snug">{stats.doneShoot.wonderfulness}</p>
         </section>
       )}
 
+      {/* Pulse tiles */}
       <section className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4">
-        <Tile label={t('overview.shoots.done')}     value={String(stats.shootsDone)} />
-        <Tile label={t('overview.shoots.planned')}  value={String(stats.shootsPlanned)} />
-        <Tile label={t('overview.threads.active')}  value={String(stats.threadsActive)} />
-        <Tile label={t('overview.spine.captured')}  value={`${stats.spineLeading} / ${stats.spineIdeas}`} />
-        <Tile label={t('overview.swings.achieved')} value={String(stats.swingsAchieved)} />
-        <Tile label={t('overview.next.shoot')}
+        <Tile label="shoots done" value={String(stats.shootsDone)} />
+        <Tile label="shoots planned" value={String(stats.shootsPlanned)} />
+        <Tile label="threads active" value={String(stats.threadsActive)} />
+        <Tile label="swings achieved" value={String(stats.swingsAchieved)} />
+        <Tile label="hot ideas" value={String(stats.ideasHot)} />
+        <Tile label="next shoot"
           value={stats.daysToNext !== null ? (stats.daysToNext >= 0 ? `${stats.daysToNext}d` : `${Math.abs(stats.daysToNext)}d ago`) : '—'}
-          sub={stats.nextShoot?.title}
-        />
+          sub={stats.nextShoot?.title} />
       </section>
 
+      {/* Quick jump-offs */}
+      <section>
+        <h3 className="label-caps text-[color:var(--color-brass)] mb-3">jump to</h3>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
+          {JUMPS.map((j) => {
+            const Icon = j.icon;
+            return (
+              <button key={j.view} type="button" onClick={() => go(j.view)}
+                className="flex items-center gap-2 px-3 py-2.5 rounded-[3px] bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-border-paper)] hover:border-[color:var(--color-brass)] hover:bg-[color:var(--color-paper-card)] transition-colors text-left">
+                <Icon size={14} className="text-[color:var(--color-brass)] shrink-0" />
+                <span className="font-sans text-[12px] text-[color:var(--color-on-paper)] truncate">{j.label}</span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* Shoot plan · by location */}
+      <section>
+        <div className="flex items-baseline justify-between mb-3">
+          <h3 className="label-caps text-[color:var(--color-brass)]">shoot plan · by location</h3>
+          <span className="prose-body italic text-[11px] text-[color:var(--color-on-paper-faint)]">plan each shoot where it happens</span>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3">
+          {state.shoots.map((shoot) => {
+            const daysList = state.shootDays.filter((d) => d.shootId === shoot.id).sort((a, b) => a.dayNum - b.dayNum);
+            const isUsa = shoot.key === 'usa';
+            return (
+              <article key={shoot.id} className="bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-border-paper)] rounded-[3px] p-4 flex flex-col"
+                style={{ borderTopWidth: 3, borderTopColor: shoot.colorHint ?? 'var(--color-brass)' }}>
+                <header className="mb-2">
+                  <div className="flex items-center gap-2">
+                    <span className={`label-caps text-[8px] ${statusColor(shoot.status)}`}>{shoot.status}</span>
+                    <div className="flex-1" />
+                    {shoot.presentFour.map((pk) => {
+                      const f = state.four.find((x) => x.key === pk);
+                      return <span key={pk} className="w-2 h-2 rounded-full" style={{ background: f?.colorHint }} title={f?.name} />;
+                    })}
+                  </div>
+                  <div className="display-italic text-[18px] text-[color:var(--color-on-paper)] leading-tight mt-1">{shoot.title.split('·')[0].trim()}</div>
+                  <div className="prose-body italic text-[10px] text-[color:var(--color-on-paper-muted)]">
+                    {shoot.location}{shoot.startDate ? ` · ${shoot.startDate}` : ''}
+                  </div>
+                </header>
+
+                {/* Plan items */}
+                <div className="flex-1 space-y-1 mb-2">
+                  {isUsa ? (
+                    <>
+                      {state.usaTrip.stops.map((st) => (
+                        <div key={st.id} className="flex items-baseline gap-2 text-[11px]">
+                          <span className="w-1.5 h-1.5 rounded-full shrink-0 translate-y-1" style={{ background: st.colorHint ?? 'var(--color-brass)' }} />
+                          <span className="text-[color:var(--color-on-paper)]">{st.name}</span>
+                          <span className="text-[color:var(--color-on-paper-faint)]">{st.nights ?? 0}n · {st.pois?.length ?? 0} spots</span>
+                        </div>
+                      ))}
+                      <button type="button" onClick={() => go('usa-trip')}
+                        className="mt-1 text-[11px] text-[color:var(--color-brass)] hover:text-[color:var(--color-brass-deep)]">open the RV trip →</button>
+                    </>
+                  ) : daysList.length > 0 ? (
+                    daysList.map((d) => (
+                      <div key={d.id} className="flex items-baseline gap-2 text-[11px]">
+                        <span className="tabular-nums text-[color:var(--color-brass-deep)] shrink-0">D{d.dayNum}</span>
+                        <span className="text-[color:var(--color-on-paper)] leading-snug">{d.plan}</span>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="prose-body italic text-[11px] text-[color:var(--color-on-paper-faint)]">No days planned yet.</div>
+                  )}
+                </div>
+
+                {/* Quick add */}
+                {!isUsa && (
+                  <div className="flex gap-1.5 pt-2 border-t-[0.5px] border-[color:var(--color-border-paper)]">
+                    <input
+                      type="text"
+                      value={drafts[shoot.id] ?? ''}
+                      onChange={(e) => setDrafts((d) => ({ ...d, [shoot.id]: e.target.value }))}
+                      onKeyDown={(e) => { if (e.key === 'Enter') addDay(shoot.id); }}
+                      placeholder="+ plan a day…"
+                      className="flex-1 bg-white border-[0.5px] border-[color:var(--color-border-paper)] rounded-[3px] px-2 py-1 text-[11px]"
+                    />
+                    <button type="button" onClick={() => addDay(shoot.id)} disabled={!(drafts[shoot.id] ?? '').trim()}
+                      className="px-2 py-1 rounded-[3px] bg-[color:var(--color-brass)] text-[color:var(--color-paper-light)] disabled:opacity-40"><Plus size={12} /></button>
+                  </div>
+                )}
+              </article>
+            );
+          })}
+        </div>
+      </section>
+
+      {/* The four */}
       <section>
         <h3 className="label-caps text-[color:var(--color-brass)] mb-4">the four</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-3">
           {state.four.map((f) => (
-            <article key={f.id} className="bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-border-paper)] rounded-[3px] p-4">
+            <button key={f.id} type="button" onClick={() => go('cast')}
+              className="text-left bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-border-paper)] rounded-[3px] p-4 hover:border-[color:var(--color-brass)] transition-colors"
+              style={{ borderTopWidth: 3, borderTopColor: f.colorHint ?? 'var(--color-brass)' }}>
               <div className="display-italic text-[22px] text-[color:var(--color-on-paper)]">{f.name}</div>
               <div className="prose-body italic text-[11px] text-[color:var(--color-brass)] mt-1">{f.role}</div>
               <div className="prose-body text-[12px] text-[color:var(--color-on-paper-muted)] mt-2 leading-snug">{f.arcNote}</div>
-            </article>
+            </button>
           ))}
         </div>
       </section>
 
+      {/* Threads */}
       <section>
-        <h3 className="label-caps text-[color:var(--color-brass)] mb-4">the shoots · journey</h3>
-        <ol className="space-y-2">
-          {state.shoots.map((s, i) => (
-            <li key={s.id} className="flex items-baseline gap-3 border-b-[0.5px] border-[color:var(--color-border-paper)] py-2">
-              <span className="tabular-nums text-[color:var(--color-brass-deep)] text-[11px] w-6">{String(i + 1).padStart(2, '0')}</span>
-              <span className={`label-caps text-[9px] w-24 ${statusColor(s.status)}`}>{s.status}</span>
-              <span className="display-italic text-[16px] text-[color:var(--color-on-paper)] flex-1">{s.title}</span>
-              <span className="prose-body italic text-[12px] text-[color:var(--color-on-paper-muted)]">{s.location}</span>
-            </li>
-          ))}
-        </ol>
-      </section>
-
-      <section>
-        <h3 className="label-caps text-[color:var(--color-brass)] mb-4">the 10 threads</h3>
+        <h3 className="label-caps text-[color:var(--color-brass)] mb-4">the threads</h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
-          {state.threads.map((th) => (
-            <div key={th.id} className="flex items-baseline gap-3 text-[13px]">
+          {[...state.threads].sort((a, b) => a.num - b.num).map((th) => (
+            <button key={th.id} type="button" onClick={() => go('threads')} className="flex items-baseline gap-3 text-[13px] text-left hover:text-[color:var(--color-brass)]">
               <span className="tabular-nums text-[color:var(--color-brass-deep)] w-6 text-[10px]">{String(th.num).padStart(2, '0')}</span>
               <span className={`label-caps text-[8px] w-16 ${threadStatusColor(th.status)}`}>{th.status}</span>
               <span className="display-italic text-[color:var(--color-on-paper)] flex-1">{th.title}</span>
-            </div>
+            </button>
           ))}
         </div>
       </section>

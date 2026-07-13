@@ -1,26 +1,29 @@
 import {
-  AlertTriangle,
   Activity,
+  Anchor,
   BookOpen,
   CalendarRange,
+  Clapperboard,
   Compass,
-  Disc3,
   Eye,
   FileText,
   GitBranch,
-  Handshake,
   HeartPulse,
   Layers,
   LayoutDashboard,
+  Lightbulb,
   ListChecks,
   MapPin,
+  Milestone as MilestoneIcon,
+  Music,
+  Network,
   Notebook,
+  Orbit,
   Quote,
+  Route,
   Redo2,
   RotateCcw,
-  Scroll,
   ScrollText,
-  Send,
   Sparkles,
   Trophy,
   UsersRound,
@@ -50,22 +53,28 @@ const GROUPS: NavGroup[] = [
     items: [
       { key: 'overview', labelKey: 'nav.overview', icon: LayoutDashboard },
       { key: 'vision',   labelKey: 'nav.vision',   icon: Quote },
+      { key: 'idea-hub', labelKey: 'nav.idea-hub', icon: Lightbulb },
+      { key: 'neuron',   labelKey: 'nav.neuron',   icon: Network },
       { key: 'schedule', labelKey: 'nav.schedule', icon: CalendarRange },
       { key: 'crew',     labelKey: 'nav.crew',     icon: Users },
-      { key: 'sponsors', labelKey: 'nav.sponsors', icon: Handshake },
-      { key: 'risks',    labelKey: 'nav.risks',    icon: AlertTriangle },
     ],
   },
   {
     labelKey: 'nav.group.make',
     items: [
+      { key: 'cast',       labelKey: 'nav.cast',       icon: Clapperboard },
+      { key: 'surface',    labelKey: 'nav.surface',    icon: Anchor },
       { key: 'four',       labelKey: 'nav.four',       icon: UsersRound },
+      { key: 'life-mosaic',labelKey: 'nav.life-mosaic',icon: MilestoneIcon },
       { key: 'threads',    labelKey: 'nav.threads',    icon: GitBranch },
       { key: 'spine',      labelKey: 'nav.spine',      icon: Layers },
       { key: 'shoots',     labelKey: 'nav.shoots',     icon: MapPin },
+      { key: 'usa-trip',   labelKey: 'nav.usa-trip',   icon: Route },
       { key: 'interviews', labelKey: 'nav.interviews', icon: Notebook },
+      { key: 'choir',      labelKey: 'nav.choir',      icon: Music },
       { key: 'swings',     labelKey: 'nav.swings',     icon: Sparkles },
       { key: 'devices',    labelKey: 'nav.devices',    icon: Compass },
+      { key: 'resonance',  labelKey: 'nav.resonance',  icon: Orbit },
       { key: 'records',    labelKey: 'nav.records',    icon: Trophy },
       { key: 'physiology', labelKey: 'nav.physiology', icon: HeartPulse },
       { key: 'watchers',   labelKey: 'nav.watchers',   icon: Eye },
@@ -76,10 +85,7 @@ const GROUPS: NavGroup[] = [
     labelKey: 'nav.group.tell',
     items: [
       { key: 'pitch',        labelKey: 'nav.pitch',        icon: FileText },
-      { key: 'distribution', labelKey: 'nav.distribution', icon: Send },
-      { key: 'contracts',    labelKey: 'nav.contracts',    icon: Scroll },
       { key: 'journal',      labelKey: 'nav.journal',      icon: ScrollText },
-      { key: 'post',         labelKey: 'nav.post',         icon: Disc3 },
     ],
   },
   {
@@ -244,32 +250,6 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
           <span className="border-[0.5px] border-[color:var(--color-border-chrome-strong)] rounded px-1.5 py-[1px]">
             ?
           </span>
-        </div>
-
-        {/* Locale switcher — Phase 12 wave 4 */}
-        <div className="flex items-center gap-1 pt-1">
-          <button
-            type="button"
-            onClick={() => dispatch({ type: 'SET_LOCALE', locale: 'en' })}
-            className={`px-2 py-0.5 rounded-[2px] font-sans text-[10px] tracking-[0.10em] uppercase transition-colors ${
-              state.locale === 'en'
-                ? 'bg-[color:var(--color-brass)] text-[color:var(--color-paper-light)]'
-                : 'text-[color:var(--color-on-chrome-faint)] hover:text-[color:var(--color-on-chrome)] border-[0.5px] border-[color:var(--color-border-chrome-strong)]'
-            }`}
-          >
-            EN
-          </button>
-          <button
-            type="button"
-            onClick={() => dispatch({ type: 'SET_LOCALE', locale: 'hr' })}
-            className={`px-2 py-0.5 rounded-[2px] font-sans text-[10px] tracking-[0.10em] uppercase transition-colors ${
-              state.locale === 'hr'
-                ? 'bg-[color:var(--color-brass)] text-[color:var(--color-paper-light)]'
-                : 'text-[color:var(--color-on-chrome-faint)] hover:text-[color:var(--color-on-chrome)] border-[0.5px] border-[color:var(--color-border-chrome-strong)]'
-            }`}
-          >
-            HR
-          </button>
         </div>
       </div>
     </aside>

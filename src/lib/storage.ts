@@ -1,7 +1,9 @@
 import type { AppState } from '../types';
 import { makeInitialState } from './seed';
 
-const STORAGE_KEY = 'deep-dive-dashboard-v1';
+/* v7 bump (2026-07-13): beta prep — seeded watcher moments + physiology so
+   those pillars aren't blank. Empty stored arrays [] would mask the new seed. */
+const STORAGE_KEY = 'deep-dive-dashboard-v8';
 const SPLASH_KEY = 'deep-dive-splash-seen';
 
 export function loadState(): AppState | null {
@@ -48,6 +50,16 @@ function migrateState(loaded: Partial<AppState>): AppState {
     schedulePhases: loaded.schedulePhases ?? defaults.schedulePhases,
     milestones: loaded.milestones ?? defaults.milestones,
     calendarEvents: loaded.calendarEvents ?? defaults.calendarEvents,
+    holders: loaded.holders ?? defaults.holders,
+    choirQuestions: loaded.choirQuestions ?? defaults.choirQuestions,
+    choirEntries: loaded.choirEntries ?? defaults.choirEntries,
+    lifeEvents: loaded.lifeEvents ?? defaults.lifeEvents,
+    motifChains: loaded.motifChains ?? defaults.motifChains,
+    storyEvents: loaded.storyEvents ?? defaults.storyEvents,
+    topics: loaded.topics ?? defaults.topics,
+    hubIdeas: loaded.hubIdeas ?? defaults.hubIdeas,
+    usaTrip: loaded.usaTrip ?? defaults.usaTrip,
+    locale: 'en',
     sponsors: loaded.sponsors ?? defaults.sponsors,
     risks: loaded.risks ?? defaults.risks,
     contracts: loaded.contracts ?? defaults.contracts,
@@ -59,7 +71,6 @@ function migrateState(loaded: Partial<AppState>): AppState {
     tasks: loaded.tasks ?? defaults.tasks,
     notes: loaded.notes ?? defaults.notes,
     assets: loaded.assets ?? defaults.assets,
-    locale: loaded.locale ?? defaults.locale,
   };
 }
 

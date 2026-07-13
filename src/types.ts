@@ -70,7 +70,8 @@ export interface TalentFour {
   interiorityNote?: string;
 }
 
-/* Talent adjacent to The Four (Borna, family, coaches, researchers) */
+/* Talent adjacent to The Four (family, coaches, researchers, judges).
+   These are the documentary's CAST beyond the four leads. */
 export interface Talent {
   id: string;
   name: string;
@@ -80,7 +81,91 @@ export interface Talent {
   contact?: string;
   releaseStatus: 'pending' | 'signed' | 'expired' | 'na';
   onCameraNotes?: string;
+  bio?: string;               // who they are (v0.8 cast dashboard)
+  whyInFilm?: string;         // the reason they're in the documentary
+  colorHint?: string;
   notes?: string;
+}
+
+/* ---------- Story graph · Events + Topics (v0.8) ----------
+   The cast dashboard's three segments: Person (four + talents),
+   Event (moments the film orbits), Topic (themes interviews mine).
+   Everything cross-links, and interviews reference all three. */
+
+export type StoryEventKind =
+  | 'record'
+  | 'crisis'
+  | 'ceremony'
+  | 'shoot-moment'
+  | 'origin'
+  | 'turning-point'
+  | 'other';
+
+export interface StoryEvent {
+  id: string;
+  title: string;
+  kind: StoryEventKind;
+  year: number;
+  date?: string;              // ISO when known precisely
+  summary: string;
+  personKeys: FourKey[];      // which of the four it involves
+  talentIds?: string[];       // other cast involved
+  topicIds?: string[];
+  shootId?: string;           // where the film touches it
+  colorHint?: string;
+  notes?: string;
+}
+
+export interface Topic {
+  id: string;
+  title: string;              // 'Fear' · 'Being overtaken' · 'The storm'
+  question: string;           // the question underneath the topic
+  threadIds?: string[];       // narrative threads it feeds
+  colorHint?: string;
+  notes?: string;
+}
+
+/* ---------- Idea Hub (v0.8) ----------
+   Anyone on the team drops an idea and wires it to anything:
+   a person, an event, a topic, a shoot, a thread, a swing, an interview. */
+
+export type IdeaKind =
+  | 'scene'
+  | 'shot'
+  | 'question'
+  | 'sound'
+  | 'story'
+  | 'logistics'
+  | 'wild';
+
+export type HubIdeaStatus = 'new' | 'warm' | 'hot' | 'adopted' | 'parked';
+
+export type IdeaLinkType =
+  | 'four'
+  | 'talent'
+  | 'event'
+  | 'topic'
+  | 'shoot'
+  | 'thread'
+  | 'swing'
+  | 'interview';
+
+export interface IdeaLink {
+  targetType: IdeaLinkType;
+  targetId: string;           // four → FourKey · others → entity id
+}
+
+export interface HubIdea {
+  id: string;
+  title: string;
+  body?: string;
+  kind: IdeaKind;
+  status: HubIdeaStatus;
+  authorId?: string;          // crew id — who dropped it
+  links: IdeaLink[];
+  votes?: number;
+  createdAt: string;
+  updatedAt: string;
 }
 
 /* ---------- The 10 Threads (narrative arcs across all locations) ---------- */
@@ -228,7 +313,7 @@ export type InterviewSetting =
 export interface Interview {
   id: string;
   shootId: string;
-  personKey: FourKey | 'together';
+  personKey: FourKey | 'together' | 'other';   // 'other' → subject is a talent (talentIds)
   setting: InterviewSetting;
   date: string;
   durationMin?: number;
@@ -245,6 +330,11 @@ export interface Interview {
   timecodeOut?: string;
   consentNote?: string;
   standoutQuotes?: string[];
+  /* v0.8 — story-graph links + follow-up chains */
+  talentIds?: string[];       // cast subjects/participants beyond the four
+  topicIds?: string[];        // topics this session mines
+  eventIds?: string[];        // story events it touches
+  followUpOfId?: string;      // parent interview — enables location-to-location chains
   notes?: string;
 }
 
@@ -538,6 +628,196 @@ export interface Light {
   operatorId?: string;
   assignedShootIds?: string[];
   notes?: string;
+}
+
+/* ---------- Surface · who holds them (v0.6) ----------
+   The film's thesis made literal: for each of the Four, who and what
+   holds them at the surface. One person holds another in the world. */
+
+export type HolderKind =
+  | 'person'      // mother, partner, coach, safety diver, therapist
+  | 'place'       // hometown, family house, the sea itself
+  | 'object'      // fishing net, dive gear, photograph
+  | 'ritual'      // morning coffee, prayer, breath practice
+  | 'song';       // literal song they return to
+
+export type HolderConsent = 'pending' | 'given' | 'declined' | 'na';
+
+export interface Holder {
+  id: string;
+  subjectKey: FourKey;
+  kind: HolderKind;
+  name: string;                     // "Ana" / "Rijeka" / "the fishing net"
+  relationship: string;             // "mother" / "partner" / "coach" / "birthplace"
+  oneLine: string;                  // what they represent / what they said
+  onCameraWilling?: boolean;        // undefined = unknown
+  consent: HolderConsent;
+  photoNote?: string;
+  colorHint?: string;
+  notes?: string;
+}
+
+/* ---------- Choir · same question × the four (v0.6) ---------- */
+
+export interface ChoirQuestion {
+  id: string;
+  text: string;
+  threadIds?: string[];
+  notes?: string;
+  createdAt: string;
+}
+
+export type ChoirAnswerSource = 'interview' | 'imagined' | 'quoted' | 'observed';
+
+export interface ChoirEntry {
+  id: string;
+  questionId: string;
+  subjectKey: FourKey;
+  answer: string;
+  source: ChoirAnswerSource;
+  sourceContext?: string;           // "Interview #3 at Krk" / "IG post 2024-02"
+  timecodeIn?: string;
+  isKey?: boolean;                  // starred as pivot line
+  notes?: string;
+}
+
+/* ---------- Life Mosaic · biographical timelines (v0.6) ---------- */
+
+export type LifeEventCategory =
+  | 'birth'
+  | 'first-dive'
+  | 'record'
+  | 'breakthrough'
+  | 'loss'
+  | 'love'
+  | 'family'
+  | 'travel'
+  | 'crisis'
+  | 'joy'
+  | 'other';
+
+export interface LifeEvent {
+  id: string;
+  subjectKey: FourKey;
+  year: number;                     // main axis
+  month?: number;
+  day?: number;
+  title: string;
+  category: LifeEventCategory;
+  significance: 1 | 2 | 3 | 4 | 5;
+  note?: string;
+  colorHint?: string;
+}
+
+/* ---------- Resonance · image echoes (v0.6) ---------- */
+
+export type ResonanceKind = 'visual' | 'aural' | 'gestural' | 'situational' | 'chromatic';
+
+export type MotifItemSource =
+  | 'shoot'
+  | 'reference'
+  | 'imagined'
+  | 'observed'
+  | 'quote';
+
+export interface MotifItem {
+  id: string;
+  description: string;
+  source: MotifItemSource;
+  sourceContext?: string;
+  shootId?: string;
+  referenceId?: string;
+  colorHint?: string;
+  notes?: string;
+}
+
+export interface MotifChain {
+  id: string;
+  title: string;                    // "hair through water"
+  kind: ResonanceKind;
+  synopsis?: string;
+  items: MotifItem[];
+  notes?: string;
+  createdAt: string;
+}
+
+/* ---------- USA Trip (v0.9) ----------
+   The Sept 2026 RV road-trip for six: fly into San Francisco, drive the
+   Sierra + desert loop, end in Las Vegas, fly straight to Cyprus.
+   Itinerary + a running RV cost estimate. */
+
+export type TripCostCategory =
+  | 'rv'
+  | 'fuel'
+  | 'camp'
+  | 'food'
+  | 'park'
+  | 'flights'
+  | 'gear'
+  | 'insurance'
+  | 'other';
+
+export type TripCostPer = 'trip' | 'day' | 'night' | 'person';
+
+export type TripPoiKind = 'climb' | 'dive' | 'hike' | 'sight' | 'food' | 'camp' | 'drive' | 'other';
+
+export interface TripPoi {
+  id: string;
+  name: string;
+  kind: TripPoiKind;
+  detail?: string;        // difficulty / depth / elevation / distance
+  note?: string;          // why it matters for the film / the four
+  onTheWay?: boolean;     // reached en route to this stop
+}
+
+export interface TripStop {
+  id: string;
+  name: string;
+  role?: 'start' | 'stop' | 'end';
+  nights?: number;
+  driveMiles?: number;
+  driveHours?: number;
+  note?: string;
+  colorHint?: string;
+  mapX?: number;          // 0–100 stylised map position (west→east)
+  mapY?: number;          // 0–100 stylised map position (north→south)
+  pois?: TripPoi[];
+}
+
+export interface TripCostLine {
+  id: string;
+  label: string;
+  category: TripCostCategory;
+  amountUsd: number;      // unit amount
+  per: TripCostPer;       // multiplier basis
+  qty?: number;           // optional extra multiplier (default 1)
+  notes?: string;
+}
+
+export interface TripDay {
+  id: string;
+  dayNum: number;
+  date: string;           // ISO
+  title: string;
+  stopId?: string;        // where this day is based
+  plan?: string;
+  driveMiles?: number;
+  note?: string;
+  done?: boolean;
+}
+
+export interface UsaTrip {
+  title: string;
+  startDate: string;      // ISO — 2026-09-01
+  endDate: string;        // ISO — 2026-09-27
+  startCity: string;      // San Francisco
+  endCity: string;        // Las Vegas
+  flyOnTo: string;        // Cyprus
+  people: number;         // 6
+  rvNote?: string;
+  stops: TripStop[];
+  days: TripDay[];
+  costs: TripCostLine[];
 }
 
 /* ---------- Calendar Events (v0.3) ----------
@@ -847,18 +1127,26 @@ export type ViewKey =
   /* Plan */
   | 'overview'
   | 'vision'
+  | 'idea-hub'
+  | 'neuron'
   | 'schedule'
   | 'crew'
   | 'sponsors'
   | 'risks'
   /* Make */
+  | 'cast'
+  | 'surface'
   | 'four'
+  | 'life-mosaic'
   | 'threads'
   | 'spine'
   | 'shoots'
+  | 'usa-trip'
   | 'interviews'
+  | 'choir'
   | 'swings'
   | 'devices'
+  | 'resonance'
   | 'records'
   | 'physiology'
   | 'watchers'
@@ -907,6 +1195,18 @@ export interface AppState {
   schedulePhases: SchedulePhase[];
   milestones: Milestone[];
   calendarEvents: CalendarEvent[];
+  /* v0.6 — soul + perception modes */
+  holders: Holder[];
+  choirQuestions: ChoirQuestion[];
+  choirEntries: ChoirEntry[];
+  lifeEvents: LifeEvent[];
+  motifChains: MotifChain[];
+  /* v0.8 — story graph + idea hub */
+  storyEvents: StoryEvent[];
+  topics: Topic[];
+  hubIdeas: HubIdea[];
+  /* v0.9 — USA trip */
+  usaTrip: UsaTrip;
   sponsors: Sponsor[];
   risks: Risk[];
   contracts: Contract[];

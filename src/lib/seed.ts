@@ -9,6 +9,8 @@ import type {
   CalendarEvent,
   Camera,
   CashflowQuarter,
+  ChoirEntry,
+  ChoirQuestion,
   Contract,
   CoverageCam,
   CostCategoryMeta,
@@ -18,12 +20,17 @@ import type {
   FestivalSubmission,
   FundingSourceMeta,
   GrammarDevice,
+  Holder,
+  HubIdea,
   Interview,
   JournalEntry,
   Lens,
+  LifeEvent,
   Light,
   Microphone,
   Milestone,
+  MotifChain,
+  PhysiologyDatum,
   Reference,
   Risk,
   SalesAgent,
@@ -34,10 +41,14 @@ import type {
   Sponsor,
   SchedulePhase,
   SpineIdea,
+  StoryEvent,
   Talent,
   TalentFour,
   Thread,
   ThreadQuestion,
+  Topic,
+  UsaTrip,
+  WatcherMoment,
 } from '../types';
 
 /* ---------- Scenarios (lean · realistic · ambitious) ---------- */
@@ -112,12 +123,12 @@ export const SEED_FOUR: TalentFour[] = [
     id: 'four-sanda',
     key: 'sanda',
     name: 'Sanda Delija',
-    role: 'the first, and a champion in her own right',
+    role: 'the first',
     nationality: 'Croatian',
     hometown: 'Trieste',
     languagePrimary: 'hr',
-    epithet: 'the first Croatian woman past 100m',
-    bio: 'Former free-immersion world-record holder. Multiple national champion. Coached by Vito, partnered with him — and best friends with Zsófia, the woman who took her record. Never "a partner who dives" — a world-record holder whose story the film is determined to tell with its full weight.',
+    epithet: 'the first Croatian woman past 100 metres',
+    bio: 'A free-immersion world-record holder and one of fewer than ten women who have ever passed 100 metres on a single breath. Twelve national records, two World Championship bronzes, a decade of building a deep that is entirely her own — reached at 103m in the warm water of the Philippines. She was the first Croatian woman to cross 100 metres, and she has spent her life proving the depth belongs to her, not to anyone watching.',
     arcNote: 'the deep that belongs only to her',
     colorHint: '#6f8a72',              // olive · grounded · quiet
   },
@@ -130,25 +141,124 @@ export const SEED_FOUR: TalentFour[] = [
     hometown: 'Rijeka (relocated) · Hungary (birth)',
     languagePrimary: 'en',
     epithet: 'the outsider who can still see clearly',
-    bio: "Triathlete three years ago, now a free-immersion world-record holder at 105m — one metre deeper than the most celebrated woman in the sport — and holder of multiple dynamic records, first woman past 300m in a pool. Petar's partner. Sanda's best friend. Her interviews are in English — a second nationality threading the film international.",
+    bio: "Three years ago she was a triathlete. Today she holds a free-immersion world record at 105 metres and a fistful of dynamic records — the first woman ever to pass 300 metres in a pool, at the World Games in Chengdu. One of the fastest ascents the sport has seen, and she still looks at this world with an outsider's wonder that everyone born into it has forgotten how to feel. Her interviews are in English — a second nationality threading the film international.",
     arcNote: "the audience's way in · the wonder, the trust, the discovery",
     colorHint: '#e39a5b',              // warm amber · radiant newcomer · dawn
   },
 ];
 
-/* ---------- Talent adjacent to The Four ---------- */
-/* Empty for now — Borna out per user feedback; add ideas incrementally. */
+/* ---------- Talent adjacent to The Four (v0.8 — the documentary's cast) ----------
+   Names beyond the four are film-canon placeholders — confirm/rename as the
+   real people say yes. Each carries a bio + the reason they're in the film. */
 
+/* The supporting cast is held back for the beta — Ante, Eszter, Dr. Novak,
+   Luka, Marco and the rest return once each real person says yes and we can
+   introduce them properly. The Four carry the film for now. */
 export const SEED_TALENTS: Talent[] = [];
+
+/* ---------- Topics (v0.8) — themes the interviews mine ---------- */
+
+export const SEED_TOPICS: Topic[] = [
+  { id: 'top-krk-sicily-lastovo', title: 'Connecting interviews from Krk and Sicily to Lastovo', question: 'The through-line of the shoot: interviews begun at Krk (the "before") and Sicily (the attempt) get picked up and deepened at Lastovo — the same questions, now carrying everything that happened in between. Continuity of person and thread across three locations.', threadIds: ['t1'], colorHint: '#4c7a8a' },
+  { id: 'top-lastovo-camp', title: 'Lastovo training camp and presentation of the sport', question: 'The definitive from-the-inside document of freediving as a sport — the Lastovo training camp: dawn breath-ups, the discipline, a real competition, maybe a record. No film has shown the sport from within like this.', threadIds: ['t3'], colorHint: '#6f8a72' },
+  { id: 'top-rijeka-labs', title: 'Rijeka labs and institutes', question: "The University of Rijeka's centre for diving and hyperbaric medicine — where Vito is both researcher and test subject. Ultrasound, EEG, blood-oxygen: the body of the sport measured by the sport itself.", threadIds: ['t7'], colorHint: '#3d7a94' },
+  { id: 'top-njivice', title: 'Njivice on Krk island, where it all started (Pero)', question: 'The Krk-island town of Njivice — where it began for Petar. The origin water, the "before" before the records, the first place the sea was a job and then a calling.', threadIds: ['t1'], colorHint: '#d96c3d' },
+  { id: 'top-sea-shepherds', title: 'Sea Shepherds', question: "The ocean-conservation layer — Sea Shepherd. Where the freedivers' relationship to the sea meets its protection: a possible partner, a cause, and the wider 'why the water matters' the film can carry.", threadIds: [], colorHint: '#123c68' },
+  { id: 'top-usa-hof', title: 'USA hall of fame', question: "Vito's induction into the Hall of Fame in the USA — the same world that once branded the sport's people, standing, in the end, to honour them. The vindication, and the close of the recognition arc.", threadIds: ['t9'], colorHint: '#c9a961' },
+  { id: 'top-rijeka-interviews', title: 'Deep interviews in Rijeka', question: 'The long-form, honest sit-downs done at home in Rijeka, where the guard comes down — the inner world, the mind, the things only said on home ground. Paired with the Lastovo conversations.', threadIds: ['t8'], colorHint: '#2f4b6e' },
+  { id: 'top-mexico-caves', title: 'Mexico caves visit', question: 'The cenotes — cave diving in Mexico. Another geography of the deep: fresh water, stone, total dark. A possible visual and emotional counterpoint to the open Adriatic.', threadIds: ['t4'], colorHint: '#0b1b2e' },
+  { id: 'top-vito-deep', title: 'Vito, the deepest dive', question: 'Vito is known for going long, not deep — but he goes deep too (FIM 123m, CWT 117m), and is chasing real depth: a variable-weight attempt toward ~160m, past Molchanov. The scientist who also descends.', threadIds: ['t10', 't7'], colorHint: '#3d7a94' },
+  { id: 'top-body-brain', title: 'Body and brain', question: 'What the body knows that the mind refuses — the diving reflex, bradycardia, the brain under low oxygen. The physiology of the impossible, and the mind that has to stay calm inside it.', threadIds: ['t7', 't8'], colorHint: '#b54f26' },
+];
+
+/* ---------- Story events (v0.8) — the moments the film orbits ---------- */
+
+export const SEED_STORY_EVENTS: StoryEvent[] = [
+  { id: 'ev-trubridge',  title: "Trubridge's 102m — the wall goes up",         kind: 'record',        year: 2016,                    summary: 'William Trubridge sets CNF 102m. For the next nine years it reads like a law of physics. Every no-fins diver measures against it.', personKeys: [], topicIds: [] },
+  { id: 'ev-vito-walk',  title: 'The 107m underwater walk',                    kind: 'record',        year: 2021,                    summary: 'Vito walks 107 metres on the bottom on one breath — Guinness. The long way, made literal.', personKeys: ['vito'], topicIds: ['top-body-brain'] },
+  { id: 'ev-malta',      title: 'Malta — the snorkel that reroutes a life',    kind: 'origin',        year: 2022, date: '2022-10-15', summary: 'A disillusioned triathlete goes snorkelling on holiday. The pool career quietly ends itself in one afternoon of clear water.', personKeys: ['zsofia'], topicIds: [] },
+  { id: 'ev-petar-wr1',  title: "Petar's first CNF world record",              kind: 'record',        year: 2022,                    summary: 'CMAS competition. The beach-rescue kid from Rijeka arrives at the top of the hardest discipline.', personKeys: ['petar'], topicIds: [] },
+  { id: 'ev-sanda-98',   title: 'FIM 98m — Sanda takes the world record',      kind: 'record',        year: 2023, date: '2023-05-15', summary: 'Sharm el Sheikh, 3:58 underwater. Her first world record after 12 national ones.', personKeys: ['sanda'], topicIds: [] },
+  { id: 'ev-storm',      title: 'Vertical Blue · the storm',                   kind: 'crisis',        year: 2023, date: '2023-07-15', summary: 'The airport search, the accusation, the six-month suspension under an ethics code — not doping; every test negative. The chapter no one sketches alone.', personKeys: ['petar', 'vito'], topicIds: [] },
+  { id: 'ev-couples',    title: 'Two couples, one unit',                       kind: 'turning-point', year: 2024,                    summary: 'Petar and Zsófia. Vito and Sanda already. One mentor at the centre of all four. The sport becomes a family — and the family becomes the film.', personKeys: ['petar', 'vito', 'sanda', 'zsofia'], topicIds: [] },
+  { id: 'ev-sanda-103',  title: 'FIM 103m at Mabini',                          kind: 'record',        year: 2025, date: '2025-05-04', summary: 'The Philippines give the number back. Among fewer than ten women ever past 100m.', personKeys: ['sanda'], topicIds: [] },
+  { id: 'ev-petar-103',  title: 'CNF 103m — the 17-year reign ends',           kind: 'record',        year: 2025, date: '2025-05-10', summary: "Sharm el Sheikh. Petar takes Trubridge's wall down by a metre. The sport's oldest record falls to the man 2023 branded.", personKeys: ['petar'], topicIds: [] },
+  { id: 'ev-vito-2903',  title: 'The 29:03 · Opatija',                         kind: 'record',        year: 2025, date: '2025-06-14', summary: 'A hotel pool, five judges, a hundred spectators. Nearly half an hour without a breath, on pure O₂ — Guinness. His mother was not there.', personKeys: ['vito'], topicIds: ['top-body-brain', 'top-rijeka-labs'] },
+  { id: 'ev-chengdu',    title: '300m · first woman · Chengdu gold',           kind: 'record',        year: 2025, date: '2025-08-10', summary: 'World Games. Three years after Malta, Zsófia becomes the first woman to 300m in a pool.', personKeys: ['zsofia'], topicIds: [] },
+  { id: 'ev-zsofia-105', title: 'Zsófia · FIM 105m',                           kind: 'record',        year: 2026, date: '2026-04-20', summary: 'An absolute free-immersion world record three years after her first freedive. One of the fastest arrivals the sport has ever seen.', personKeys: ['zsofia'], topicIds: [] },
+  { id: 'ev-etna',       title: 'Etna erupts during the shoot',                kind: 'shoot-moment',  year: 2026, date: '2026-07-04', summary: "The mountain lights up during Petar's monofin window. 'Fire breathes in, water breathes out' stops being a storyboard.", personKeys: ['petar', 'vito', 'sanda', 'zsofia'], shootId: 'shoot-sicily', topicIds: [] },
+  { id: 'ev-hall',       title: 'Hall of Fame induction',                      kind: 'ceremony',      year: 2027,                    summary: 'The same world that branded him stands to applaud. The 2023 thread closes in America.', personKeys: ['vito'], shootId: 'shoot-usa', topicIds: ['top-usa-hof'] },
+];
+
+/* ---------- Idea Hub (v0.8) — the team's open inbox ---------- */
+
+export const SEED_HUB_IDEAS: HubIdea[] = [
+  {
+    id: 'hub-1', title: 'Hydrophone on the rope for the whole attempt',
+    body: 'Clip an Aquarian to the line at 20m and record the entire dive — the click of the tag, the wetsuit, the ascent bubbles. The film should HEAR depth.',
+    kind: 'sound', status: 'hot', authorId: 'c-toni', votes: 3,
+    links: [ { targetType: 'shoot', targetId: 'shoot-lastovo' }, { targetType: 'four', targetId: 'petar' }, { targetType: 'topic', targetId: 'top-lastovo-camp' } ],
+    createdAt: '2026-07-10T09:00:00Z', updatedAt: '2026-07-12T09:00:00Z',
+  },
+  {
+    id: 'hub-2', title: 'Ask each of the four to describe the other three underwater',
+    body: 'Not on land. In the water, between dives, mask off. Short answers. The bond described from inside the element.',
+    kind: 'question', status: 'warm', authorId: 'c-tomo', votes: 2,
+    links: [ { targetType: 'thread', targetId: 't1' } ],
+    createdAt: '2026-07-11T10:00:00Z', updatedAt: '2026-07-12T09:00:00Z',
+  },
+  {
+    id: 'hub-3', title: "Sanda's espresso as a recurring cutaway",
+    body: 'Same bar, same cup, Trieste market. Before Lastovo, before Cyprus, before the last dive. The constant that measures how everything else changes.',
+    kind: 'shot', status: 'warm', authorId: 'c-kristijan', votes: 1,
+    links: [ { targetType: 'four', targetId: 'sanda' }, { targetType: 'shoot', targetId: 'shoot-lastovo' } ],
+    createdAt: '2026-07-11T14:00:00Z', updatedAt: '2026-07-12T09:00:00Z',
+  },
+  {
+    id: 'hub-4', title: "Film the holders' hands: net, whiteboard, watch",
+    body: "Ante's net. Vito's CO₂ tables in his own handwriting. Sanda wearing her father's watch on land. A hands-only motif chain of the things that hold them.",
+    kind: 'shot', status: 'hot', authorId: 'c-tomo', votes: 4,
+    links: [ { targetType: 'four', targetId: 'petar' }, { targetType: 'four', targetId: 'vito' } ],
+    createdAt: '2026-07-12T08:00:00Z', updatedAt: '2026-07-12T09:00:00Z',
+  },
+  {
+    id: 'hub-5', title: 'The 29:03 as a real-time interlude',
+    body: "Cut the Opatija hold into the film in real proportion — not the whole 29 minutes, but long enough to hurt. Ties into the 'one dive, real time' swing.",
+    kind: 'scene', status: 'hot', authorId: 'c-tomo', votes: 3,
+    links: [ { targetType: 'event', targetId: 'ev-vito-2903' }, { targetType: 'swing', targetId: 'sw-2' }, { targetType: 'four', targetId: 'vito' } ],
+    createdAt: '2026-07-12T08:30:00Z', updatedAt: '2026-07-12T09:00:00Z',
+  },
+  {
+    id: 'hub-6', title: 'Zsófia teaches Tomo to breath-hold on camera',
+    body: "Tomo on the pool edge, Zsófia coaching. The outsider teaching the outsider — her thread, demonstrated instead of narrated.",
+    kind: 'scene', status: 'new', authorId: 'c-zsofia',
+    links: [ { targetType: 'four', targetId: 'zsofia' } ],
+    createdAt: '2026-07-12T09:15:00Z', updatedAt: '2026-07-12T09:15:00Z',
+  },
+  {
+    id: 'hub-7', title: 'Ask Marco to re-read the 2023 ruling on camera',
+    body: 'The judge, the document, a table, one light. He reads the ethics articles out loud. Then silence. No commentary needed.',
+    kind: 'question', status: 'warm', authorId: 'c-tomo', votes: 2,
+    links: [ { targetType: 'event', targetId: 'ev-storm' } ],
+    createdAt: '2026-07-12T09:30:00Z', updatedAt: '2026-07-12T09:30:00Z',
+  },
+  {
+    id: 'hub-8', title: 'Pre-dawn drive: only Petar and the fish trucks',
+    body: 'Dashboard camera, no dialogue, Rijeka before light. The commute of a man on his way to not breathe.',
+    kind: 'shot', status: 'parked', authorId: 'c-kristijan',
+    links: [ { targetType: 'four', targetId: 'petar' } ],
+    createdAt: '2026-07-12T09:45:00Z', updatedAt: '2026-07-12T09:45:00Z',
+  },
+];
 
 /* ---------- The 10 Threads ---------- */
 
 export const SEED_THREADS: Thread[] = [
-  { id: 't1',  num: 1,  title: 'The four, and what\'s between them',            subtitle: 'the soul',                                    owner: 'ensemble',       synopsis: 'One mentor, two couples, a record passed between best friends — really one unit.', status: 'active' },
+  { id: 't1',  num: 1,  title: 'The four, and what\'s between them',            subtitle: 'the soul',                                    owner: 'ensemble',       synopsis: 'One mentor, two couples, four champions — really one unit. The bonds that make the impossible possible.', status: 'active' },
   { id: 't2',  num: 2,  title: '2023',                                          subtitle: 'the test the bond survived',                  owner: 'ensemble',       synopsis: 'The chapter no one sketches alone. Written with the four, not about them. Only at Lastovo, only when right — never in Sicily.', status: 'opening' },
   { id: 't3',  num: 3,  title: 'The pursuit of the record',                     subtitle: 'cost · risk · obsession',                     owner: 'petar',          synopsis: 'Why go deeper? What does the last metre cost that no one sees?', status: 'active' },
   { id: 't4',  num: 4,  title: 'What it feels like down there',                 subtitle: 'silence · surrender · the deep that\'s only yours', owner: 'sanda',    synopsis: "Sanda's territory — the place she goes that's only hers. Home of the descent monologue.", status: 'active' },
-  { id: 't5',  num: 5,  title: 'The record between best friends',               subtitle: 'being overtaken by someone you love',         owner: 'sanda-zsofia',   synopsis: 'A world record passing from Sanda to Zsófia, between two best friends, at the same event where Petar set the men\'s mark.', status: 'active' },
+  { id: 't5',  num: 5,  title: 'Two at the deep end',                           subtitle: 'the friendship almost no one else can share',  owner: 'sanda-zsofia',   synopsis: 'Sanda and Zsófia — two of the very few women ever past 100 metres, and the closest of friends. The rare bond of having someone who understands exactly where you go.', status: 'active' },
   { id: 't6',  num: 6,  title: "The newcomer's eyes",                           subtitle: "the outsider who can still see clearly",       owner: 'zsofia',         synopsis: "Zsófia still sees this world clearly — the way those inside it forever no longer can. Her perspective is the audience's way in.", status: 'active' },
   { id: 't7',  num: 7,  title: 'The body as a frontier',                        subtitle: 'subject and scientist at once',               owner: 'vito',           synopsis: 'The physiology of the impossible — and the rare thing of a subject who is also the scientist studying it.', status: 'active' },
   { id: 't8',  num: 8,  title: 'The mind',                                      subtitle: 'fear · control · the meditative state',       owner: 'ensemble',       synopsis: 'Down there, is the mind empty or full? Which one are you looking for?', status: 'active' },
@@ -170,12 +280,11 @@ export const SEED_THREAD_QUESTIONS: ThreadQuestion[] = [
   { id: 'tq4-1', threadId: 't4', target: 'sanda',  question: 'When you go all the way down, away from coaches and cameras and records — what\'s there that belongs only to you?',                                                            status: 'draft' },
   { id: 'tq4-2', threadId: 't4', target: 'sanda',  question: 'You were the first Croatian woman past 100 metres. What did you have to find in yourself to go where no woman had gone before you?',                                            status: 'draft' },
   { id: 'tq4-3', threadId: 't4', target: 'sanda',  question: 'What does the deep give you that the surface never can?',                                                                                                                       status: 'draft' },
-  /* Thread 5 — the record between best friends */
-  { id: 'tq5-1', threadId: 't5', target: 'sanda',  question: 'Your best friend broke your record and the world celebrated her. How do you hold pride and loss for the same person, in the same breath?',                                     status: 'draft' },
-  { id: 'tq5-2', threadId: 't5', target: 'sanda',  question: 'Is there a freedom in being overtaken — or only the loss?',                                                                                                                     status: 'draft' },
-  { id: 'tq5-3', threadId: 't5', target: 'zsofia', question: 'You went one metre deeper than the most celebrated woman in the sport. Did that feel like arriving, or like taking something not yet yours?',                                   status: 'draft' },
-  { id: 'tq5-4', threadId: 't5', target: 'zsofia', question: 'Underwater, in that moment, before the celebration — what was in your heart?',                                                                                                  status: 'draft' },
-  { id: 'tq5-5', threadId: 't5', target: 'together', question: 'Is there a version of this that ends the friendship? How close did it come? What does the other one give you that no one else can?',                                          status: 'draft' },
+  /* Thread 5 — two at the deep end */
+  { id: 'tq5-1', threadId: 't5', target: 'sanda',  question: 'Almost no one else in the world knows the place you go. What does it mean to have a friend who does?',                                                                              status: 'draft' },
+  { id: 'tq5-3', threadId: 't5', target: 'zsofia', question: 'When you arrived, Sanda was already deep. What did her being there give you that you couldn\'t have found alone?',                                                             status: 'draft' },
+  { id: 'tq5-4', threadId: 't5', target: 'zsofia', question: 'Underwater, at the bottom, alone — what do you carry down there that comes from her?',                                                                                          status: 'draft' },
+  { id: 'tq5-5', threadId: 't5', target: 'together', question: 'What does the other one understand about you that no one outside this water ever could?',                                                                                     status: 'draft' },
   /* Thread 6 — newcomer's eyes (Zsófia) */
   { id: 'tq6-1', threadId: 't6', target: 'zsofia', question: 'Three years ago you were a triathlete. Do you ever not quite believe the life you\'re in now?',                                                                                 status: 'draft' },
   { id: 'tq6-2', threadId: 't6', target: 'zsofia', question: 'As the newest, what do you see in this world that the others have stopped noticing?',                                                                                           status: 'draft' },
@@ -280,11 +389,13 @@ export const SEED_SHOOTS: Shoot[] = [
   {
     id: 'shoot-usa',
     key: 'usa',
-    title: 'The USA · Hall of Fame + Vegas→SF RV road-trip',
-    location: 'USA · Hall of Fame + Las Vegas → San Francisco road-trip',
+    title: 'The USA · Hall of Fame + SF→Vegas RV road-trip',
+    location: 'USA · Hall of Fame + San Francisco → Las Vegas road-trip',
     country: 'USA',
     status: 'planned',
-    spirit: "Vito's Hall of Fame induction · vindication made real · and a shared road-trip that could become the coda itself.",
+    startDate: '2026-09-01',
+    endDate: '2026-09-27',
+    spirit: "Vito's Hall of Fame induction · vindication made real · and a shared road-trip that could become the coda itself. Fly into SF, drive the Sierra + desert loop, end in Vegas, fly straight to Cyprus.",
     captures: [
       'the ceremony · the applause · the standing',
       "Vito's face during the induction",
@@ -466,9 +577,9 @@ export const SEED_SWINGS: BiggerSwing[] = [
   },
   {
     id: 'sw-10',
-    title: 'Two friends, one record',
-    description: "Sanda and Zsófia filmed apart, answering the same question — cut together so they almost finish each other's sentence.",
-    whyItMatters: "The film's thesis test-case. The record that passed between best friends could have broken them. It didn't. The cut proves it.",
+    title: 'Two friends, one depth',
+    description: "Sanda and Zsófia filmed apart, answering the same question about the deep — cut together so they almost finish each other's sentence.",
+    whyItMatters: "Two of the very few women who know what 100 metres feels like, describing the same silence from opposite ends of the earth. The bond made audible: two voices that have been to the same impossible place.",
     narrative: "Same question, same lens, same simple background. But filmed a month apart, on different continents. Cut so their answers overlap on the vowels. They finish each other's sentences without knowing.",
     visualNote: 'Identical framing. Different light. Same silence.',
     soundNote: 'Their voices, together as they never were in the room.',
@@ -485,15 +596,60 @@ export const SEED_DEVICES: GrammarDevice[] = [
   { id: 'dev-4', key: 'moment-in-the-dark', title: 'A moment in the dark',    description: "At the film's deepest point, image and sound black out for a few seconds. The audience is given the edge, not told about it. Used once.",                                                                                captureIds: [] },
 ];
 
-/* ---------- Freediving records (public knowledge as of Film Bible) ---------- */
+/* ---------- Freediving records (researched · real public record) ---------- */
 
 export const SEED_RECORDS: DivingRecord[] = [
-  { id: 'rec-petar-cnf',   personKey: 'petar',  discipline: 'CNF',     scope: 'world',    depthM: 103,  date: '2024-07-30', event: 'Vertical Blue 2024',                            location: "Dean's Blue Hole, Bahamas",  status: 'standing',                notes: 'Broke a record that stood 17 years.' },
-  { id: 'rec-petar-fim',   personKey: 'petar',  discipline: 'FIM',     scope: 'world',    depthM: 128,  date: '2025-06-15', event: 'AIDA World Championship',                       location: 'Kalamata, Greece',             status: 'standing' },
-  { id: 'rec-vito-sta',    personKey: 'vito',   discipline: 'STA',     scope: 'guinness', timeSeconds: 1743, date: '2024-03-10', event: 'Guinness attempt',                             location: 'Rijeka, Croatia',             status: 'standing',                notes: '~29 minutes without breathing. Longest static apnea recorded (Guinness).' },
-  { id: 'rec-sanda-fim-hr',personKey: 'sanda',  discipline: 'FIM',     scope: 'world',    depthM: 100,   date: '2019-07-18', event: 'Vertical Blue 2019',                            location: "Dean's Blue Hole, Bahamas",   status: 'broken',   brokenByRecordId: 'rec-zsofia-fim', notes: 'First Croatian woman past 100m FIM (former WR).' },
-  { id: 'rec-zsofia-fim',  personKey: 'zsofia', discipline: 'FIM',     scope: 'world',    depthM: 105,   date: '2024-07-28', event: 'Vertical Blue 2024',                            location: "Dean's Blue Hole, Bahamas",   status: 'standing',                notes: 'One metre deeper than the most celebrated woman in the sport.' },
-  { id: 'rec-zsofia-dyn',  personKey: 'zsofia', discipline: 'DYN',     scope: 'world',    distanceM: 301, date: '2024-04-20', event: 'AIDA Pool World Championship',                  location: 'Belgrade, Serbia',            status: 'standing',                notes: 'First woman past 300m DYN.' },
+  { id: 'rec-petar-cnf',     personKey: 'petar',  discipline: 'CNF',   scope: 'world',    depthM: 103,       date: '2025-05-10', event: 'AIDA Freediving World Cup',                     location: 'Sharm el Sheikh, Egypt',            status: 'standing', notes: "Broke William Trubridge's 102m — a reign that stood since 2016. The end of a 17-year era." },
+  { id: 'rec-petar-fim',     personKey: 'petar',  discipline: 'FIM',   scope: 'world',    depthM: 135,       date: '2025-06-15', event: 'FIM world record',                               location: '',                                   status: 'standing', notes: 'Free immersion — the deepest a man has ever pulled himself.' },
+  { id: 'rec-vito-sta',      personKey: 'vito',   discipline: 'STA',   scope: 'guinness', timeSeconds: 1743, date: '2025-06-14', event: 'Guinness World Record attempt',                 location: 'Opatija, Croatia · Bristol Hotel pool', status: 'standing', notes: '29:03 on pure O₂ — five judges, ~100 spectators, none of them breathing either.' },
+  { id: 'rec-vito-walk',     personKey: 'vito',   discipline: 'other', scope: 'guinness', distanceM: 107,    date: '2021-06-01', event: 'Guinness · longest underwater walk on one breath', location: 'Croatia',                          status: 'standing', notes: 'One breath, 107 metres, on foot, on the bottom.' },
+  { id: 'rec-vito-fim',      personKey: 'vito',   discipline: 'FIM',   scope: 'personal', depthM: 123,       date: '2024-09-01', event: 'AIDA depth competition',                          location: '',                                   status: 'standing', notes: 'Free-immersion career best — the mentor goes deep too, not only long. World no. 3 all-time. (Date to confirm.)' },
+  { id: 'rec-vito-cwt',      personKey: 'vito',   discipline: 'CWT',   scope: 'personal', depthM: 117,       date: '2024-09-01', event: 'AIDA depth competition',                          location: '',                                   status: 'standing', notes: 'Constant-weight career best. Known for going long — but 117m is genuinely deep. Chasing a variable-weight ~160m next. (Date to confirm.)' },
+  { id: 'rec-sanda-fim-98',  personKey: 'sanda',  discipline: 'FIM',   scope: 'world',    depthM: 98,        date: '2023-05-15', event: 'AIDA World Cup',                                 location: 'Sharm el Sheikh, Egypt',            status: 'broken',   brokenByRecordId: 'rec-sanda-fim-103', notes: 'Her first FIM world record · 3:58 dive time.' },
+  { id: 'rec-sanda-fim-103', personKey: 'sanda',  discipline: 'FIM',   scope: 'world',    depthM: 103,       date: '2025-05-04', event: 'FIM world record',                               location: 'Mabini, Philippines',               status: 'broken',   brokenByRecordId: 'rec-zsofia-fim', notes: 'Among fewer than ten women ever past 100m. 12 national records behind it.' },
+  { id: 'rec-zsofia-fim',    personKey: 'zsofia', discipline: 'FIM',   scope: 'world',    depthM: 105,       date: '2026-04-20', event: 'Absolute FIM world record',                      location: '',                                   status: 'standing', notes: "Two metres past her best friend's number. The record that passed between them." },
+  { id: 'rec-zsofia-dyn280', personKey: 'zsofia', discipline: 'DYN',   scope: 'world',    distanceM: 280,    date: '2025-04-15', event: 'DYN world record',                               location: '',                                   status: 'broken',   brokenByRecordId: 'rec-zsofia-dyn', notes: 'Broken by her own 300 four months later.' },
+  { id: 'rec-zsofia-dyn',    personKey: 'zsofia', discipline: 'DYN',   scope: 'world',    distanceM: 300,    date: '2025-08-10', event: 'World Games',                                    location: 'Chengdu, China',                    status: 'standing', notes: 'First woman to 300m in a pool · gold.' },
+];
+
+/* ---------- Watcher moments (the film's emotional centre) ----------
+   When one goes down, we film the other three at the surface. Their face
+   the instant the card shows is often more important than the diver's. */
+
+export const SEED_WATCHER_MOMENTS: WatcherMoment[] = [
+  { id: 'wm-sic-vito',   shootId: 'shoot-sicily', watcherKey: 'vito',   divingPersonKey: 'petar', moment: "Vito the instant Petar's card shows — the mentor who almost left the sport, watching the student surpass everyone.", captured: true,  timecode: '01:12:40', captureNote: 'C2 held on Vito for the full 40 seconds after the surface. This is the shot.' },
+  { id: 'wm-sic-zsofia', shootId: 'shoot-sicily', watcherKey: 'zsofia', divingPersonKey: 'petar', moment: 'Zsófia at the surface willing her partner up — she stops breathing when he does.', captured: true,  timecode: '01:12:44' },
+  { id: 'wm-sic-sanda',  shootId: 'shoot-sicily', watcherKey: 'sanda',  divingPersonKey: 'petar', moment: "Sanda, who knows exactly what the last metre costs, watching someone else pay it.", captured: true,  timecode: '01:12:47' },
+  { id: 'wm-krk-vito',   shootId: 'shoot-krk',    watcherKey: 'vito',   divingPersonKey: 'sanda', moment: 'Vito counting Sanda down at Krk — coach and partner in the same face.', captured: true },
+  { id: 'wm-krk-petar',  shootId: 'shoot-krk',    watcherKey: 'petar',  divingPersonKey: 'zsofia',moment: 'Petar watching Zsófia train — the newcomer he brought into the deep.', captured: false, captureNote: 'Planned pickup — get this at Lastovo if missed at Krk.' },
+  { id: 'wm-las-together', shootId: 'shoot-lastovo', watcherKey: 'sanda', divingPersonKey: 'zsofia', moment: 'Sanda at the surface as Zsófia comes up from a deep one — the friend who understands the place she just came from.', captured: false },
+];
+
+/* ---------- Physiology (the score built from real bodies) ----------
+   dataPointsCsv = bpm samples over the dive; the view charts it as the
+   film's would-be score. Bradycardia: the diving reflex drops the heart
+   toward a fraction of its resting rate. */
+
+export const SEED_PHYSIOLOGY: PhysiologyDatum[] = [
+  {
+    id: 'phys-vito-hr', personKey: 'vito', metric: 'heart-rate',
+    contextNote: 'Vito · static apnea, Rijeka lab. The diving reflex pulls his heart toward 20-something bpm, then it surges back on the recovery breath.',
+    unit: 'bpm', dataPointsCsv: '76,72,66,58,50,44,39,35,31,28,26,25,24,24,25,27,33,44,60,74,80,72',
+    peakValue: 80, minValue: 24, duration: 1743, date: '2025-06-14', source: 'University of Rijeka · hyperbaric centre', usedInScore: true,
+    notes: 'The 29:03 hold. This curve is the spine of the "score is their bodies" swing.',
+  },
+  {
+    id: 'phys-petar-hr', personKey: 'petar', metric: 'heart-rate',
+    contextNote: "Petar · a deep constant-weight descent. Heart slows on the way down as pressure builds, spikes at the turn, races on the ascent.",
+    unit: 'bpm', dataPointsCsv: '84,78,70,62,55,49,45,43,42,44,48,55,64,74,86,96,90,80',
+    peakValue: 96, minValue: 42, duration: 195, date: '2025-05-10', source: 'Wrist + chest telemetry', usedInScore: true,
+  },
+  {
+    id: 'phys-vito-spo2', personKey: 'vito', metric: 'blood-oxygen',
+    contextNote: 'Vito · blood-oxygen saturation across the long hold. It falls quietly, then the body defends the brain last.',
+    unit: '% SpO₂', dataPointsCsv: '99,98,97,95,92,88,84,79,74,69,64,61,58,57,60,72,88,97',
+    peakValue: 99, minValue: 57, date: '2025-06-14', source: 'University of Rijeka · hyperbaric centre',
+  },
 ];
 
 /* ---------- Evidence library for the 2023 Chapter ---------- */
@@ -515,12 +671,16 @@ export const SEED_EVIDENCE_2023: Evidence2023[] = [
   { id: 'ev-5', type: 'press-article',        title: 'Vertical Blue 2023 · reporting',        source: 'DeeperBlue · Divernet · Sports Integrity Initiative',            summary: 'Timeline of arrival, airport search (organiser participating, off-duty police, secretly filmed against event policy).', onFile: false },
 ];
 
-/* ---------- Film crew (film-side, not talent) ---------- */
+/* ---------- Film crew (the whole team — film side + talent side) ---------- */
 
 export const SEED_CREW: CrewMember[] = [
-  { id: 'c-tomo',      name: 'Tomislav Kovačić', role: 'Producer / Director',  languages: ['hr','en'], link: 'terminimal.com' },
-  { id: 'c-toni',      name: 'Toni',              role: 'Camera Operator',      languages: ['hr','en'] },
-  { id: 'c-christian', name: 'Christian',         role: 'Camera Operator',      languages: ['hr','en'] },
+  { id: 'c-tomo',      name: 'Tomislav Kovačić',    role: 'Producer',                         languages: ['hr','en'], link: 'terminimal.com', notes: 'The eye. Holds the whole film — story, pitch, edit. This dashboard is his bridge.' },
+  { id: 'c-kristijan', name: 'Kristijan Dimitrijević', role: 'Camera 1',                       languages: ['hr','en'], notes: 'A7 IV #1. Lead camera on every attempt — the face and the surface hero frames.' },
+  { id: 'c-toni',      name: 'Toni Batić',           role: 'Camera 2',                         languages: ['hr','en'], notes: 'A7 IV #2. Second angle — the watchers, the roam, matched colour with Camera 1.' },
+  { id: 'c-petar',     name: 'Petar Klovar',          role: 'Talent · safety + depth consultant', languages: ['hr','en'], notes: 'The gravity. Also the deepest safety knowledge on the team.' },
+  { id: 'c-vito',      name: 'Vitomir Maričić',       role: 'Talent · scientific advisor',      languages: ['hr','en'], notes: 'The heart and mind. Bridges the Rijeka lab and the rope. Heads AIDA Croatia.' },
+  { id: 'c-sanda',     name: 'Sanda Delija',          role: 'Talent · story consultant',        languages: ['hr','en','it'], notes: 'The first. Reads every cut of her own thread before lock.' },
+  { id: 'c-zsofia',    name: 'Zsófia Törőcsik',       role: 'Talent · international voice',     languages: ['hu','en'], notes: "The newcomer's eyes. Her English interviews carry the film abroad." },
 ];
 
 /* ---------- Schedule phases + milestones ---------- */
@@ -571,20 +731,26 @@ export const SEED_JOURNAL: JournalEntry[] = [
 export const SEED_REFERENCES: Reference[] = [
   { id: 'ref-1', type: 'film', title: 'Free Solo',                     director: 'Elizabeth Chai Vasarhelyi & Jimmy Chin', year: 2018, whyItMatters: "Solo pursuit of a physical impossible. Compare on the interior life of the athlete; contrast on our ensemble-of-four vs. solo-hero shape." },
   { id: 'ref-2', type: 'film', title: 'The Deepest Breath',            director: 'Laura McGann',                            year: 2023, whyItMatters: 'The closest genre precedent. Study the ways it did and did NOT hold the sport. Our film needs to be nothing like a companion piece to it — same discipline, entirely different soul.' },
-  { id: 'ref-3', type: 'film', title: 'Fire of Love',                  director: 'Sara Dosa',                                year: 2022, whyItMatters: 'Two people at the edge of an element, and the bond between them. Volcanic footage as archive-driven poetry. Reference for Etna and for the "one holds the other" love-under-the-edge grammar.' },
   { id: 'ref-4', type: 'film', title: 'The Alpinist',                  director: 'Peter Mortimer & Nick Rosen',              year: 2021, whyItMatters: 'Silence, interiority, an athlete who resists narration. Reference for how we don\'t over-explain.' },
-  { id: 'ref-5', type: 'film', title: 'Meru',                           director: 'Elizabeth Chai Vasarhelyi & Jimmy Chin', year: 2015, whyItMatters: 'The mentor-protégé bond made visible.' },
   { id: 'ref-6', type: 'paper',title: 'The CMAS code of ethics · Vertical Blue Case', author: 'Škerbić, Dikić, Andjelković, Žarković, Parry',            year: 2025, whyItMatters: 'The peer-reviewed footnoted case. Backbone of the 2023 chapter.' },
 ];
 
-/* ---------- Festival targets (Sundance / Berlinale / IDFA priority) ---------- */
+/* ---------- Festival targets (premiere strategy: Sundance world premiere →
+   European premiere Berlinale / CPH:DOX → home-turf ZagrebDox after) ---------- */
 
 export const SEED_FESTIVALS: FestivalSubmission[] = [
-  { id: 'fest-sundance',  name: 'Sundance Film Festival', city: 'Park City',    country: 'USA',         category: 'World Documentary Competition', fitScore: 5, status: 'target', notes: 'Deep Dive premiere target #1. Deadline Sep 2027.' },
-  { id: 'fest-berlinale', name: 'Berlinale',              city: 'Berlin',       country: 'Germany',     category: 'Encounters / Panorama Dokumente', fitScore: 5, status: 'target', notes: 'Deep Dive premiere target #2.' },
-  { id: 'fest-idfa',      name: 'IDFA',                   city: 'Amsterdam',    country: 'Netherlands', category: 'International Competition',      fitScore: 5, status: 'target', notes: '' },
-  { id: 'fest-cphdox',    name: 'CPH:DOX',                city: 'Copenhagen',   country: 'Denmark',     category: 'Dox:Award',                        fitScore: 4, status: 'target', notes: '' },
-  { id: 'fest-sarajevo',  name: 'Sarajevo Film Festival', city: 'Sarajevo',     country: 'Bosnia',      category: 'Documentary Competition',        fitScore: 4, status: 'target', notes: 'Regional identity, home turf.' },
+  { id: 'fest-sundance',  name: 'Sundance Film Festival',    city: 'Park City',   country: 'USA',         category: 'World Documentary Competition',   deadline: '2027-09-24', feeEur: 100, fitScore: 5, status: 'target', notes: 'World-premiere target #1. Free Solo / Deepest Breath territory.' },
+  { id: 'fest-berlinale', name: 'Berlinale',                 city: 'Berlin',      country: 'Germany',     category: 'Panorama Dokumente',               deadline: '2027-10-15',              fitScore: 5, status: 'target', notes: 'European-premiere target. EU co-pro friendly.' },
+  { id: 'fest-idfa',      name: 'IDFA',                      city: 'Amsterdam',   country: 'Netherlands', category: 'International Competition',        deadline: '2027-05-01', feeEur: 50,  fitScore: 5, status: 'target', notes: 'The doc cathedral. Alternative world-premiere play.' },
+  { id: 'fest-cphdox',    name: 'CPH:DOX',                   city: 'Copenhagen',  country: 'Denmark',     category: 'Dox:Award',                        deadline: '2027-08-15', feeEur: 45,  fitScore: 4, status: 'target', notes: 'Bold-form friendly — the swings play well here.' },
+  { id: 'fest-hotdocs',   name: 'Hot Docs',                  city: 'Toronto',     country: 'Canada',      category: 'International Spectrum',           deadline: '2026-12-10', feeEur: 60,  fitScore: 4, status: 'target', notes: 'North-American doc market attached.' },
+  { id: 'fest-tribeca',   name: 'Tribeca Festival',          city: 'New York',    country: 'USA',         category: 'Documentary Competition',          deadline: '2027-01-10', feeEur: 90,  fitScore: 4, status: 'target', notes: 'US visibility + sports-doc appetite.' },
+  { id: 'fest-visions',   name: 'Visions du Réel',           city: 'Nyon',        country: 'Switzerland', category: 'International Competition',        deadline: '2026-12-01', feeEur: 40,  fitScore: 4, status: 'target', notes: 'Author-doc prestige. Loves formal ambition.' },
+  { id: 'fest-sheffield', name: 'Sheffield DocFest',         city: 'Sheffield',   country: 'UK',          category: 'International Competition',        deadline: '2027-02-15', feeEur: 55,  fitScore: 4, status: 'target', notes: 'UK broadcast doors open here.' },
+  { id: 'fest-sxsw',      name: 'SXSW',                      city: 'Austin',      country: 'USA',         category: 'Documentary Spotlight',            deadline: '2026-10-20', feeEur: 80,  fitScore: 3, status: 'target', notes: 'Younger crowd — the science + body angle.' },
+  { id: 'fest-dokleipzig',name: 'DOK Leipzig',               city: 'Leipzig',     country: 'Germany',     category: 'International Competition',        deadline: '2027-07-01', feeEur: 40,  fitScore: 3, status: 'target', notes: 'Strong German doc culture. Broadcaster scouts.' },
+  { id: 'fest-thessaloniki', name: 'Thessaloniki Int. Doc Festival', city: 'Thessaloniki', country: 'Greece', category: 'International Competition',    deadline: '2027-11-01', feeEur: 30,  fitScore: 3, status: 'target', notes: 'Mediterranean identity — the sea is home ground.' },
+  { id: 'fest-zagrebdox', name: 'ZagrebDox',                 city: 'Zagreb',      country: 'Croatia',     category: 'Regional Competition',             deadline: '2027-11-15',              fitScore: 4, status: 'target', notes: 'Home premiere — AFTER the international bow. The four walk in as heroes.' },
 ];
 
 /* ---------- Sales agents + broadcasters (empty for now) ---------- */
@@ -592,8 +758,9 @@ export const SEED_FESTIVALS: FestivalSubmission[] = [
 export const SEED_SALES_AGENTS: SalesAgent[] = [];
 export const SEED_BROADCASTERS: Broadcaster[] = [];
 
-/* ---------- Spine · Ideas Workshop (v0.2) ----------
-   User will fill in as ideas emerge from team discussion. Seed one anchor. */
+/* ---------- Spine · Ideas Workshop (v0.2 · expanded v0.7) ----------
+   Candidate spines for the film's structure. Kanban: idea → discussing →
+   leading → dropped. The leading ones graduate into locked structure. */
 
 export const SEED_SPINE_IDEAS: SpineIdea[] = [
   {
@@ -606,58 +773,496 @@ export const SEED_SPINE_IDEAS: SpineIdea[] = [
     createdAt: '2026-06-01',
     updatedAt: '2026-07-11',
   },
+  {
+    id: 'spine-idea-2',
+    title: 'Open on fire, end in the dark',
+    body: 'Etna opens the film — the loudest element on the planet. The bioluminescent coda closes it — the quietest. The whole film travels from eruption to glow, from the element that cannot stop to the people who can.',
+    status: 'leading',
+    votes: 3,
+    createdAt: '2026-07-12',
+    updatedAt: '2026-07-12',
+  },
+  {
+    id: 'spine-idea-3',
+    title: 'No narrator, no experts',
+    body: 'Only the four voices and the body data. Nobody explains them from outside — not a scientist talking head, not a sports commentator. When the film needs authority, the ultrasound testifies.',
+    status: 'leading',
+    votes: 3,
+    linkedThreadIds: ['t7'],
+    createdAt: '2026-07-12',
+    updatedAt: '2026-07-12',
+  },
+  {
+    id: 'spine-idea-4',
+    title: 'Depth chapters — 0m · 30m · 60m · 90m · ∞',
+    body: 'The film structured as one long dive. Chapter cards at depths instead of act numbers. Surface material lives at 0m; the 2023 chapter sits at the coldest depth; the coda is ∞ — past measuring.',
+    status: 'discussing',
+    votes: 2,
+    linkedThreadIds: ['t2'],
+    createdAt: '2026-07-12',
+    updatedAt: '2026-07-12',
+  },
+  {
+    id: 'spine-idea-5',
+    title: 'The returning-question matrix',
+    body: "The same five questions asked at every shoot, across the whole year. The spine is the DRIFT — how the same person answers the same question differently after Sicily, after Lastovo, after the record passes. Time made audible.",
+    status: 'discussing',
+    votes: 2,
+    linkedThreadIds: ['t1', 't8'],
+    createdAt: '2026-07-12',
+    updatedAt: '2026-07-12',
+  },
+  {
+    id: 'spine-idea-6',
+    title: 'Cut on the breath',
+    body: "Every scene transition lands on an exhale. The edit itself breathes — in for tension, out for release. The audience entrains to it without knowing why the film feels like a body.",
+    status: 'discussing',
+    votes: 1,
+    createdAt: '2026-07-12',
+    updatedAt: '2026-07-12',
+  },
+  {
+    id: 'spine-idea-7',
+    title: 'Zsófia narrates the way in',
+    body: "The outsider's English VO opens each act — the one who can still see this world clearly. The insiders' Croatian deepens what she opens. Two languages, one staircase down.",
+    status: 'idea',
+    linkedThreadIds: ['t6'],
+    createdAt: '2026-07-12',
+    updatedAt: '2026-07-12',
+  },
+  {
+    id: 'spine-idea-8',
+    title: '2023 told only in present tense',
+    body: 'No retrospective framing, no "looking back at it now". The chapter plays as if it is happening — archival treated as present, the fear kept alive in the grammar itself.',
+    status: 'idea',
+    linkedThreadIds: ['t2'],
+    createdAt: '2026-07-12',
+    updatedAt: '2026-07-12',
+  },
+  {
+    id: 'spine-idea-9',
+    title: 'The camera never goes below the diver',
+    body: 'For the whole film the camera stays at or above the diver — the perspective of the one who waits. Only in the final dive does it sink past them. The audience earns the bottom.',
+    status: 'idea',
+    createdAt: '2026-07-12',
+    updatedAt: '2026-07-12',
+  },
+  {
+    id: 'spine-idea-10',
+    title: 'The surface interview',
+    body: "Every sit-down filmed within sight of water — a window, a harbour, a pool edge. The sea always somewhere in frame: the film's unconscious.",
+    status: 'idea',
+    createdAt: '2026-07-12',
+    updatedAt: '2026-07-12',
+  },
+  {
+    id: 'spine-idea-11',
+    title: 'Celebrity narrator',
+    body: 'A recognisable international voice narrating the story. Dropped: breaks the intimacy, imports authority the film is explicitly refusing. See "no narrator, no experts".',
+    status: 'dropped',
+    createdAt: '2026-07-12',
+    updatedAt: '2026-07-12',
+  },
 ];
 
-/* ---------- Camera Team · Inventory (v0.2) ----------
-   Placeholder starter kit — user + Toni + Christian edit. Realistic gear
-   for a freediving documentary: underwater rigs are first-class. */
+/* ---------- Camera Team · Inventory ----------
+   The real kit: 2× Sony A7 IV bodies, Sony E glass, Røde sound.
+   Lights intentionally empty — add as they're acquired. */
 
 export const SEED_CAMERAS: Camera[] = [
-  { id: 'cam-fx3-1',    brand: 'Sony',    model: 'FX3',                 kind: 'body',    sensor: 'Full-Frame CMOS',  maxResolution: '4K UHD', maxFrameRate: '120fps',                              ownership: 'owned',    operatorId: 'c-toni',      notes: 'Primary A-cam. Low-light king for below-deck + night dives.' },
-  { id: 'cam-fx3-2',    brand: 'Sony',    model: 'FX3',                 kind: 'body',    sensor: 'Full-Frame CMOS',  maxResolution: '4K UHD', maxFrameRate: '120fps',                              ownership: 'owned',    operatorId: 'c-christian', notes: 'B-cam · matched color with A-cam.' },
-  { id: 'cam-a7s3',     brand: 'Sony',    model: 'a7S III',              kind: 'body',    sensor: 'Full-Frame CMOS',  maxResolution: '4K UHD', maxFrameRate: '120fps',                              ownership: 'owned',    operatorId: 'c-tomo',      notes: 'Roam · watcher-cam · handheld.' },
-  { id: 'cam-c70',      brand: 'Canon',   model: 'C70',                  kind: 'body',    sensor: 'Super 35 DGO',     maxResolution: '4K',      maxFrameRate: '120fps',                              ownership: 'rented',   operatorId: 'c-toni',      notes: 'Set-piece cinema camera. Interviews.' },
-  { id: 'cam-uw-nauticam',brand: 'Nauticam', model: 'FX3 housing',        kind: 'uw-rig',  underwaterDepthM: 100,                                                                                    ownership: 'rented',   operatorId: 'c-christian', notes: 'FX3 housed. Primary underwater rig.' },
-  { id: 'cam-gopro',    brand: 'GoPro',   model: 'Hero 12 Black',        kind: 'action',                                                                                                              ownership: 'owned',                              notes: 'Multiple units. Rope-mount, chest-mount, bail-out.' },
-  { id: 'cam-drone',    brand: 'DJI',     model: 'Mavic 3 Pro',          kind: 'drone',                                                                                                                ownership: 'owned',    operatorId: 'c-christian', notes: 'Aerials. Boat approaches, wide land, coast.' },
+  { id: 'cam-a7iv-1', brand: 'Sony', model: 'A7 IV · Camera 1', kind: 'body', sensor: '33MP full-frame', maxResolution: '4K', maxFrameRate: '4K60 (S35) / 4K30 FF', ownership: 'owned', operatorId: 'c-kristijan', notes: 'Camera 1 · Kristijan. Lead camera — the face, the surface hero frames, interviews.' },
+  { id: 'cam-a7iv-2', brand: 'Sony', model: 'A7 IV · Camera 2', kind: 'body', sensor: '33MP full-frame', maxResolution: '4K', maxFrameRate: '4K60 (S35) / 4K30 FF', ownership: 'owned', operatorId: 'c-toni',      notes: 'Camera 2 · Toni. Second angle — watchers + roam. Matched colour with Camera 1.' },
 ];
 
 export const SEED_LENSES: Lens[] = [
-  { id: 'lens-2470',  brand: 'Sony',       focal: '24-70mm', maxAperture: 'f/2.8',  mount: 'E',  type: 'photo', characterNotes: 'Everyday zoom, sharp, contrasty.',        ownership: 'owned',  operatorId: 'c-toni' },
-  { id: 'lens-70200', brand: 'Sony',       focal: '70-200mm',maxAperture: 'f/2.8',  mount: 'E',  type: 'photo', characterNotes: 'Compression + reach. Watcher-cam.',      ownership: 'owned',  operatorId: 'c-christian' },
-  { id: 'lens-16354', brand: 'Sony',       focal: '16-35mm', maxAperture: 'f/2.8',  mount: 'E',  type: 'photo', characterNotes: 'Wide interiors, boats.',                 ownership: 'owned',  operatorId: 'c-tomo' },
-  { id: 'lens-50gm',  brand: 'Sony',       focal: '50mm',    maxAperture: 'f/1.2',  mount: 'E',  type: 'photo', characterNotes: 'Fast prime. Portraits, interviews.',     ownership: 'owned',  operatorId: 'c-toni' },
-  { id: 'lens-85gm',  brand: 'Sony',       focal: '85mm',    maxAperture: 'f/1.4',  mount: 'E',  type: 'photo', characterNotes: 'Portrait king. The-face cam.',           ownership: 'owned',  operatorId: 'c-toni' },
-  { id: 'lens-cine',  brand: 'Cooke',      focal: '32mm',    maxAperture: 'T2.0',   mount: 'PL', type: 'cine',  characterNotes: 'Warm falloff, gentle bokeh. Set-piece.', ownership: 'rented', operatorId: 'c-toni' },
-  { id: 'lens-uw',    brand: 'Sony',       focal: '16-35mm', maxAperture: 'f/2.8',  mount: 'E',  type: 'photo', characterNotes: 'Housed for underwater.',                 ownership: 'rented', operatorId: 'c-christian' },
+  { id: 'lens-2470gm2',  brand: 'Sony', focal: '24-70mm',  maxAperture: 'f/2.8', mount: 'E', type: 'photo', characterNotes: 'GM II. The workhorse — interviews, docks, boats.',            ownership: 'owned',  operatorId: 'c-kristijan' },
+  { id: 'lens-1635gm',   brand: 'Sony', focal: '16-35mm',  maxAperture: 'f/2.8', mount: 'E', type: 'photo', characterNotes: 'GM. Wide — boat interiors, the sea meeting the sky.',          ownership: 'owned',  operatorId: 'c-toni' },
+  { id: 'lens-85f14',    brand: 'Sony', focal: '85mm',     maxAperture: 'f/1.4', mount: 'E', type: 'photo', characterNotes: 'GM. Faces. The watchers device lives on this glass.',          ownership: 'owned',  operatorId: 'c-kristijan' },
+  { id: 'lens-70200gm2', brand: 'Sony', focal: '70-200mm', maxAperture: 'f/2.8', mount: 'E', type: 'photo', characterNotes: 'GM II. Long — the buoy from the boat, arrivals from shore.',   ownership: 'coming' },
 ];
 
 export const SEED_MICS: Microphone[] = [
-  { id: 'mic-lav-1',    brand: 'Sennheiser', model: 'MKE 2 Gold',    type: 'lav',        channels: 1, ownership: 'owned',  notes: 'Talent lav #1' },
-  { id: 'mic-lav-2',    brand: 'Sennheiser', model: 'MKE 2 Gold',    type: 'lav',        channels: 1, ownership: 'owned',  notes: 'Talent lav #2' },
-  { id: 'mic-lav-3',    brand: 'DPA',        model: '4060',           type: 'lav',        channels: 1, ownership: 'owned',  notes: 'Backup lav (waterproof)' },
-  { id: 'mic-boom',     brand: 'Sennheiser', model: 'MKH 416',        type: 'shotgun',    channels: 1, ownership: 'owned',  notes: 'Interview boom.' },
-  { id: 'mic-stereo',   brand: 'Rode',       model: 'NTG-3',          type: 'shotgun',    channels: 1, ownership: 'owned',  notes: 'Boom #2.' },
-  { id: 'mic-hydro',    brand: 'Aquarian',   model: 'H2a',            type: 'hydrophone', channels: 1, ownership: 'rented', notes: 'Underwater ambient. The sound of the deep.' },
-  { id: 'mic-ambisonic',brand: 'Zoom',       model: 'H3-VR',          type: 'stereo',     channels: 4, ownership: 'owned',  notes: 'Ambisonic room · atmos. For volcano scene + open water.' },
+  { id: 'mic-rode-boom', brand: 'Røde', model: 'NTG5 boom',                    type: 'boom', channels: 1, ownership: 'owned', notes: 'Boom. Interviews + surface ambience.' },
+  { id: 'mic-rode-lav',  brand: 'Røde', model: 'Wireless GO II + Lavalier II', type: 'lav',  channels: 2, ownership: 'owned', notes: 'Lav set. Breath-up voices, boat talk, watchers.' },
 ];
 
-export const SEED_LIGHTS: Light[] = [
-  { id: 'light-aputure-1', brand: 'Aputure', model: '600d Pro',       type: 'led-panel', watts: 600, colorTempK: '5600K',      ownership: 'rented', notes: 'Interview key.' },
-  { id: 'light-aputure-2', brand: 'Aputure', model: 'Amaran 200x',    type: 'led-panel', watts: 200, colorTempK: '2700-6500K', ownership: 'owned',  notes: 'Fill / accent.' },
-  { id: 'light-nanlite',   brand: 'Nanlite', model: 'PavoTube II 30X',type: 'led-tube',  watts: 40,  colorTempK: 'RGB',        ownership: 'owned',  notes: 'Practical effects.' },
-  { id: 'light-uw',        brand: 'Kraken',  model: 'Hydra 15000',    type: 'battery',   watts: 150, colorTempK: '5000K',      ownership: 'rented', notes: 'Underwater dive light. Cave + night dive.' },
+/* Lights — empty for now, per team decision. */
+export const SEED_LIGHTS: Light[] = [];
+
+/* ---------- Calendar Events (v0.11 — a serious production calendar) ----------
+   The composed schedule also renders shoots + milestones as ghosts; these
+   are the surrounding production reality: development, travel, post, festival
+   deadlines, delivery — and the parallel September strands (the USA RV trip
+   + Burning Man's last three days + a second-unit Sicily pickup shoot). */
+
+export const SEED_CALENDAR_EVENTS: CalendarEvent[] = [
+  /* Development + financing */
+  { id: 'ce-dev',        title: 'Development + financing',        startDate: '2026-01-06', endDate: '2026-03-27', kind: 'meeting',  notes: 'Treatment lock · HAVC, EU MEDIA, HRT applications.' },
+  { id: 'ce-havc',       title: 'HAVC pitch',                     startDate: '2026-02-18',                        kind: 'meeting',  notes: 'Main state-fund pitch.' },
+  { id: 'ce-sponsor',    title: 'Sponsor + partner meetings',     startDate: '2026-05-04', endDate: '2026-05-08', kind: 'meeting',  notes: 'Molchanovs, Acrisure, gear partners.' },
+
+  /* Travel legs */
+  { id: 'ce-lastovo-tr', title: 'Travel to Lastovo',             startDate: '2026-08-14',                        kind: 'travel' },
+  { id: 'ce-usa-trip',   title: 'USA road-trip (RV)',            startDate: '2026-09-01', endDate: '2026-09-27', kind: 'travel', personKeys: ['petar','vito','sanda','zsofia'], shootId: 'shoot-usa', notes: 'SF → Black Rock (Burning Man) → Sierra → Death Valley → Vegas → fly Cyprus.' },
+  { id: 'ce-fly-cyprus', title: 'Fly USA → Cyprus',              startDate: '2026-09-27', endDate: '2026-09-28', kind: 'travel', notes: 'Main unit straight from Las Vegas to the Cyprus shoot.' },
+
+  /* Parallel September shoot strands */
+  { id: 'ce-burningman', title: 'Burning Man — last 3 days',     startDate: '2026-09-05', endDate: '2026-09-07', kind: 'shoot', personKeys: ['petar','vito','sanda','zsofia'], colorHint: '#c94a3a', notes: 'The Man + the Temple burn. Fire in the desert — echoes Etna. Filmed with the main unit on the road-trip.' },
+  { id: 'ce-sicily-sep', title: 'Sicily · second-unit pickups',  startDate: '2026-09-10', endDate: '2026-09-14', kind: 'shoot', personKeys: ['sanda'], shootId: 'shoot-sicily', colorHint: '#d96c3d', notes: 'Parallel 5-day unit — Mediterranean pickups + interviews running while the main unit is in the USA.' },
+
+  /* Post-production */
+  { id: 'ce-assembly',   title: 'Assembly → rough cut',           startDate: '2026-11-02', endDate: '2027-02-26', kind: 'other',    notes: 'First assembly through rough cut.' },
+  { id: 'ce-sound-color',title: 'Sound design + colour',          startDate: '2027-03-01', endDate: '2027-05-14', kind: 'other',    notes: 'The score built from real physiology; grade.' },
+  { id: 'ce-lock',       title: 'Picture lock',                   startDate: '2027-05-15',                        kind: 'milestone' },
+
+  /* Festival deadlines */
+  { id: 'ce-visions',    title: 'Visions du Réel — deadline',     startDate: '2026-12-01',                        kind: 'milestone' },
+  { id: 'ce-hotdocs',    title: 'Hot Docs — deadline',            startDate: '2026-12-10',                        kind: 'milestone' },
+  { id: 'ce-idfa',       title: 'IDFA — deadline',                startDate: '2027-05-01',                        kind: 'milestone' },
+  { id: 'ce-sundance',   title: 'Sundance — deadline',            startDate: '2027-09-24',                        kind: 'milestone', notes: 'Premiere target #1.' },
+
+  /* Delivery */
+  { id: 'ce-feat-deliv', title: 'Feature delivery · 90–100 min',  startDate: '2027-06-30',                        kind: 'delivery' },
+  { id: 'ce-ser-deliv',  title: 'Series delivery · 3 episodes',   startDate: '2027-09-15',                        kind: 'delivery' },
 ];
 
-/* ---------- Calendar Events (v0.3) ----------
-   Empty by default — the composed view will also render shoots + milestones
-   as ghost events, so the calendar looks alive on first load. */
+/* ---------- Surface · who holds them (v0.6) ----------
+   The thesis made literal. Some holders are people, some are places,
+   objects, songs, rituals — all things that hold each of the Four
+   in the world at the surface. */
 
-export const SEED_CALENDAR_EVENTS: CalendarEvent[] = [];
+export const SEED_HOLDERS: Holder[] = [
+  /* Only what the script already establishes — the people and places the film
+     is built on. No invented objects, songs or rituals. Add more as the real
+     interviews and releases land. */
 
-/* ---------- Empty seed containers ---------- */
+  /* PETAR — the gravity */
+  { id: 'h-p-1', subjectKey: 'petar', kind: 'person', name: 'Zsófia',     relationship: 'partner',               oneLine: 'his partner — the room in the world he comes back to.', consent: 'pending', onCameraWilling: true, colorHint: '#e39a5b' },
+  { id: 'h-p-2', subjectKey: 'petar', kind: 'person', name: 'Vito',       relationship: 'mentor, oldest friend', oneLine: 'the one who saw him first — before the records.', consent: 'pending', onCameraWilling: true, colorHint: '#3d7a94' },
+  { id: 'h-p-3', subjectKey: 'petar', kind: 'place',  name: 'Rijeka',     relationship: 'hometown',              oneLine: 'the harbour that raised a beach-rescue kid into the sport.', consent: 'na', colorHint: '#4c7a8a' },
+  { id: 'h-p-6', subjectKey: 'petar', kind: 'person', name: 'His father', relationship: 'the fisherman',         oneLine: 'a working fisherman — the family that watched it begin.', consent: 'pending', colorHint: '#7a5c4a' },
 
-const EMPTY_INTERVIEWS: Interview[] = [];
+  /* VITO — the heart and mind */
+  { id: 'h-v-1', subjectKey: 'vito',  kind: 'person', name: 'Sanda',        relationship: 'partner',                    oneLine: 'the woman who lets him be both coach and man.', consent: 'pending', onCameraWilling: true, colorHint: '#6f8a72' },
+  { id: 'h-v-2', subjectKey: 'vito',  kind: 'person', name: 'Petar',        relationship: 'student who became teacher', oneLine: 'the one he might have left the sport without.', consent: 'pending', onCameraWilling: true, colorHint: '#d96c3d' },
+  { id: 'h-v-3', subjectKey: 'vito',  kind: 'place',  name: 'University of Rijeka lab', relationship: 'where the science lives', oneLine: 'the room where he is subject and scientist at once.', consent: 'pending', colorHint: '#5b7da1' },
+  { id: 'h-v-6', subjectKey: 'vito',  kind: 'person', name: 'His students', relationship: 'the champions he coaches',    oneLine: 'he coaches divers who out-dive him — that arithmetic is his peace.', consent: 'pending', colorHint: '#8fa57e' },
+
+  /* SANDA — the first, the deep that's only hers */
+  { id: 'h-s-1', subjectKey: 'sanda', kind: 'person', name: 'Vito',        relationship: 'partner and coach',    oneLine: 'the person who counts her down and lets her back up.', consent: 'pending', onCameraWilling: true, colorHint: '#3d7a94' },
+  { id: 'h-s-2', subjectKey: 'sanda', kind: 'person', name: 'Zsófia',      relationship: 'closest friend in the sport', oneLine: 'the one who understands the deep the same way she does.', consent: 'pending', onCameraWilling: true, colorHint: '#e39a5b' },
+  { id: 'h-s-3', subjectKey: 'sanda', kind: 'place',  name: 'Trieste',     relationship: 'chosen home',           oneLine: 'the city she made her home.', consent: 'na', colorHint: '#6f8a72' },
+  { id: 'h-s-4', subjectKey: 'sanda', kind: 'place',  name: 'The bottom of the dive', relationship: 'the only place that is only hers', oneLine: 'below coaches, cameras and records — the place she cannot show anyone.', consent: 'na', colorHint: '#0b1b2e' },
+
+  /* ZSÓFIA — the newcomer's eyes */
+  { id: 'h-z-1', subjectKey: 'zsofia', kind: 'person', name: 'Petar',      relationship: 'partner',              oneLine: 'her partner in the sport and the deep.', consent: 'pending', onCameraWilling: true, colorHint: '#d96c3d' },
+  { id: 'h-z-2', subjectKey: 'zsofia', kind: 'person', name: 'Sanda',      relationship: 'closest friend in the sport', oneLine: 'already deep when she arrived, and welcomed her anyway.', consent: 'pending', onCameraWilling: true, colorHint: '#6f8a72' },
+  { id: 'h-z-3', subjectKey: 'zsofia', kind: 'person', name: 'Her sister', relationship: 'the keeper of the previous life', oneLine: 'the reminder that three years ago she was still a triathlete.', consent: 'pending', colorHint: '#8fa57e' },
+  { id: 'h-z-4', subjectKey: 'zsofia', kind: 'place',  name: 'Hungary',    relationship: 'birthplace',           oneLine: 'the country she carries in her second passport and her English interviews.', consent: 'na', colorHint: '#e39a5b' },
+  { id: 'h-z-7', subjectKey: 'zsofia', kind: 'place',  name: 'Malta · October 2022', relationship: 'the holiday that rerouted a life', oneLine: 'one snorkel in Malta and the pool career ended itself.', consent: 'na', colorHint: '#4c7a8a' },
+];
+
+/* ---------- Choir · same question × the four (v0.6) ---------- */
+
+export const SEED_CHOIR_QUESTIONS: ChoirQuestion[] = [
+  { id: 'cq1', text: 'What do you think about at ninety metres?',                                                createdAt: '2026-07-11T10:00:00Z' },
+  { id: 'cq2', text: 'When you come back up, whose face do you want to see first?',                              createdAt: '2026-07-11T10:00:00Z' },
+  { id: 'cq3', text: "What's the thing about this sport people outside it never understand?",                    createdAt: '2026-07-11T10:00:00Z' },
+  { id: 'cq4', text: 'Do you love the deep, or do you need it?',                                                 createdAt: '2026-07-11T10:00:00Z' },
+  { id: 'cq5', text: 'What did 2023 change in you?',                                                             createdAt: '2026-07-11T10:00:00Z' },
+  { id: 'cq6', text: 'If a young diver asked what to fear — what would you tell them?',                          createdAt: '2026-07-11T10:00:00Z' },
+];
+
+/* Answers imagined for now — replace with real quotes as interviews land. */
+export const SEED_CHOIR_ENTRIES: ChoirEntry[] = [
+  /* Q1 — at 90m */
+  { id: 'ce1', questionId: 'cq1', subjectKey: 'petar',  answer: 'Nothing. If I am thinking, I have brought something down with me that does not belong there.',                       source: 'imagined' },
+  { id: 'ce2', questionId: 'cq1', subjectKey: 'vito',   answer: 'The heart rate. Always the heart rate. That is how you know if the body is with you or against you today.',           source: 'imagined' },
+  { id: 'ce3', questionId: 'cq1', subjectKey: 'sanda',  answer: 'Nobody. That is the whole point. There is nobody down there and it is quiet and it is only mine.',                    source: 'imagined', isKey: true },
+  { id: 'ce4', questionId: 'cq1', subjectKey: 'zsofia', answer: 'That I still cannot believe I get to be here. That is the honest answer. Even at ninety metres.',                     source: 'imagined' },
+  /* Q2 — whose face first */
+  { id: 'ce5', questionId: 'cq2', subjectKey: 'petar',  answer: 'Zsófia. Every time. And then Vito, because if Vito is calm I know it went well.',                                    source: 'imagined' },
+  { id: 'ce6', questionId: 'cq2', subjectKey: 'vito',   answer: 'The safety diver first. That is the professional answer. Sanda second. That is the real one.',                        source: 'imagined' },
+  { id: 'ce7', questionId: 'cq2', subjectKey: 'sanda',  answer: 'Vito. But not because I need him to say it was good. Because I need to see if he was afraid.',                        source: 'imagined', isKey: true },
+  { id: 'ce8', questionId: 'cq2', subjectKey: 'zsofia', answer: "Petar. I look for Petar and I want to see him smile like he does when he's genuinely surprised.",                     source: 'imagined' },
+  /* Q3 — outsiders never understand */
+  { id: 'ce9',  questionId: 'cq3', subjectKey: 'petar',  answer: "That it is not brave. Bravery is a bad word for what we do. Preparation is the word.",                                source: 'imagined' },
+  { id: 'ce10', questionId: 'cq3', subjectKey: 'vito',   answer: "That the science does not fully know why some of us come back and some do not. We live inside that gap.",             source: 'imagined', isKey: true },
+  { id: 'ce11', questionId: 'cq3', subjectKey: 'sanda',  answer: 'That there is a place down there that has nothing to do with performance. That is the place I was going long before I was competing.', source: 'imagined' },
+  { id: 'ce12', questionId: 'cq3', subjectKey: 'zsofia', answer: 'That you become good at it by getting comfortable with the moment where you have to trust something you cannot verify.', source: 'imagined' },
+  /* Q4 — love or need */
+  { id: 'ce13', questionId: 'cq4', subjectKey: 'petar',  answer: 'I love it. Need would be a heavier word than I am willing to carry.',                                                 source: 'imagined' },
+  { id: 'ce14', questionId: 'cq4', subjectKey: 'vito',   answer: 'Need. I have thought about this. It is need. And I have made peace with it.',                                         source: 'imagined' },
+  { id: 'ce15', questionId: 'cq4', subjectKey: 'sanda',  answer: 'I need the deep. I love the surface. Those are two different sentences.',                                             source: 'imagined', isKey: true },
+  { id: 'ce16', questionId: 'cq4', subjectKey: 'zsofia', answer: 'I think I love it. Ask me in five more years.',                                                                       source: 'imagined' },
+];
+
+/* ---------- Life Mosaic · biographical timelines (v0.6 · researched v0.7) ----------
+   Dates cross-checked against public record (DeeperBlue, Divernet, Guinness,
+   AIDA, Molchanovs, World Games coverage). Canon-only events marked in notes. */
+
+export const SEED_LIFE_EVENTS: LifeEvent[] = [
+  /* PETAR — the gravity */
+  { id: 'le-p-1',  subjectKey: 'petar',  year: 1994,            title: 'born · Rijeka',                                        category: 'birth',        significance: 5 },
+  { id: 'le-p-2',  subjectKey: 'petar',  year: 2010,            title: 'beach rescue as a teenager',                           category: 'first-dive',   significance: 3, note: 'the sea as a job before it was a calling' },
+  { id: 'le-p-3',  subjectKey: 'petar',  year: 2018,            title: 'first competitive freedive',                           category: 'first-dive',   significance: 3 },
+  { id: 'le-p-4',  subjectKey: 'petar',  year: 2020,            title: 'meets Vito',                                           category: 'love',         significance: 4, note: 'the friendship that becomes the whole sport for him' },
+  { id: 'le-p-5',  subjectKey: 'petar',  year: 2022,            title: 'first CNF world record · CMAS competition',            category: 'record',       significance: 4 },
+  { id: 'le-p-6',  subjectKey: 'petar',  year: 2023, month: 7,  title: 'Vertical Blue · the storm',                            category: 'crisis',       significance: 5, note: 'the chapter no one sketches alone' },
+  { id: 'le-p-7',  subjectKey: 'petar',  year: 2024,            title: 'partnership with Zsófia',                              category: 'love',         significance: 4 },
+  { id: 'le-p-8',  subjectKey: 'petar',  year: 2025, month: 5,  title: "CNF 103m · Sharm el Sheikh — ends Trubridge's 17-year reign", category: 'record', significance: 5 },
+  { id: 'le-p-9',  subjectKey: 'petar',  year: 2025, month: 6,  title: 'FIM world record · 135m',                              category: 'record',       significance: 5, note: 'the deepest a man has ever pulled himself' },
+  { id: 'le-p-10', subjectKey: 'petar',  year: 2026, month: 7,  title: 'Sicily · Etna erupts during his monofin attempt',      category: 'breakthrough', significance: 5, note: 'the film opens here' },
+
+  /* VITO — the heart and mind */
+  { id: 'le-v-1',  subjectKey: 'vito',   year: 1985,            title: 'born · Rijeka',                                        category: 'birth',        significance: 5 },
+  { id: 'le-v-2',  subjectKey: 'vito',   year: 1988,            title: 'first time under the Adriatic · age three',            category: 'first-dive',   significance: 4, note: 'diving from as young as three' },
+  { id: 'le-v-3',  subjectKey: 'vito',   year: 2006,            title: 'first competitive freedive',                           category: 'first-dive',   significance: 3 },
+  { id: 'le-v-4',  subjectKey: 'vito',   year: 2012,            title: 'joins University of Rijeka diving + hyperbaric centre', category: 'breakthrough', significance: 4 },
+  { id: 'le-v-5',  subjectKey: 'vito',   year: 2017,            title: 'meets Sanda',                                          category: 'love',         significance: 5 },
+  { id: 'le-v-6',  subjectKey: 'vito',   year: 2019,            title: 'his mother stops coming to competitions',              category: 'loss',         significance: 4 },
+  { id: 'le-v-7',  subjectKey: 'vito',   year: 2020,            title: 'nearly leaves the sport · Petar arrives',              category: 'crisis',       significance: 4 },
+  { id: 'le-v-8',  subjectKey: 'vito',   year: 2021,            title: 'Guinness · 107m underwater walk on one breath',        category: 'record',       significance: 4 },
+  { id: 'le-v-9',  subjectKey: 'vito',   year: 2022,            title: 'heads AIDA Croatia',                                   category: 'breakthrough', significance: 3, note: 'year approximate' },
+  { id: 'le-v-10', subjectKey: 'vito',   year: 2023, month: 7,  title: 'the storm · branded by the sport he serves',           category: 'crisis',       significance: 5 },
+  { id: 'le-v-11', subjectKey: 'vito',   year: 2025, month: 6,  title: 'Guinness · 29:03 static on O₂ · Opatija',              category: 'record',       significance: 5, note: '14 June · Bristol Hotel pool · five judges, one hundred spectators' },
+  { id: 'le-v-12', subjectKey: 'vito',   year: 2027,            title: 'Hall of Fame induction · USA',                         category: 'joy',          significance: 5, note: 'recognition — the world correcting itself' },
+
+  /* SANDA — the first */
+  { id: 'le-s-1',  subjectKey: 'sanda',  year: 1989,            title: 'born · Split',                                         category: 'birth',        significance: 5 },
+  { id: 'le-s-2',  subjectKey: 'sanda',  year: 2008,            title: 'first freedive',                                       category: 'first-dive',   significance: 3 },
+  { id: 'le-s-3',  subjectKey: 'sanda',  year: 2015,            title: 'first of 12 national records',                         category: 'record',       significance: 4 },
+  { id: 'le-s-4',  subjectKey: 'sanda',  year: 2017,            title: 'meets Vito',                                           category: 'love',         significance: 5 },
+  { id: 'le-s-5',  subjectKey: 'sanda',  year: 2018,            title: 'father dies',                                          category: 'loss',         significance: 5, note: 'she starts wearing his watch on land' },
+  { id: 'le-s-6',  subjectKey: 'sanda',  year: 2021,            title: 'two world-championship bronzes',                       category: 'record',       significance: 4, note: 'year approximate' },
+  { id: 'le-s-7',  subjectKey: 'sanda',  year: 2023, month: 5,  title: 'FIM world record · 98m · Sharm el Sheikh',             category: 'record',       significance: 5, note: '3:58 dive time' },
+  { id: 'le-s-8',  subjectKey: 'sanda',  year: 2023, month: 9,  title: 'moves to Trieste',                                     category: 'family',       significance: 4 },
+  { id: 'le-s-9',  subjectKey: 'sanda',  year: 2025, month: 5,  title: 'FIM world record · 103m · Mabini, Philippines',        category: 'record',       significance: 5, note: 'among fewer than ten women ever past 100m' },
+  { id: 'le-s-10', subjectKey: 'sanda',  year: 2026, month: 4,  title: 'the record passes to Zsófia',                          category: 'loss',         significance: 5, note: 'pride and loss in the same breath' },
+
+  /* ZSÓFIA — the newcomer's eyes */
+  { id: 'le-z-1',  subjectKey: 'zsofia', year: 1993,            title: 'born · Hungary',                                       category: 'birth',        significance: 5 },
+  { id: 'le-z-2',  subjectKey: 'zsofia', year: 2012,            title: 'begins a decade of triathlon',                         category: 'breakthrough', significance: 3 },
+  { id: 'le-z-3',  subjectKey: 'zsofia', year: 2022, month: 10, title: 'Malta · the holiday that reroutes everything',         category: 'travel',       significance: 5, note: 'one snorkel — the pool career ends itself' },
+  { id: 'le-z-4',  subjectKey: 'zsofia', year: 2023,            title: 'switches to freediving for good',                      category: 'first-dive',   significance: 4 },
+  { id: 'le-z-5',  subjectKey: 'zsofia', year: 2023, month: 8,  title: 'moves to Rijeka',                                      category: 'travel',       significance: 4 },
+  { id: 'le-z-6',  subjectKey: 'zsofia', year: 2024,            title: 'partnership with Petar',                               category: 'love',         significance: 5 },
+  { id: 'le-z-7',  subjectKey: 'zsofia', year: 2024,            title: 'DYNB 259m',                                            category: 'record',       significance: 3 },
+  { id: 'le-z-8',  subjectKey: 'zsofia', year: 2025, month: 4,  title: 'DYN world record · 280m',                              category: 'record',       significance: 4 },
+  { id: 'le-z-9',  subjectKey: 'zsofia', year: 2025, month: 8,  title: 'World Games Chengdu · 300m · first woman · gold',      category: 'record',       significance: 5 },
+  { id: 'le-z-10', subjectKey: 'zsofia', year: 2026, month: 4,  title: "FIM 105m · takes her best friend's number",            category: 'record',       significance: 5, note: '20 April · absolute world record' },
+];
+
+/* ---------- Resonance · image echoes (v0.6) ----------
+   Visual / aural / gestural chains that make the film feel woven. */
+
+export const SEED_MOTIF_CHAINS: MotifChain[] = [
+  {
+    id: 'mc-1',
+    title: 'hair through water',
+    kind: 'visual',
+    synopsis: 'the slow rise · a specific shape that echoes across all four surfaces',
+    createdAt: '2026-07-11T10:00:00Z',
+    items: [
+      { id: 'mi-1-1', description: "Sanda's hair rising as she breaches, back-lit",          source: 'shoot',    sourceContext: 'Krk · surface hero',   colorHint: '#6f8a72' },
+      { id: 'mi-1-2', description: "Zsófia's hair fanning at the top of the ascent",         source: 'shoot',    sourceContext: 'Lastovo · planned',    colorHint: '#e39a5b' },
+      { id: 'mi-1-3', description: 'A fishing net catching sun in the same shape',           source: 'observed', sourceContext: "Petar's father, Rijeka harbour", colorHint: '#7a5c4a' },
+      { id: 'mi-1-4', description: 'Kelp moving with a current — held-breath tempo',         source: 'imagined', sourceContext: 'Coda opening',         colorHint: '#3d7a94' },
+    ],
+  },
+  {
+    id: 'mc-2',
+    title: 'hand on shoulder',
+    kind: 'gestural',
+    synopsis: 'the small physical language of holding — before and after every dive',
+    createdAt: '2026-07-11T10:00:00Z',
+    items: [
+      { id: 'mi-2-1', description: 'Vito touching Petar just before the descent',            source: 'shoot',    sourceContext: 'Sicily · Etna day',    colorHint: '#3d7a94' },
+      { id: 'mi-2-2', description: "Sanda's hand on Zsófia's shoulder at the surface after her record", source: 'imagined', sourceContext: 'the record dive', colorHint: '#6f8a72' },
+      { id: 'mi-2-3', description: 'A safety diver adjusting a strap without a word',        source: 'shoot',    sourceContext: 'Krk day 1',            colorHint: '#4c7a8a' },
+      { id: 'mi-2-4', description: 'The moment two hands almost meet and stop',              source: 'imagined', sourceContext: '2023 chapter · Lastovo', colorHint: '#123c68' },
+    ],
+  },
+  {
+    id: 'mc-3',
+    title: 'held breath in silhouette',
+    kind: 'visual',
+    synopsis: 'a body against light — the pause before movement',
+    createdAt: '2026-07-11T10:00:00Z',
+    items: [
+      { id: 'mi-3-1', description: 'Vito on the lab table, chest paused, monitors above',    source: 'shoot',    sourceContext: 'Rijeka lab',           colorHint: '#5b7da1' },
+      { id: 'mi-3-2', description: "Petar's silhouette on the rope before descent, sun above", source: 'imagined', sourceContext: 'Sicily opening',       colorHint: '#d96c3d' },
+      { id: 'mi-3-3', description: 'Sanda seated, eyes closed, before the last practice run', source: 'shoot',    sourceContext: 'Krk day 2',            colorHint: '#6f8a72' },
+    ],
+  },
+  {
+    id: 'mc-4',
+    title: 'sun through blue water',
+    kind: 'chromatic',
+    synopsis: "the film's core palette · every location returns to this signature",
+    createdAt: '2026-07-11T10:00:00Z',
+    items: [
+      { id: 'mi-4-1', description: 'The specific cyan of Krk at ten metres',                 source: 'shoot',    sourceContext: 'Krk',                  colorHint: '#4c7a8a' },
+      { id: 'mi-4-2', description: 'Coral rim of Etna reflected in shallow water',           source: 'shoot',    sourceContext: 'Sicily · Etna erupts', colorHint: '#d96c3d' },
+      { id: 'mi-4-3', description: 'Bioluminescent glow at Coda night dive',                 source: 'imagined', sourceContext: 'Coda',                 colorHint: '#123c68' },
+      { id: 'mi-4-4', description: 'Gold hour on Cyprus — the last colour Sanda mentions',   source: 'imagined', sourceContext: 'Cyprus',               colorHint: '#c9a961' },
+    ],
+  },
+];
+
+/* ---------- USA Trip (v0.9) ----------
+   Sept 1–27, 2026. Fly into San Francisco, drive the Sierra + desert loop
+   in a 6-berth RV, end in Las Vegas, fly straight to Cyprus. The route
+   listed "the other way round" (SF → Yosemite → Mammoth → Death Valley →
+   Vegas). Nights are a starting skeleton — edit freely. */
+
+export const SEED_USA_TRIP: UsaTrip = {
+  title: 'USA · the road-trip',
+  startDate: '2026-09-01',
+  endDate: '2026-09-27',
+  startCity: 'San Francisco',
+  endCity: 'Las Vegas',
+  flyOnTo: 'Cyprus',
+  people: 6,
+  rvNote: '6-berth Class C RV. Fly into SFO, pick up the RV, catch the last 3 days of Burning Man, loop the Sierra + desert, drop in Las Vegas, fly LAS → Cyprus.',
+  stops: [
+    {
+      id: 'stop-sf', name: 'San Francisco', role: 'start', nights: 3, driveMiles: 0, driveHours: 0,
+      note: 'Fly into SFO, pick up the RV. The city, the bridge, and the cold Pacific — one last salt swim before the desert takes the water away.',
+      colorHint: '#3d7a94', mapX: 12, mapY: 40,
+      pois: [
+        { id: 'poi-sf-1', name: 'Golden Gate Bridge', kind: 'sight',  detail: 'Sunrise from Battery Spencer', note: 'The opening frame of the American act.' },
+        { id: 'poi-sf-2', name: 'Aquatic Park cold swim', kind: 'dive', detail: 'Protected bay cove, ~14°C', note: 'Open-water cold swim — the discipline, before the land takes over.' },
+        { id: 'poi-sf-3', name: 'Muir Woods redwoods', kind: 'hike', detail: '~30 min north', note: 'Scale + silence. Vertical like the sea is deep.' },
+        { id: 'poi-sf-4', name: 'Pick up the RV', kind: 'drive', detail: '6-berth Class C', note: 'The vehicle that becomes the fifth character.' },
+      ],
+    },
+    {
+      id: 'stop-blackrock', name: 'Black Rock Desert', role: 'stop', nights: 3, driveMiles: 330, driveHours: 5,
+      note: 'The last three days of Burning Man. A white playa with no water at all — the anti-sea — and fire again: the Man and the Temple burn.',
+      colorHint: '#c94a3a', mapX: 40, mapY: 15,
+      pois: [
+        { id: 'poi-br-1', name: 'The Man burns',    kind: 'sight', detail: 'Saturday night',        note: 'The centre of it all goes up — fire in the desert, echoing Etna.' },
+        { id: 'poi-br-2', name: 'The Temple burns',  kind: 'sight', detail: 'Sunday night · silent', note: 'The quiet burn. Grief and release — the opposite of the Man.' },
+        { id: 'poi-br-3', name: 'The playa',         kind: 'drive', detail: 'Black Rock dry lakebed', note: 'A body in a place with zero water. The desert as the deepest anti-dive.' },
+        { id: 'poi-br-4', name: 'Deep playa art',    kind: 'sight', detail: 'Night bikes + installations', note: 'Wandering the dark among lit sculptures.' },
+        { id: 'poi-br-5', name: 'Exodus',            kind: 'drive', detail: 'The long dusty line out', onTheWay: true, note: 'Leave the playa, turn south toward the Sierra.' },
+      ],
+    },
+    {
+      id: 'stop-yosemite', name: 'Yosemite NP', role: 'stop', nights: 5, driveMiles: 250, driveHours: 5,
+      note: 'Granite verticality — Free Solo / Alpinist soil. Climbing country for Vito, and cold river pools to swim between walls.',
+      colorHint: '#6f8a72', mapX: 40, mapY: 44,
+      pois: [
+        { id: 'poi-yo-1', name: 'El Capitan · The Nose',   kind: 'climb', detail: '900m granite big-wall',        note: "Free Solo's wall. Watch climbers from El Cap Meadow at dusk." },
+        { id: 'poi-yo-2', name: 'Half Dome cables',        kind: 'hike',  detail: '16 mi round trip · permit',    note: 'The cables section — exposure and nerve, on land.' },
+        { id: 'poi-yo-3', name: 'Tuolumne Meadows domes',  kind: 'climb', detail: 'Lembert & Pothole · alpine',   note: 'Gentler high-country granite for Vito to actually climb.' },
+        { id: 'poi-yo-4', name: 'Swan Slab / Sunnyside',   kind: 'climb', detail: 'Beginner crags by Camp 4',     note: 'Where a first-timer ties in.' },
+        { id: 'poi-yo-5', name: 'Merced River pools',      kind: 'dive',  detail: 'Cool pools below the falls',   note: 'A swim between the walls — water in the granite.' },
+        { id: 'poi-yo-6', name: 'Glacier Point sunset',    kind: 'sight', detail: '2,200m overlook',             note: 'The whole valley from above.' },
+        { id: 'poi-yo-7', name: 'Priest Grade approach',   kind: 'drive', detail: 'CA-120 switchbacks', onTheWay: true, note: 'The white-knuckle climb in — good driving footage.' },
+      ],
+    },
+    {
+      id: 'stop-mammoth', name: 'Mammoth Lakes', role: 'stop', nights: 4, driveMiles: 150, driveHours: 3.5,
+      note: 'High alpine, thin air — altitude hypoxia connects straight to Vito’s science. Cold, clear lakes deeper than they look, at 2,500m.',
+      colorHint: '#5b7da1', mapX: 51, mapY: 52,
+      pois: [
+        { id: 'poi-ma-1', name: 'Convict Lake dive',   kind: 'dive',  detail: '~43m deep · 2,300m altitude', note: 'Gin-clear, cold, DEEP. A real altitude dive — the science of thin air meets the deep.' },
+        { id: 'poi-ma-2', name: 'Lake Mary',           kind: 'dive',  detail: 'Easy shore entry',            note: 'Largest of the basin — calm dive/swim.' },
+        { id: 'poi-ma-3', name: 'Horseshoe Lake',      kind: 'dive',  detail: 'CO₂ tree-kill zone nearby',   note: 'Eerie dead-forest shoreline — an image.' },
+        { id: 'poi-ma-4', name: 'June Lake Loop',      kind: 'drive', detail: '16 mi scenic loop',           note: 'Clear lakes strung along a canyon.' },
+        { id: 'poi-ma-5', name: 'Crowley Lake columns',kind: 'sight', detail: 'Eroded stone pillars',        note: 'Alien columns on the shore — surreal frame.' },
+        { id: 'poi-ma-6', name: 'Hot Creek geothermal',kind: 'sight', detail: 'Steaming blue springs',       note: 'Fire under the water — echoes Etna.' },
+      ],
+    },
+    {
+      id: 'stop-death', name: 'Death Valley NP', role: 'stop', nights: 2, driveMiles: 200, driveHours: 4,
+      note: 'The anti-Adriatic — zero water, geological time, the lowest ground in North America. The four stand on the surface at its deepest floor.',
+      colorHint: '#c9a961', mapX: 64, mapY: 63,
+      pois: [
+        { id: 'poi-dv-1', name: 'Badwater Basin',        kind: 'sight', detail: '−86 m · lowest in N. America', note: 'The inverse of a dive: the deepest point you reach by standing still on dry salt.' },
+        { id: 'poi-dv-2', name: 'Zabriskie Point',       kind: 'sight', detail: 'Sunrise badlands',            note: 'The iconic first light.' },
+        { id: 'poi-dv-3', name: "Dante's View",          kind: 'sight', detail: '1,600m over the basin',        note: 'The whole valley, 1,600m of relief in one frame.' },
+        { id: 'poi-dv-4', name: 'Mesquite Flat Dunes',   kind: 'hike',  detail: 'Walk the sunrise dunes',       note: 'Bodies on sand where there should be sea.' },
+        { id: 'poi-dv-5', name: "Artist's Palette drive", kind: 'drive', detail: '9 mi · mineral colours',      note: 'A road of impossible colours.' },
+        { id: 'poi-dv-6', name: 'Alabama Hills, Lone Pine',kind: 'climb', detail: 'Mobius Arch · film country', onTheWay: true, note: 'On the way in — Mars-like boulders, a hundred Westerns shot here. Scramble + arch sunrise.' },
+      ],
+    },
+    {
+      id: 'stop-vegas', name: 'Las Vegas', role: 'end', nights: 2, driveMiles: 120, driveHours: 2,
+      note: 'Drop the RV, then fly directly to Cyprus for the next shoot. One last wall on the way in for Vito.',
+      colorHint: '#d96c3d', mapX: 82, mapY: 72,
+      pois: [
+        { id: 'poi-lv-1', name: 'Red Rock Canyon',      kind: 'climb', detail: 'World-class sandstone · 30 min', note: 'One more wall for Vito, minutes from the Strip.' },
+        { id: 'poi-lv-2', name: 'Rhyolite ghost town',  kind: 'sight', detail: 'Goldwell open-air museum', onTheWay: true, note: 'On the way in — a dead mining town + eerie sculptures.' },
+        { id: 'poi-lv-3', name: 'Drop the RV',          kind: 'drive', detail: 'One-way return',              note: 'The road-trip ends.' },
+        { id: 'poi-lv-4', name: 'Fly LAS → Cyprus',     kind: 'other', detail: 'Long-haul + connection',      note: 'Straight from desert to the Mediterranean.' },
+      ],
+    },
+  ],
+  days: [
+    { id: 'day-1',  dayNum: 1,  date: '2026-09-01', stopId: 'stop-sf',        title: 'Fly into San Francisco',          plan: 'Land at SFO, settle, first night in the city.' },
+    { id: 'day-2',  dayNum: 2,  date: '2026-09-02', stopId: 'stop-sf',        title: 'San Francisco',                    plan: 'Golden Gate at sunrise, a cold swim at Aquatic Park — the last salt water for a while.' },
+    { id: 'day-3',  dayNum: 3,  date: '2026-09-03', stopId: 'stop-sf',        title: 'Pick up the RV',                   plan: 'Collect the 6-berth RV, provision, Muir Woods on the way out.' },
+    { id: 'day-4',  dayNum: 4,  date: '2026-09-04', stopId: 'stop-blackrock', title: 'Drive to Black Rock Desert',       plan: 'SF → Reno → the playa. Enter Burning Man.', driveMiles: 330 },
+    { id: 'day-5',  dayNum: 5,  date: '2026-09-05', stopId: 'stop-blackrock', title: 'Burning Man — the Man burns',      plan: 'The last full day. The Man burns tonight — fire in the desert.' },
+    { id: 'day-6',  dayNum: 6,  date: '2026-09-06', stopId: 'stop-blackrock', title: 'Burning Man — the Temple burns',   plan: 'The silent burn. Grief and release.' },
+    { id: 'day-7',  dayNum: 7,  date: '2026-09-07', stopId: 'stop-blackrock', title: 'Exodus',                           plan: 'Leave the playa, drive south toward the Sierra.', driveMiles: 250 },
+    { id: 'day-8',  dayNum: 8,  date: '2026-09-08', stopId: 'stop-yosemite',  title: 'Arrive Yosemite',                  plan: 'Into the valley. El Cap Meadow at dusk.', driveMiles: 120 },
+    { id: 'day-9',  dayNum: 9,  date: '2026-09-09', stopId: 'stop-yosemite',  title: 'Yosemite — the walls',             plan: 'El Capitan, watch the climbers. Vito on the granite.' },
+    { id: 'day-10', dayNum: 10, date: '2026-09-10', stopId: 'stop-yosemite',  title: 'Yosemite — Tuolumne',              plan: 'Tuolumne Meadows domes — Vito actually climbs.' },
+    { id: 'day-11', dayNum: 11, date: '2026-09-11', stopId: 'stop-yosemite',  title: 'Yosemite — water + light',         plan: 'Merced River swim, Glacier Point sunset.' },
+    { id: 'day-12', dayNum: 12, date: '2026-09-12', stopId: 'stop-yosemite',  title: 'Yosemite — Half Dome / rest',      plan: 'Optional Half Dome cables, or a rest day.' },
+    { id: 'day-13', dayNum: 13, date: '2026-09-13', stopId: 'stop-mammoth',   title: 'Drive to Mammoth (Tioga Pass)',    plan: 'Over Tioga into the high country.', driveMiles: 140 },
+    { id: 'day-14', dayNum: 14, date: '2026-09-14', stopId: 'stop-mammoth',   title: 'Mammoth — Convict Lake',           plan: 'The altitude dive: cold, deep, gin-clear at 2,300m.' },
+    { id: 'day-15', dayNum: 15, date: '2026-09-15', stopId: 'stop-mammoth',   title: 'Mammoth — the lakes',              plan: 'Lake Mary, Horseshoe Lake.' },
+    { id: 'day-16', dayNum: 16, date: '2026-09-16', stopId: 'stop-mammoth',   title: 'Mammoth — June Loop',              plan: 'June Lake Loop, Crowley columns.' },
+    { id: 'day-17', dayNum: 17, date: '2026-09-17', stopId: 'stop-mammoth',   title: 'Mammoth — rest / Hot Creek',       plan: 'Hot Creek geothermal, recovery day.' },
+    { id: 'day-18', dayNum: 18, date: '2026-09-18', stopId: 'stop-death',     title: 'Drive to Death Valley',            plan: 'Down US-395 via Lone Pine + Alabama Hills.', driveMiles: 200 },
+    { id: 'day-19', dayNum: 19, date: '2026-09-19', stopId: 'stop-death',     title: 'Death Valley — Badwater',          plan: 'Badwater Basin −86m, Zabriskie sunrise.' },
+    { id: 'day-20', dayNum: 20, date: '2026-09-20', stopId: 'stop-death',     title: 'Death Valley — the void',          plan: "Dante's View, dunes at dawn, Artist's Palette." },
+    { id: 'day-21', dayNum: 21, date: '2026-09-21', stopId: 'stop-vegas',     title: 'Drive to Las Vegas',               plan: 'Via Rhyolite ghost town.', driveMiles: 120 },
+    { id: 'day-22', dayNum: 22, date: '2026-09-22', stopId: 'stop-vegas',     title: 'Vegas — Red Rock',                 plan: 'Red Rock Canyon climbing, one last wall for Vito.' },
+    { id: 'day-23', dayNum: 23, date: '2026-09-23', stopId: 'stop-vegas',     title: 'Buffer / footage dump',            plan: 'Back up cards, rest, regroup.' },
+    { id: 'day-24', dayNum: 24, date: '2026-09-24', stopId: 'stop-vegas',     title: 'Pickups + interviews',             plan: 'Road-trip interviews, reflection pieces.' },
+    { id: 'day-25', dayNum: 25, date: '2026-09-25', stopId: 'stop-vegas',     title: 'Drop the RV',                      plan: 'Return the RV, into a hotel.' },
+    { id: 'day-26', dayNum: 26, date: '2026-09-26', stopId: 'stop-vegas',     title: 'Vegas — pack',                     plan: 'Final pickups, pack the gear for the flight.' },
+    { id: 'day-27', dayNum: 27, date: '2026-09-27', stopId: 'stop-vegas',     title: 'Fly Las Vegas → Cyprus',           plan: 'Straight from desert to the Mediterranean and the next shoot.' },
+  ],
+  costs: [
+    { id: 'cost-rv',     label: 'RV rental (6-berth · incl. one-way drop)', category: 'rv',    amountUsd: 4000, per: 'trip',  notes: 'Whole-trip 6-berth Class C, one-way SF→Vegas.' },
+    { id: 'cost-fuel',   label: 'Fuel (~1200 mi @ ~9 mpg)',      category: 'fuel',      amountUsd: 620, per: 'trip',   notes: 'Class C is thirsty; California gas is dear.' },
+    { id: 'cost-camp',   label: 'RV parks / campgrounds',        category: 'camp',      amountUsd: 65,  per: 'night' },
+    { id: 'cost-food',   label: 'Food (group, per day)',         category: 'food',      amountUsd: 210, per: 'day',    notes: '~$35/person/day × 6.' },
+    { id: 'cost-parks',  label: 'America the Beautiful park pass',category: 'park',      amountUsd: 80,  per: 'trip' },
+    { id: 'cost-fly-in', label: 'Flights → San Francisco',       category: 'flights',   amountUsd: 750, per: 'person', notes: 'EU → SFO, September.' },
+    { id: 'cost-fly-out',label: 'Flights Las Vegas → Cyprus',    category: 'flights',   amountUsd: 950, per: 'person', notes: 'LAS → LCA, long-haul + connection.' },
+    { id: 'cost-ins',    label: 'RV insurance + roadside',       category: 'insurance', amountUsd: 40,  per: 'day' },
+    { id: 'cost-gear',   label: 'Production + activities buffer', category: 'gear',      amountUsd: 1500, per: 'trip',  notes: 'Permits, park filming, gear, contingencies.' },
+  ],
+};
+
+/* ---------- Interviews (v0.8 — seeded with location groups + follow-up chains) ----------
+   Krk sessions are captured+transcribed; Sicily captured; Lastovo holds the
+   planned follow-ups, chained via followUpOfId so nothing asked once dies there. */
+
+export const SEED_INTERVIEWS: Interview[] = [
+  /* Krk · April 2026 · the "before" */
+  { id: 'int-krk-petar',  shootId: 'shoot-krk', personKey: 'petar',  setting: 'shore',    date: '2026-04-03', durationMin: 55, status: 'transcribed', threadIds: ['t1', 't3'], topicIds: ['top-krk-sicily-lastovo', 'top-njivice'], standoutQuotes: ['Vito saw me before the records did.'] },
+  { id: 'int-krk-vito',   shootId: 'shoot-krk', personKey: 'vito',   setting: 'boat',     date: '2026-04-04', durationMin: 70, status: 'transcribed', threadIds: ['t1', 't7'], topicIds: ['top-krk-sicily-lastovo', 'top-body-brain'], standoutQuotes: ['I coach people to leave me behind. That is the job.'] },
+  { id: 'int-krk-sanda',  shootId: 'shoot-krk', personKey: 'sanda',  setting: 'home',     date: '2026-04-05', durationMin: 60, status: 'transcribed', threadIds: ['t4', 't5'], topicIds: ['top-krk-sicily-lastovo'],        standoutQuotes: ['The bottom is the only room with no one else in it.'] },
+  { id: 'int-krk-zsofia', shootId: 'shoot-krk', personKey: 'zsofia', setting: 'poolside', date: '2026-04-05', durationMin: 50, status: 'transcribed', threadIds: ['t6'],       topicIds: ['top-krk-sicily-lastovo'],        standoutQuotes: ["Three years ago I couldn't equalise. Nobody here lets me forget how lucky that makes me."] },
+
+  /* Sicily · July 2026 · around the attempt + the volcano */
+  { id: 'int-sic-petar',  shootId: 'shoot-sicily', personKey: 'petar', setting: 'shore',   date: '2026-07-05', durationMin: 40, status: 'captured', threadIds: ['t3', 't8'],  topicIds: ['top-krk-sicily-lastovo'], eventIds: ['ev-etna'], standoutQuotes: ["The mountain wouldn't stop breathing. So I did."] },
+  { id: 'int-sic-vito',   shootId: 'shoot-sicily', personKey: 'vito',  setting: 'volcano', date: '2026-07-04', durationMin: 35, status: 'captured', threadIds: ['t8', 't10'], topicIds: ['top-krk-sicily-lastovo', 'top-vito-deep'], eventIds: ['ev-etna'], notes: 'The volcano interview — swing #7. Golden hour on the cooled lava.' },
+
+  /* Lastovo · August 2026 · planned follow-ups (chained) */
+  { id: 'int-las-petar',  shootId: 'shoot-lastovo', personKey: 'petar', setting: 'boat',  date: '2026-08-17', status: 'planned', threadIds: ['t1', 't2'], topicIds: ['top-krk-sicily-lastovo', 'top-lastovo-camp'], followUpOfId: 'int-krk-petar',  notes: 'Follow-up: Krk answers on the bond, deepened at Lastovo — only if right.' },
+  { id: 'int-las-sanda',  shootId: 'shoot-lastovo', personKey: 'sanda', setting: 'shore', date: '2026-08-18', status: 'planned', threadIds: ['t5', 't2'], topicIds: ['top-lastovo-camp'],           followUpOfId: 'int-krk-sanda',  notes: 'Follow-up on the deep + the friendship, deepened at Lastovo.' },
+  { id: 'int-las-together', shootId: 'shoot-lastovo', personKey: 'together', setting: 'boat', date: '2026-08-20', status: 'planned', threadIds: ['t2'],   topicIds: ['top-lastovo-camp'], eventIds: ['ev-storm'], notes: 'The four together at Lastovo — the hardest conversations, never pushed, only if the week says yes.' },
+];
 
 /* ---------- Initial state factory ---------- */
 
@@ -674,14 +1279,14 @@ export function makeInitialState(): AppState {
     shoots: SEED_SHOOTS,
     shootDays: SEED_SHOOT_DAYS,
     coverageCams: SEED_COVERAGE_CAMS,
-    interviews: EMPTY_INTERVIEWS,
+    interviews: SEED_INTERVIEWS,
     swings: SEED_SWINGS,
     devices: SEED_DEVICES,
     rituals: [],
-    watcherMoments: [],
+    watcherMoments: SEED_WATCHER_MOMENTS,
     records: SEED_RECORDS,
     attempts: [],
-    physiology: [],
+    physiology: SEED_PHYSIOLOGY,
     evidence2023: SEED_EVIDENCE_2023,
     cameras: SEED_CAMERAS,
     lenses: SEED_LENSES,
@@ -691,6 +1296,15 @@ export function makeInitialState(): AppState {
     schedulePhases: SEED_SCHEDULE_PHASES,
     milestones: SEED_MILESTONES,
     calendarEvents: SEED_CALENDAR_EVENTS,
+    holders: SEED_HOLDERS,
+    choirQuestions: SEED_CHOIR_QUESTIONS,
+    choirEntries: SEED_CHOIR_ENTRIES,
+    lifeEvents: SEED_LIFE_EVENTS,
+    motifChains: SEED_MOTIF_CHAINS,
+    storyEvents: SEED_STORY_EVENTS,
+    topics: SEED_TOPICS,
+    hubIdeas: SEED_HUB_IDEAS,
+    usaTrip: SEED_USA_TRIP,
     sponsors: SEED_SPONSORS,
     risks: SEED_RISKS,
     contracts: SEED_CONTRACTS,
