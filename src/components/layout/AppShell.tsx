@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Menu, Mic, X } from 'lucide-react';
-import { Sidebar } from './Sidebar';
+import { Sidebar, NAV_VIEW_ORDER } from './Sidebar';
 import { PageHeader } from './PageHeader';
 import { useApp } from '../../state/AppContext';
 import type { ScenarioKey, ViewKey } from '../../types';
@@ -117,6 +117,12 @@ export function AppShell({ children }: Props) {
     return () => document.removeEventListener('keydown', onKey);
   }, [drawerOpen]);
 
+  /* Keep the active tab scrolled into view in the mobile top strip. */
+  const activeTabRef = useRef<HTMLButtonElement | null>(null);
+  useEffect(() => {
+    activeTabRef.current?.scrollIntoView({ inline: 'center', block: 'nearest' });
+  }, [state.activeView]);
+
   return (
     <div className="h-screen w-screen flex bg-[color:var(--color-paper)] text-[color:var(--color-on-paper)] overflow-hidden">
       <Sidebar drawerOpen={drawerOpen} onCloseDrawer={() => setDrawerOpen(false)} />
@@ -144,7 +150,9 @@ export function AppShell({ children }: Props) {
             {drawerOpen ? <X size={20} /> : <Menu size={20} />}
           </button>
 
-          <div className="flex-1 min-w-0">
+          {/* Desktop page header — on phone/tablet the view's own header + the
+             tab strip below carry the title, so this big duplicate is hidden. */}
+          <div className="flex-1 min-w-0 hidden lg:block">
             <PageHeader
               name={VIEW_NAMES[state.activeView]}
               subtitle={VIEW_SUBTITLES[state.activeView]}
@@ -187,6 +195,39 @@ export function AppShell({ children }: Props) {
             })}
           </div>
         </div>
+
+        {/* Mobile view tabs — the grouped menu as a scrollable, clickable strip.
+           Replaces the big duplicate title on phone/tablet. Desktop uses the sidebar. */}
+        <nav
+          aria-label="views"
+          className="lg:hidden shrink-0 no-print overflow-x-auto border-b-[0.5px] border-[color:var(--color-border-paper)] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
+        >
+          <div className="flex items-stretch gap-0.5 px-3 md:px-6 min-w-max">
+            {NAV_VIEW_ORDER.map((v) => {
+              const active = state.activeView === v;
+              return (
+                <button
+                  key={v}
+                  ref={active ? activeTabRef : undefined}
+                  type="button"
+                  onClick={() => dispatch({ type: 'SET_VIEW', view: v })}
+                  className={`relative whitespace-nowrap px-3 py-2.5 transition-colors duration-150 ${
+                    active
+                      ? 'text-[color:var(--color-on-paper)]'
+                      : 'text-[color:var(--color-on-paper-muted)] hover:text-[color:var(--color-on-paper)]'
+                  }`}
+                >
+                  <span className={active ? 'display-italic text-[15px]' : 'font-sans text-[13px]'}>
+                    {VIEW_NAMES[v]}
+                  </span>
+                  {active && (
+                    <span className="absolute left-3 right-3 bottom-0 h-[2px] rounded bg-[color:var(--color-brass)]" />
+                  )}
+                </button>
+              );
+            })}
+          </div>
+        </nav>
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto px-5 pt-5 pb-20 md:px-8 md:pb-16 lg:px-14 lg:pt-7 lg:pb-14">

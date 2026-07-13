@@ -97,6 +97,9 @@ const GROUPS: NavGroup[] = [
   },
 ];
 
+/* Flat view order — mirrors the grouped menu, reused by the mobile top tab strip. */
+export const NAV_VIEW_ORDER: ViewKey[] = GROUPS.flatMap((g) => g.items.map((i) => i.key));
+
 
 interface SidebarProps {
   /* Phase 11 — drawer-mode props for phone. On md+ these are ignored. */

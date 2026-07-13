@@ -19,6 +19,7 @@ A review round from Tomo. Storage bumped **v7 → v8** (seed changed). Build cle
 - **Intro splash** rewritten to a ~2 s simple fade (title + epigraph on deep water), auto-enters, no click required.
 - **2023 Chapter — draft/unverified banner** added at the top (real people, sensitive case; flagged as a draft composed for the start, needs checking before use).
 - **"documentary miracle · achieved"** highlight normalized to a calm "already captured."
+- **Mobile nav** — on phone/tablet (<lg) the oversized duplicate page-title header is hidden; a horizontal, scrollable, **clickable tab strip of all 27 views** replaces it (active tab underlined in brass + auto-centred on change), so navigation matches the sidebar. No horizontal page overflow. Desktop keeps the big `PageHeader`. `NAV_VIEW_ORDER` exported from `Sidebar` and reused so the strip stays in sync with the menu.
 
 
 
