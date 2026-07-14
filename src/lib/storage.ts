@@ -76,6 +76,11 @@ function migrateState(loaded: Partial<AppState>): AppState {
   };
 }
 
+/** Public wrapper — run the same defensive merge on a doc loaded from the cloud. */
+export function migrateLoaded(loaded: Partial<AppState>): AppState {
+  return migrateState(loaded);
+}
+
 export function saveState(state: AppState): void {
   try {
     const persistable = {

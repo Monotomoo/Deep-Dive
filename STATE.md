@@ -1,9 +1,19 @@
-# Deep Dive · V1.1 — session checkpoint (v0.15 · connect + bug-fix pass)
+# Deep Dive · V1.1 — session checkpoint (v0.16 · cloud backend · Stage A)
 
 ## Deploy note (do first tomorrow)
 Beta punch-list is DONE. To ship: `vercel` (or the Vercel MCP `deploy_to_vercel`) from `D:/CLAUDE PROJECTS/Deep Dive V1.1`. `vercel.json` already has the SPA rewrite + build config. Tell viewers: open on a laptop; it's localStorage-only (each viewer starts from the seed, edits stay in their browser, "reset to seed" in the sidebar footer). Post-beta optimisation: lazy-load PhysiologyView to defer the recharts chunk (~107 KB gzip) off the initial load. **Storage key is now `deep-dive-dashboard-v10`** (seed changed in v0.13). Pushed to GitHub — `github.com/Monotomoo/Deep-Dive`, branch `main`. Vercel deploy: Tomo imports the repo in the Vercel dashboard (git-linked auto-deploy); `vercel.json` is preconfigured. Private planning docs are gitignored.
 
 ---
+
+### v0.16 · Supabase backend — Stage A (2026-07-13)
+
+The "make it live" step. Optional, **feature-flagged** cloud sync via Supabase.
+
+- **Off by default.** With no `VITE_SUPABASE_*` env vars, `cloudEnabled` is false, the Supabase client is never created, and the app runs exactly as before (localStorage only). Verified in-browser: no gate, no network, identical behaviour.
+- **On when configured.** Set two env vars (see `SUPABASE.md`) → passwordless magic-link **sign-in gate** → the whole AppState is stored as one JSON doc per user (`deep_dive_projects`, RLS-protected), pulled on sign-in (`HYDRATE`) and **debounced-synced** on every change. Sidebar footer shows signed-in email + sync status + sign-out.
+- Files: `src/lib/cloud.ts` (client + auth + doc load/save — all inert when off), `src/components/auth/SignIn.tsx`, cloud wiring in `src/state/AppContext.tsx` (session → hydrate → debounced push), `storage.ts` exports `migrateLoaded`. Guide `SUPABASE.md` + `.env.example` (`.env.local` gitignored).
+- Cost: supabase-js adds ~60 KB gzip to the main bundle → **roadmap:** lazy-load cloud when off + code-split heavy views (Physiology/Records/Neuron); main bundle now ~236 KB gzip.
+- To go live: create a Supabase project, run the one SQL block, paste URL + anon key, add the same vars in Vercel. ~5 min.
 
 ### v0.15 · connect + bug-fix pass (2026-07-13)
 

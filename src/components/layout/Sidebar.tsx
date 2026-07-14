@@ -13,6 +13,7 @@ import {
   LayoutDashboard,
   Lightbulb,
   ListChecks,
+  LogOut,
   MapPin,
   Milestone as MilestoneIcon,
   Music,
@@ -110,7 +111,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}) {
-  const { state, dispatch, undo, redo, canUndo, canRedo } = useApp();
+  const { state, dispatch, undo, redo, canUndo, canRedo, cloudEnabled, session, cloudStatus, signOut } = useApp();
   const t = useT();
 
   function setView(view: ViewKey) {
@@ -244,6 +245,21 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
           <RotateCcw size={11} />
           <span className="italic">reset to seed</span>
         </button>
+
+        {cloudEnabled && session && (
+          <div className="pt-1 border-t-[0.5px] border-[color:var(--color-border-chrome)]/60">
+            <div className="flex items-center gap-2 text-[10px] text-[color:var(--color-on-chrome-faint)]">
+              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: cloudStatus === 'synced' ? 'var(--color-success)' : 'var(--color-brass)' }} />
+              <span className="italic truncate flex-1">{session.user.email}</span>
+              <button type="button" onClick={signOut} title="sign out" className="flex items-center gap-1 hover:text-[color:var(--color-on-chrome)]">
+                <LogOut size={10} /> out
+              </button>
+            </div>
+            <div className="text-[9px] tracking-[0.12em] uppercase text-[color:var(--color-on-chrome-faint)]/70 mt-1">
+              {cloudStatus === 'synced' ? 'cloud · synced' : 'cloud · syncing…'}
+            </div>
+          </div>
+        )}
 
         <div className="font-sans text-[10px] tracking-[0.14em] uppercase text-[color:var(--color-on-chrome-faint)] flex items-center gap-2">
           <span className="border-[0.5px] border-[color:var(--color-border-chrome-strong)] rounded px-1.5 py-[1px]">
