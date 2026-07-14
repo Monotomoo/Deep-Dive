@@ -1,15 +1,16 @@
-import { useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { AppProvider, useApp } from './state/AppContext';
 import { AppShell } from './components/layout/AppShell';
 import { CommandPalette } from './components/palette/CommandPalette';
 import { CaptureModal } from './components/CaptureModal';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { Splash } from './components/layout/Splash';
 import { hasSeenSplash } from './lib/storage';
 import { isEditableTarget, isMod, SCENARIO_KEYS, VIEW_ORDER } from './lib/shortcuts';
+/* Light, common views — loaded eagerly. */
 import { OverviewView } from './components/views/OverviewView';
 import { VisionView } from './components/views/VisionView';
-import { ScheduleView } from './components/views/ScheduleView';
 import { CrewView } from './components/views/CrewView';
 import { SponsorsView } from './components/views/SponsorsView';
 import { RisksView } from './components/views/RisksView';
@@ -20,12 +21,9 @@ import { ShootsView } from './components/views/ShootsView';
 import { InterviewsView } from './components/views/InterviewsView';
 import { SwingsView } from './components/views/SwingsView';
 import { DevicesView } from './components/views/DevicesView';
-import { RecordsView } from './components/views/RecordsView';
-import { PhysiologyView } from './components/views/PhysiologyView';
 import { WatchersView } from './components/views/WatchersView';
 import { CameraTeamView } from './components/views/CameraTeamView';
 import { PitchView } from './components/views/PitchView';
-import { PitchDeckView } from './components/views/PitchDeckView';
 import { DistributionView } from './components/views/DistributionView';
 import { ContractsView } from './components/views/ContractsView';
 import { JournalView } from './components/views/JournalView';
@@ -34,13 +32,27 @@ import { ReferencesView } from './components/views/ReferencesView';
 import { Chapter2023View } from './components/views/Chapter2023View';
 import { SurfaceView } from './components/views/SurfaceView';
 import { ChoirView } from './components/views/ChoirView';
-import { NeuronView } from './components/views/NeuronView';
-import { LifeMosaicView } from './components/views/LifeMosaicView';
-import { ResonanceView } from './components/views/ResonanceView';
-import { IdeaHubView } from './components/views/IdeaHubView';
-import { CastView } from './components/views/CastView';
-import { UsaTripView } from './components/views/UsaTripView';
 import type { ViewKey } from './types';
+
+/* Heavy views — code-split so recharts + big SVG canvases load on demand. */
+const ScheduleView = lazy(() => import('./components/views/ScheduleView').then((m) => ({ default: m.ScheduleView })));
+const RecordsView = lazy(() => import('./components/views/RecordsView').then((m) => ({ default: m.RecordsView })));
+const PhysiologyView = lazy(() => import('./components/views/PhysiologyView').then((m) => ({ default: m.PhysiologyView })));
+const NeuronView = lazy(() => import('./components/views/NeuronView').then((m) => ({ default: m.NeuronView })));
+const CastView = lazy(() => import('./components/views/CastView').then((m) => ({ default: m.CastView })));
+const IdeaHubView = lazy(() => import('./components/views/IdeaHubView').then((m) => ({ default: m.IdeaHubView })));
+const LifeMosaicView = lazy(() => import('./components/views/LifeMosaicView').then((m) => ({ default: m.LifeMosaicView })));
+const ResonanceView = lazy(() => import('./components/views/ResonanceView').then((m) => ({ default: m.ResonanceView })));
+const UsaTripView = lazy(() => import('./components/views/UsaTripView').then((m) => ({ default: m.UsaTripView })));
+const PitchDeckView = lazy(() => import('./components/views/PitchDeckView').then((m) => ({ default: m.PitchDeckView })));
+
+function ViewLoading() {
+  return (
+    <div className="flex items-center justify-center py-[18vh]">
+      <span className="prose-body italic text-[14px] text-[color:var(--color-on-paper-faint)]">loading…</span>
+    </div>
+  );
+}
 
 function ViewSwitch() {
   const { state } = useApp();
@@ -51,7 +63,11 @@ function ViewSwitch() {
       animate={{ opacity: 1, y: 0 }}
       transition={{ duration: 0.18, ease: [0.16, 1, 0.3, 1] }}
     >
-      {renderView(state.activeView)}
+      <ErrorBoundary key={state.activeView}>
+        <Suspense fallback={<ViewLoading />}>
+          {renderView(state.activeView)}
+        </Suspense>
+      </ErrorBoundary>
     </motion.div>
   );
 }

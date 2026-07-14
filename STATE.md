@@ -1,9 +1,17 @@
-# Deep Dive · V1.1 — session checkpoint (v0.16 · cloud backend · Stage A)
+# Deep Dive · V1.1 — session checkpoint (v0.17 · hardening)
 
 ## Deploy note (do first tomorrow)
 Beta punch-list is DONE. To ship: `vercel` (or the Vercel MCP `deploy_to_vercel`) from `D:/CLAUDE PROJECTS/Deep Dive V1.1`. `vercel.json` already has the SPA rewrite + build config. Tell viewers: open on a laptop; it's localStorage-only (each viewer starts from the seed, edits stay in their browser, "reset to seed" in the sidebar footer). Post-beta optimisation: lazy-load PhysiologyView to defer the recharts chunk (~107 KB gzip) off the initial load. **Storage key is now `deep-dive-dashboard-v10`** (seed changed in v0.13). Pushed to GitHub — `github.com/Monotomoo/Deep-Dive`, branch `main`. Vercel deploy: Tomo imports the repo in the Vercel dashboard (git-linked auto-deploy); `vercel.json` is preconfigured. Private planning docs are gitignored.
 
 ---
+
+### v0.17 · hardening — error boundaries + code-split (2026-07-13)
+
+Production-readiness pass on top of the backend.
+
+- **Error boundaries** — every view is wrapped (`src/components/ErrorBoundary.tsx`, keyed by active view in `App.tsx`). A crash in one view now shows a graceful fallback + reload button instead of white-screening the whole app; the sidebar/menu stay live so you can navigate away.
+- **Code-split** — the 10 heaviest views (Schedule, Records, Physiology, Neuron, Cast, Idea Hub, Life Mosaic, Resonance, USA Trip, Pitch Deck) are now `React.lazy` + `<Suspense>`. recharts (107 KB gz) now loads only when Records/Physiology open. **Initial JS: 236 → 191 KB gzip.** Verified in-browser: lazy views render, no stuck fallback.
+- Note: private planning docs moved fully out of the repo to `../Deep Dive - Private Docs/`; `.gitignore` still lists them. (They remain in git history at `1078582` — purge via repo-private or a force-push when decided.)
 
 ### v0.16 · Supabase backend — Stage A (2026-07-13)
 
