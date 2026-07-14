@@ -691,7 +691,7 @@ export const SEED_EVIDENCE_2023: Evidence2023[] = [
 /* ---------- Film crew (the whole team — film side + talent side) ---------- */
 
 export const SEED_CREW: CrewMember[] = [
-  { id: 'c-tomo',      name: 'Tomislav Kovačić',    role: 'Producer',                         languages: ['hr','en'], link: 'terminimal.com', notes: 'The eye. Holds the whole film — story, pitch, edit. This dashboard is his bridge.' },
+  { id: 'c-tomo',      name: 'Tomislav Kovačić',    role: 'Producer',                         languages: ['hr','en'], notes: 'The eye. Holds the whole film — story, pitch, edit. This dashboard is his bridge.' },
   { id: 'c-kristijan', name: 'Kristijan Dimitrijević', role: 'Camera 1',                       languages: ['hr','en'], notes: 'A7 IV #1. Lead camera on every attempt — the face and the surface hero frames.' },
   { id: 'c-toni',      name: 'Toni Batić',           role: 'Camera 2',                         languages: ['hr','en'], notes: 'A7 IV #2. Second angle — the watchers, the roam, matched colour with Camera 1.' },
   { id: 'c-petar',     name: 'Petar Klovar',          role: 'Talent · safety + depth consultant', languages: ['hr','en'], notes: 'The gravity. Also the deepest safety knowledge on the team.' },

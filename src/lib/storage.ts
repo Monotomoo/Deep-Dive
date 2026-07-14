@@ -3,7 +3,7 @@ import { makeInitialState } from './seed';
 
 /* v7 bump (2026-07-13): beta prep — seeded watcher moments + physiology so
    those pillars aren't blank. Empty stored arrays [] would mask the new seed. */
-const STORAGE_KEY = 'deep-dive-dashboard-v9';
+const STORAGE_KEY = 'deep-dive-dashboard-v10';
 const SPLASH_KEY = 'deep-dive-splash-seen';
 
 export function loadState(): AppState | null {
