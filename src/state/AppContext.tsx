@@ -14,7 +14,7 @@ import type { AppState } from '../types';
 import { makeInitialState } from '../lib/seed';
 import { loadState, saveState } from '../lib/storage';
 import {
-  cloudEnabled, getSession, loadCloudDoc, onAuthChange, saveCloudDoc, signOutCloud,
+  cloudEnabled, getSession, loadSharedDoc, onAuthChange, saveSharedDoc, signOutCloud, subscribeShared,
 } from '../lib/cloud';
 import { SignIn } from '../components/auth/SignIn';
 import { type Action } from './reducer';
@@ -32,7 +32,13 @@ interface ContextShape {
   session: Session | null;
   cloudStatus: 'off' | 'syncing' | 'synced';
   signOut: () => Promise<void>;
+  /* Push this browser's local copy up as the shared crew project (overwrites
+     the cloud doc). Used to seed the crew project from the machine that holds
+     the real data. Resolves once the upload lands. */
+  publishLocal: () => Promise<void>;
 }
+
+const LOCAL_BACKUP_KEY = 'deep-dive-local-backup-before-cloud';
 
 const AppContext = createContext<ContextShape | null>(null);
 
@@ -68,16 +74,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return () => { active = false; unsub(); };
   }, []);
 
-  /* Pull the cloud doc once when a session appears; seed it if empty. */
+  /* Pull the ONE shared crew doc when a session appears; seed it from this
+     browser's local copy if the shared project doesn't exist yet.
+
+     Safety: before the first hydrate overwrites local state, stash the current
+     local copy under a backup key so nothing this machine holds is ever lost to
+     an empty/stale cloud doc. */
   const userId = session?.user.id;
   useEffect(() => {
     if (!cloudEnabled || !userId) return;
     let active = true;
     setCloudStatus('syncing');
-    loadCloudDoc(userId).then((doc) => {
+    loadSharedDoc().then((doc) => {
       if (!active) return;
-      if (doc) internalDispatch({ type: 'HYDRATE', state: doc });
-      else saveCloudDoc(userId, history.present);
+      if (doc) {
+        try { window.localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(history.present)); } catch { /* ignore */ }
+        internalDispatch({ type: 'HYDRATE', state: doc });
+      } else {
+        // First crew member in — seed the shared project from local data.
+        saveSharedDoc(history.present);
+      }
       cloudReadyRef.current = true;
       setCloudStatus('synced');
     });
@@ -92,16 +108,36 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCloudStatus('syncing');
     window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
-      saveCloudDoc(userId, history.present).then(() => setCloudStatus('synced'));
+      saveSharedDoc(history.present).then(() => setCloudStatus('synced'));
     }, 900);
     return () => window.clearTimeout(saveTimer.current);
   }, [history.present, userId]);
+
+  /* Live-refresh: when another crew member saves, pull their change in — unless
+     we have an edit of our own pending (our debounced save will win instead). */
+  useEffect(() => {
+    if (!cloudEnabled || !userId) return;
+    const unsub = subscribeShared((doc) => {
+      if (saveTimer.current) return; // mid-edit locally — don't stomp our work
+      internalDispatch({ type: 'HYDRATE', state: doc });
+      setCloudStatus('synced');
+    });
+    return unsub;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [userId]);
 
   const signOut = useCallback(async () => {
     await signOutCloud();
     cloudReadyRef.current = false;
     setSession(null);
   }, []);
+
+  const publishLocal = useCallback(async () => {
+    if (!cloudEnabled || !userId) return;
+    setCloudStatus('syncing');
+    await saveSharedDoc(history.present);
+    setCloudStatus('synced');
+  }, [userId, history.present]);
 
   const value: ContextShape = {
     state: history.present,
@@ -114,6 +150,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     session: session ?? null,
     cloudStatus,
     signOut,
+    publishLocal,
   };
 
   return (

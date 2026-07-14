@@ -18,7 +18,12 @@ export function SignIn() {
     setBusy(true); setErr(null);
     const { error } = await signInWithEmail(addr);
     setBusy(false);
-    if (error) setErr(error); else setSent(true);
+    if (error) {
+      /* Invite-only: Supabase rejects un-invited emails with a signups-disabled
+         error. Translate that into something a crew member understands. */
+      const invite = /signup|not allowed|disabled/i.test(error);
+      setErr(invite ? "That email isn't on the crew list yet — ask to be added." : error);
+    } else setSent(true);
   }
 
   return (
@@ -58,7 +63,7 @@ export function SignIn() {
               {busy ? 'sending…' : 'Send me a sign-in link'}
             </button>
             {err && <div className="prose-body text-[12px] text-[color:var(--color-coral)]">{err}</div>}
-            <div className="prose-body italic text-[11px] text-[color:var(--color-paper-light)]/40 pt-2">No password — we email you a one-time link.</div>
+            <div className="prose-body italic text-[11px] text-[color:var(--color-paper-light)]/40 pt-2">Invite-only · no password — we email you a one-time link.</div>
           </form>
         )}
       </div>

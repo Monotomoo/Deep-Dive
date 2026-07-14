@@ -111,7 +111,7 @@ interface SidebarProps {
 }
 
 export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}) {
-  const { state, dispatch, undo, redo, canUndo, canRedo, cloudEnabled, session, cloudStatus, signOut } = useApp();
+  const { state, dispatch, undo, redo, canUndo, canRedo, cloudEnabled, session, cloudStatus, signOut, publishLocal } = useApp();
   const t = useT();
 
   function setView(view: ViewKey) {
@@ -256,8 +256,20 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
               </button>
             </div>
             <div className="text-[9px] tracking-[0.12em] uppercase text-[color:var(--color-on-chrome-faint)]/70 mt-1">
-              {cloudStatus === 'synced' ? 'cloud · synced' : 'cloud · syncing…'}
+              {cloudStatus === 'synced' ? 'shared crew project · synced' : 'shared crew project · syncing…'}
             </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (window.confirm('Publish THIS browser\'s copy as the shared crew project?\n\nThis overwrites the cloud copy everyone sees with what\'s on this machine. Use it to seed the crew project from the computer that holds the real data.')) {
+                  publishLocal();
+                }
+              }}
+              title="overwrite the shared crew project with this browser's data"
+              className="mt-1.5 text-[9px] tracking-[0.1em] uppercase text-[color:var(--color-on-chrome-faint)]/60 hover:text-[color:var(--color-brass)] transition-colors"
+            >
+              ↑ publish my copy to crew
+            </button>
           </div>
         )}
 

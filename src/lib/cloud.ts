@@ -2,15 +2,20 @@ import { createClient, type Session, type SupabaseClient } from '@supabase/supab
 import type { AppState } from '../types';
 import { migrateLoaded } from './storage';
 
-/* Cloud layer (Stage A) — optional Supabase sync.
+/* Cloud layer — optional Supabase sync, SHARED-PROJECT model.
 
    The whole thing is gated on `cloudEnabled`. With no VITE_SUPABASE_* env vars
    set, cloudEnabled is false, `cloud` is null, and every function here is inert
    — the app runs exactly as it always has, purely on localStorage.
 
    Configure a project (see SUPABASE.md) and the app becomes an authenticated,
-   cloud-synced, multi-device tool. Stage A stores the entire AppState as one
-   JSON document per signed-in user. */
+   cloud-synced CREW tool. There is ONE shared document (`project = 'main'`) that
+   every signed-in crew member reads and writes — everyone sees the same Deep
+   Dive. Access is invite-only: only emails you invite in Supabase can sign in.
+
+   Concurrency is last-write-wins on the whole JSON doc, debounced, with a
+   Realtime subscription so each client live-refreshes when someone else saves.
+   That keeps a small crew in sync; it is not per-field merge (that's Stage C). */
 
 const URL = import.meta.env.VITE_SUPABASE_URL as string | undefined;
 const ANON = import.meta.env.VITE_SUPABASE_ANON_KEY as string | undefined;
@@ -23,8 +28,12 @@ export const cloud: SupabaseClient | null = cloudEnabled
     })
   : null;
 
-const TABLE = 'deep_dive_projects';
-const PROJECT = 'main'; // Stage A: a single project document per user
+const TABLE = 'deep_dive_shared';
+const PROJECT = 'main'; // the single shared project every crew member edits
+
+/* A stable per-tab id so we can tell our own Realtime echoes apart from
+   genuine edits made by other crew members. */
+export const clientId: string = `c_${Math.random().toString(36).slice(2)}${Date.now().toString(36)}`;
 
 function stripEphemeral(state: AppState): AppState {
   return { ...state, paletteOpen: false, captureOpen: false, printMode: false };
@@ -42,11 +51,14 @@ export function onAuthChange(cb: (session: Session | null) => void): () => void 
   return () => data.subscription.unsubscribe();
 }
 
+/* Invite-only: shouldCreateUser=false means an email that hasn't been invited
+   in Supabase can't sign in — Supabase returns a "signups not allowed" error,
+   which SignIn surfaces as "ask to be added." */
 export async function signInWithEmail(email: string): Promise<{ error?: string }> {
   if (!cloud) return { error: 'Cloud is not configured.' };
   const { error } = await cloud.auth.signInWithOtp({
     email,
-    options: { emailRedirectTo: window.location.origin },
+    options: { emailRedirectTo: window.location.origin, shouldCreateUser: false },
   });
   return { error: error?.message };
 }
@@ -55,12 +67,12 @@ export async function signOutCloud(): Promise<void> {
   if (cloud) await cloud.auth.signOut();
 }
 
-export async function loadCloudDoc(userId: string): Promise<AppState | null> {
+/* Load the one shared project doc (same row for every crew member). */
+export async function loadSharedDoc(): Promise<AppState | null> {
   if (!cloud) return null;
   const { data, error } = await cloud
     .from(TABLE)
     .select('doc')
-    .eq('owner', userId)
     .eq('project', PROJECT)
     .maybeSingle();
   if (error) { console.warn('[cloud] load failed:', error.message); return null; }
@@ -68,12 +80,35 @@ export async function loadCloudDoc(userId: string): Promise<AppState | null> {
   try { return migrateLoaded(data.doc as Partial<AppState>); } catch { return null; }
 }
 
-export async function saveCloudDoc(userId: string, state: AppState): Promise<{ error?: string }> {
+/* Upsert the shared project doc. `updated_by` carries our clientId so our own
+   Realtime echo can be ignored by this tab. */
+export async function saveSharedDoc(state: AppState): Promise<{ error?: string }> {
   if (!cloud) return {};
   const { error } = await cloud.from(TABLE).upsert(
-    { owner: userId, project: PROJECT, doc: stripEphemeral(state), updated_at: new Date().toISOString() },
-    { onConflict: 'owner,project' },
+    { project: PROJECT, doc: stripEphemeral(state), updated_at: new Date().toISOString(), updated_by: clientId },
+    { onConflict: 'project' },
   );
   if (error) console.warn('[cloud] save failed:', error.message);
   return { error: error?.message };
+}
+
+/* Live-refresh: fire `onRemoteChange` with the fresh doc whenever ANOTHER
+   client writes the shared row. Our own writes (matching clientId) are skipped.
+   Returns an unsubscribe fn. */
+export function subscribeShared(onRemoteChange: (doc: AppState) => void): () => void {
+  if (!cloud) return () => {};
+  const channel = cloud
+    .channel('deep-dive-shared')
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: TABLE, filter: `project=eq.${PROJECT}` },
+      (payload) => {
+        const row = payload.new as { doc?: unknown; updated_by?: string } | undefined;
+        if (!row?.doc) return;
+        if (row.updated_by === clientId) return; // our own echo
+        try { onRemoteChange(migrateLoaded(row.doc as Partial<AppState>)); } catch { /* ignore */ }
+      },
+    )
+    .subscribe();
+  return () => { cloud.removeChannel(channel); };
 }
