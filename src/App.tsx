@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { AppProvider, useApp } from './state/AppContext';
 import { AppShell } from './components/layout/AppShell';
 import { CommandPalette } from './components/palette/CommandPalette';
+import { CaptureModal } from './components/CaptureModal';
 import { Splash } from './components/layout/Splash';
 import { hasSeenSplash } from './lib/storage';
 import { isEditableTarget, isMod, SCENARIO_KEYS, VIEW_ORDER } from './lib/shortcuts';
@@ -111,6 +112,12 @@ function GlobalShortcuts() {
         dispatch({ type: 'OPEN_PALETTE', open: true });
         return;
       }
+      /* ⌘. → quick capture · works anywhere */
+      if (isMod(e) && e.key === '.') {
+        e.preventDefault();
+        dispatch({ type: 'OPEN_CAPTURE', open: true });
+        return;
+      }
       if (isEditableTarget(e.target)) return;
       /* ⌘1–9 → jump views */
       if (isMod(e) && /^[1-9]$/.test(e.key)) {
@@ -152,6 +159,7 @@ function AppInner() {
         <ViewSwitch />
       </AppShell>
       <CommandPalette open={state.paletteOpen} onClose={() => dispatch({ type: 'OPEN_PALETTE', open: false })} />
+      <CaptureModal />
     </>
   );
 }

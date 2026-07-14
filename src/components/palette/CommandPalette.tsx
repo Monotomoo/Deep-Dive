@@ -62,6 +62,15 @@ function buildIndex(state: AppState): Entry[] {
   state.holders.forEach((h) => { const f = state.four.find((x) => x.key === h.subjectKey); out.push({ id: `hold:${h.id}`, label: h.name, sub: `holds ${f?.name.split(' ')[0] ?? ''} · ${h.relationship}`, group: 'Surface', view: 'surface', keywords: h.oneLine }); });
   state.usaTrip.stops.forEach((s) => out.push({ id: `stop:${s.id}`, label: s.name, sub: 'USA trip stop', group: 'USA Trip', view: 'usa-trip', keywords: (s.pois ?? []).map((p) => p.name).join(' ') }));
   state.crew.forEach((c) => out.push({ id: `crew:${c.id}`, label: c.name, sub: c.role, group: 'Crew', view: 'crew' }));
+  state.records.forEach((r) => {
+    const p = state.four.find((f) => f.key === r.personKey);
+    const val = r.depthM != null ? `${r.depthM} m` : r.timeSeconds != null ? `${Math.floor(r.timeSeconds / 60)}:${String(r.timeSeconds % 60).padStart(2, '0')}` : r.distanceM != null ? `${r.distanceM} m` : '';
+    out.push({ id: `rec:${r.id}`, label: `${p?.name.split(' ')[0] ?? r.otherPersonName ?? ''} · ${r.discipline} ${val}`.trim(), sub: r.event, group: 'Records', view: 'records', keywords: r.notes });
+  });
+  state.festivals.forEach((f) => out.push({ id: `fest:${f.id}`, label: f.name, sub: `${f.city} · ${f.category ?? ''}`, group: 'Festivals', view: 'pitch', keywords: f.notes }));
+  state.pitchDecks.forEach((d) => out.push({ id: `deck:${d.id}`, label: d.name, sub: 'pitch deck', group: 'Pitch decks', view: 'pitch-deck', keywords: d.recipient ?? '' }));
+  state.pitchCards.forEach((c) => out.push({ id: `pcard:${c.id}`, label: c.title, sub: 'pitch card', group: 'Pitch cards', view: 'pitch-deck', keywords: c.body }));
+  state.watcherMoments.forEach((w) => out.push({ id: `wm:${w.id}`, label: w.moment.length > 46 ? w.moment.slice(0, 44) + '…' : w.moment, sub: 'watcher moment', group: 'Watchers', view: 'watchers' }));
   return out;
 }
 

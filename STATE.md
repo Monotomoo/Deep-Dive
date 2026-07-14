@@ -1,9 +1,18 @@
-# Deep Dive · V1.1 — session checkpoint (v0.14 · pitch deck)
+# Deep Dive · V1.1 — session checkpoint (v0.15 · connect + bug-fix pass)
 
 ## Deploy note (do first tomorrow)
 Beta punch-list is DONE. To ship: `vercel` (or the Vercel MCP `deploy_to_vercel`) from `D:/CLAUDE PROJECTS/Deep Dive V1.1`. `vercel.json` already has the SPA rewrite + build config. Tell viewers: open on a laptop; it's localStorage-only (each viewer starts from the seed, edits stay in their browser, "reset to seed" in the sidebar footer). Post-beta optimisation: lazy-load PhysiologyView to defer the recharts chunk (~107 KB gzip) off the initial load. **Storage key is now `deep-dive-dashboard-v10`** (seed changed in v0.13). Pushed to GitHub — `github.com/Monotomoo/Deep-Dive`, branch `main`. Vercel deploy: Tomo imports the repo in the Vercel dashboard (git-linked auto-deploy); `vercel.json` is preconfigured. Private planning docs are gitignored.
 
 ---
+
+### v0.15 · connect + bug-fix pass (2026-07-13)
+
+Pre-backend audit. Fixed the one genuinely-dead control and widened the connective tissue.
+
+- **Fixed: the capture button was dead.** The floating mic + the advertised `⌘.` dispatched `OPEN_CAPTURE`, but nothing anywhere consumed `state.captureOpen`, and `⌘.` wasn't even bound in GlobalShortcuts. Built a real **Quick Capture** modal (`src/components/CaptureModal.tsx`): type a thought, pick a flavour, Enter → lands in the Idea Hub as a `new` idea. Bound `⌘.`. Turned the sidebar's dead **?** hint into the now-live **⌘.**. Verified end-to-end in the browser.
+- **Widened ⌘K search** — the palette buildIndex now also covers Records, Festivals, Pitch decks, Pitch cards and Watcher moments (previously unsearchable).
+- **Audit checks (verified):** i18n — 0 used-but-undefined keys (224 used / 499 defined); seed — 0 dangling talent (`tal-*`) or topic references. Build clean.
+- Known remaining (roadmap, not bugs): main JS bundle >700 KB (needs code-splitting/lazy-load); ConnectionDrawer only mounts in 4 views; no backend yet.
 
 ### v0.14 · Pitch Deck — cards → decks → send (2026-07-13)
 

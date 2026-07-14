@@ -253,7 +253,7 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
             ⌘1–9
           </span>
           <span className="border-[0.5px] border-[color:var(--color-border-chrome-strong)] rounded px-1.5 py-[1px]">
-            ?
+            ⌘.
           </span>
         </div>
       </div>
