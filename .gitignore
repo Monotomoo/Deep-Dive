@@ -16,13 +16,15 @@ Thumbs.db
 .vercel/
 *.tsbuildinfo
 
-# Private production / planning docs — kept out of the public repo.
-# Delete a line here if you want that document versioned.
-COPRODUCER-SHORTLIST.md
-IDFA-FORUM-ENTRY-DRAFT.md
+# Private production/planning docs + generated PDFs — NEVER versioned.
+# Broad patterns so new drafts can't slip in via `git add`.
+PDF/
+*.pdf
+pdf-gen.py
+RESEARCH-*.md
+PRODUCER-*.md
+COPRODUCER-*.md
+US-FUNDS.md
 MASTER-PLAN.md
 RELEASES-DRAFT.md
-US-FUNDS.md
-PRODUCER-MASTER-STRATEGY.md
-RESEARCH-LEGAL-DELIVERY.md
-RESEARCH-MONEY.md
+IDFA-FORUM-ENTRY-DRAFT.md
