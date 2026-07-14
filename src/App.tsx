@@ -24,6 +24,7 @@ import { PhysiologyView } from './components/views/PhysiologyView';
 import { WatchersView } from './components/views/WatchersView';
 import { CameraTeamView } from './components/views/CameraTeamView';
 import { PitchView } from './components/views/PitchView';
+import { PitchDeckView } from './components/views/PitchDeckView';
 import { DistributionView } from './components/views/DistributionView';
 import { ContractsView } from './components/views/ContractsView';
 import { JournalView } from './components/views/JournalView';
@@ -82,6 +83,7 @@ function renderView(view: ViewKey) {
     case 'watchers':      return <WatchersView />;
     case 'camera-team':   return <CameraTeamView />;
     case 'pitch':         return <PitchView />;
+    case 'pitch-deck':    return <PitchDeckView />;
     case 'distribution':  return <DistributionView />;
     case 'contracts':     return <ContractsView />;
     case 'journal':       return <JournalView />;

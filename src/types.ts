@@ -1063,6 +1063,56 @@ export interface Broadcaster {
   notes?: string;
 }
 
+/* ---------- Pitch Deck (v0.14) ----------
+   A library of modular pitch CARDS (each a self-contained one-pager, many
+   bound to live workbook data) that you compose into audience-tailored DECKS
+   to present live or export/send to a specific sponsor, co-producer, or fund. */
+
+export type PitchCardKind =
+  | 'cover'        // film title + format + thesis — the opener
+  | 'logline'      // the one-line hook
+  | 'thesis'       // what the film is really about
+  | 'four'         // the protagonists (live: state.four)
+  | 'records'      // the achievements — why these four (live: state.records)
+  | 'stakes'       // why now · the drama
+  | 'etna'         // "already captured" — the de-risking proof (live: Sicily shoot)
+  | 'visual'       // the formal ambition (live: state.swings)
+  | 'arc'          // 2023 → recognition, the redemption structure
+  | 'access'       // from inside the sport — unique access
+  | 'team'         // the makers + the athletes as collaborators (live: state.crew)
+  | 'comparables'  // Free Solo / Deepest Breath / Alpinist positioning (live: references)
+  | 'budget'       // the number + the ask (live: state.scenarios)
+  | 'festivals'    // premiere strategy (live: state.festivals)
+  | 'schedule'     // shoot status — footage exists (live: state.shoots)
+  | 'offer'        // what a partner gets — tiers / terms
+  | 'contact'      // who to talk to · the call to action
+  | 'custom';      // freeform
+
+export type PitchAudience =
+  | 'sponsor' | 'coproducer' | 'fund' | 'broadcaster' | 'festival' | 'general';
+
+export interface PitchCard {
+  id: string;
+  kind: PitchCardKind;
+  title: string;                 // headline
+  kicker?: string;               // small label above the title
+  body?: string;                 // main copy — for live kinds, an optional intro/override
+  imageNote?: string;            // note describing the still/visual this card wants
+  accent?: string;               // hex accent
+  audiences?: PitchAudience[];   // which rooms this card suits (suggests cards per deck)
+}
+
+export interface PitchDeck {
+  id: string;
+  name: string;
+  audience: PitchAudience;
+  recipient?: string;            // "Nordisk Film & TV Fond" / "Acrisure"
+  note?: string;                 // cover note / intro line for the send
+  cardIds: string[];             // ordered selection from the card library
+  accent?: string;
+  updatedAt: string;
+}
+
 /* ---------- Cross-cutting primitives ---------- */
 
 export type TaskStatus = 'todo' | 'in-progress' | 'blocked' | 'done';
@@ -1153,6 +1203,7 @@ export type ViewKey =
   | 'camera-team'
   /* Tell */
   | 'pitch'
+  | 'pitch-deck'
   | 'distribution'
   | 'contracts'
   | 'journal'
@@ -1215,6 +1266,9 @@ export interface AppState {
   festivals: FestivalSubmission[];
   salesAgents: SalesAgent[];
   broadcasters: Broadcaster[];
+  /* v0.14 — Pitch Deck: modular cards → audience-tailored decks */
+  pitchCards: PitchCard[];
+  pitchDecks: PitchDeck[];
   /* Cross-cutting primitives */
   tasks: Task[];
   notes: Note[];

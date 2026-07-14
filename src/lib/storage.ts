@@ -68,6 +68,8 @@ function migrateState(loaded: Partial<AppState>): AppState {
     festivals: loaded.festivals ?? defaults.festivals,
     salesAgents: loaded.salesAgents ?? defaults.salesAgents,
     broadcasters: loaded.broadcasters ?? defaults.broadcasters,
+    pitchCards: loaded.pitchCards ?? defaults.pitchCards,
+    pitchDecks: loaded.pitchDecks ?? defaults.pitchDecks,
     tasks: loaded.tasks ?? defaults.tasks,
     notes: loaded.notes ?? defaults.notes,
     assets: loaded.assets ?? defaults.assets,

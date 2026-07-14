@@ -28,6 +28,8 @@ import type {
   MotifItem,
   Note,
   PhysiologyDatum,
+  PitchCard,
+  PitchDeck,
   RecordAttempt,
   Reference,
   Risk,
@@ -224,6 +226,13 @@ export type Action =
   | { type: 'ADD_BROADCASTER'; b: Broadcaster }
   | { type: 'UPDATE_BROADCASTER'; id: string; patch: Partial<Broadcaster> }
   | { type: 'DELETE_BROADCASTER'; id: string }
+  /* v0.14 — Pitch Deck */
+  | { type: 'ADD_PITCH_CARD'; card: PitchCard }
+  | { type: 'UPDATE_PITCH_CARD'; id: string; patch: Partial<PitchCard> }
+  | { type: 'DELETE_PITCH_CARD'; id: string }
+  | { type: 'ADD_PITCH_DECK'; deck: PitchDeck }
+  | { type: 'UPDATE_PITCH_DECK'; id: string; patch: Partial<PitchDeck> }
+  | { type: 'DELETE_PITCH_DECK'; id: string }
   /* Cross-cutting */
   | { type: 'ADD_TASK'; task: Task }
   | { type: 'UPDATE_TASK'; id: string; patch: Partial<Task> }
@@ -488,6 +497,18 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'ADD_BROADCASTER':   return { ...state, broadcasters: [...state.broadcasters, action.b] };
     case 'UPDATE_BROADCASTER':return { ...state, broadcasters: upd(state.broadcasters, action.id, action.patch) };
     case 'DELETE_BROADCASTER':return { ...state, broadcasters: del(state.broadcasters, action.id) };
+
+    /* Pitch Deck */
+    case 'ADD_PITCH_CARD':    return { ...state, pitchCards: [...state.pitchCards, action.card] };
+    case 'UPDATE_PITCH_CARD': return { ...state, pitchCards: upd(state.pitchCards, action.id, action.patch) };
+    case 'DELETE_PITCH_CARD': return {
+      ...state,
+      pitchCards: del(state.pitchCards, action.id),
+      pitchDecks: state.pitchDecks.map((d) => ({ ...d, cardIds: d.cardIds.filter((cid) => cid !== action.id) })),
+    };
+    case 'ADD_PITCH_DECK':    return { ...state, pitchDecks: [...state.pitchDecks, action.deck] };
+    case 'UPDATE_PITCH_DECK': return { ...state, pitchDecks: upd(state.pitchDecks, action.id, action.patch) };
+    case 'DELETE_PITCH_DECK': return { ...state, pitchDecks: del(state.pitchDecks, action.id) };
 
     /* Cross-cutting */
     case 'ADD_TASK':    return { ...state, tasks: [...state.tasks, action.task] };

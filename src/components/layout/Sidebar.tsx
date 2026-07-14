@@ -19,6 +19,7 @@ import {
   Network,
   Notebook,
   Orbit,
+  Presentation,
   Quote,
   Route,
   Redo2,
@@ -85,6 +86,7 @@ const GROUPS: NavGroup[] = [
     labelKey: 'nav.group.tell',
     items: [
       { key: 'pitch',        labelKey: 'nav.pitch',        icon: FileText },
+      { key: 'pitch-deck',   labelKey: 'nav.pitch-deck',   icon: Presentation },
       { key: 'journal',      labelKey: 'nav.journal',      icon: ScrollText },
     ],
   },

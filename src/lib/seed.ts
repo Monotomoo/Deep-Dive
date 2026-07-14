@@ -31,6 +31,8 @@ import type {
   Milestone,
   MotifChain,
   PhysiologyDatum,
+  PitchCard,
+  PitchDeck,
   Reference,
   Risk,
   SalesAgent,
@@ -1279,6 +1281,152 @@ export const SEED_INTERVIEWS: Interview[] = [
   { id: 'int-las-together', shootId: 'shoot-lastovo', personKey: 'together', setting: 'boat', date: '2026-08-20', status: 'planned', threadIds: ['t2'],   topicIds: ['top-2023'], eventIds: ['ev-storm'], notes: 'The four together. The 2023 conversation — never pushed, only if the week says yes.' },
 ];
 
+/* ---------- Pitch Deck (v0.14) — the card library + starter decks ----------
+   Each card is a self-contained one-pager; the data-bound kinds (four, records,
+   etna, visual, team, comparables, budget, festivals, schedule, contact) pull
+   live from the workbook so the pitch never goes stale. Compose them into the
+   audience decks below, then Present or export to send. */
+
+export const SEED_PITCH_CARDS: PitchCard[] = [
+  {
+    id: 'pc-cover', kind: 'cover', kicker: 'a feature documentary + 3-part series',
+    title: 'Deep Dive',
+    body: 'One person holds another in the world. Four of the best freedivers alive — one mentor, two couples, a record passed between best friends. Not a film about depth. A film about who waits for you at the surface.',
+    imageNote: 'Full-bleed opener: a body slipping under into blue silence — or Etna lava meeting the cold sea.',
+    accent: '#d96c3d', audiences: ['sponsor', 'coproducer', 'fund', 'broadcaster', 'festival', 'general'],
+  },
+  {
+    id: 'pc-logline', kind: 'logline', kicker: 'the logline',
+    title: 'Not a film about depth.',
+    body: 'Four of the best freedivers alive. One mentor, two couples, a record passed between best friends. Not a film about depth — a film about who waits for you at the surface.',
+    accent: '#3d7a94', audiences: ['general', 'festival', 'coproducer', 'broadcaster'],
+  },
+  {
+    id: 'pc-thesis', kind: 'thesis', kicker: 'what it is really about',
+    title: 'One person holds another in the world.',
+    body: 'Every dive is a duet. One goes into the dark; another stays at the surface, breathing for them both. The film lives on that line — the bond that makes the impossible survivable. The records are the occasion; the holding is the story.',
+    accent: '#d96c3d', audiences: ['general', 'festival', 'fund', 'coproducer'],
+  },
+  {
+    id: 'pc-four', kind: 'four', kicker: 'the four',
+    title: 'One mentor. Two couples. Four champions.',
+    body: 'Really one unit — the mentor at the centre of all four, two couples, and the rare friendship of two women who have both been past 100 metres.',
+    accent: '#6f8a72', audiences: ['sponsor', 'coproducer', 'fund', 'broadcaster', 'festival', 'general'],
+  },
+  {
+    id: 'pc-records', kind: 'records', kicker: 'why these four',
+    title: 'World records, inside one cast.',
+    body: 'A 17-year no-fins wall broken. A Guinness 29-minute breath-hold. The first Croatian woman past 100 metres. The first woman ever to 300m in a pool. All current, all within the production window — the film stays news through the entire festival cycle.',
+    accent: '#b54f26', audiences: ['sponsor', 'festival', 'broadcaster', 'coproducer'],
+  },
+  {
+    id: 'pc-stakes', kind: 'stakes', kicker: 'why now',
+    title: 'This alignment will not hold.',
+    body: 'Four of the best in the world are at their peak at the same moment, in the same circle, in the same sea. We shoot the sport as it actually happens — real attempts, real records, real risk — from the inside, not in reconstruction. The window is now.',
+    accent: '#8a3a2e', audiences: ['coproducer', 'fund', 'festival'],
+  },
+  {
+    id: 'pc-etna', kind: 'etna', kicker: 'already captured',
+    title: 'The most expensive image already exists.',
+    body: 'Etna erupted during our Sicily shoot. Real lava, real steam, cut against a body going silent under the water. A de-risked film with a miracle already in the can.',
+    imageNote: 'The Etna eruption plate — lava rivers meeting cold sea, steam screaming — hard-cut to a single body sinking.',
+    accent: '#d96c3d', audiences: ['sponsor', 'coproducer', 'festival', 'broadcaster', 'fund'],
+  },
+  {
+    id: 'pc-visual', kind: 'visual', kicker: 'the formal ambition',
+    title: 'The score is their own bodies.',
+    body: 'A soundtrack built from real physiology — a 24-beat heart, blood-oxygen falling. A full record dive in unbroken real time. A descent monologue braided across two languages. Fire breathes in, water breathes out.',
+    accent: '#3d7a94', audiences: ['festival', 'coproducer', 'fund'],
+  },
+  {
+    id: 'pc-arc', kind: 'arc', kicker: 'the shape',
+    title: 'Branded, then enshrined.',
+    body: '2023 tried to break them — an accusation, a suspension, every test negative, their own federation refusing to ban them. The film closes with a Hall of Fame induction in America: the same world that doubted them, standing to applaud. Told with the athletes, never about them — backed by a peer-reviewed paper, not tabloid framing.',
+    accent: '#2f4b6e', audiences: ['festival', 'fund', 'coproducer'],
+  },
+  {
+    id: 'pc-access', kind: 'access', kicker: 'why us',
+    title: 'From inside the sport, not above it.',
+    body: 'The camera films with the safety team, not from the boat. The mentor is on our crew as scientific advisor; the athletes read their own threads before lock. This is access no outside crew can buy — trust built over years, releases in progress.',
+    accent: '#6f8a72', audiences: ['coproducer', 'fund', 'festival'],
+  },
+  {
+    id: 'pc-team', kind: 'team', kicker: 'the makers',
+    title: 'A small crew, deep inside.',
+    body: 'A lean film-side team, the four as story collaborators, and a scientific partner at the University of Rijeka centre for diving and hyperbaric medicine.',
+    accent: '#5b7da1', audiences: ['coproducer', 'fund'],
+  },
+  {
+    id: 'pc-comparables', kind: 'comparables', kicker: 'where it sits',
+    title: 'Ensemble, where others chase one obsession.',
+    body: 'Free Solo and The Deepest Breath follow a single hero. Deep Dive follows a bond — one mentor, two couples, a record that passed between best friends and did not break them. Same shelf, different soul.',
+    accent: '#4c6b93', audiences: ['coproducer', 'broadcaster', 'festival', 'fund'],
+  },
+  {
+    id: 'pc-budget', kind: 'budget', kicker: 'the number',
+    title: 'A moving train, not a pitch on paper.',
+    body: 'Development self-financed. Two of seven shoots already shot. What we are raising, and against what — at a glance.',
+    accent: '#c9a961', audiences: ['sponsor', 'coproducer', 'fund'],
+  },
+  {
+    id: 'pc-festivals', kind: 'festivals', kicker: 'premiere strategy',
+    title: 'World premiere, then home.',
+    body: 'World premiere international, European premiere at a top doc festival, home premiere in Zagreb after the international bow. The cast holds current records — the film stays newsworthy across the whole cycle.',
+    accent: '#c9a961', audiences: ['festival', 'coproducer', 'fund', 'broadcaster'],
+  },
+  {
+    id: 'pc-schedule', kind: 'schedule', kicker: 'status',
+    title: 'Footage exists, not promises.',
+    body: 'Two of seven shoots complete — Krk and Sicily, with the Etna opening captured. The rest are scheduled and cast-locked.',
+    accent: '#4c7a8a', audiences: ['sponsor', 'coproducer', 'fund', 'broadcaster'],
+  },
+  {
+    id: 'pc-offer-sponsor', kind: 'offer', kicker: 'the partnership',
+    title: 'What a title partner gets.',
+    body: 'Category-exclusive title billing across the theatrical + festival run. Gear and travel partners in-kind against credits, with behind-the-scenes content and athlete access. Each of the four carries their own audience and record headlines — partnerships can attach at the film level or the athlete level.',
+    accent: '#9e7a63', audiences: ['sponsor'],
+  },
+  {
+    id: 'pc-offer-copro', kind: 'offer', kicker: 'the co-production',
+    title: 'What a co-producer gets.',
+    body: 'A stake in a de-risked, mid-production feature + series with a clear festival path and a bilingual master. Qualifying Croatian spend concentrated in Rijeka, Krk, Lastovo and Zagreb, with a national rebate on top. Territory, service and structure open to discuss.',
+    accent: '#5b7da1', audiences: ['coproducer', 'fund'],
+  },
+  {
+    id: 'pc-contact', kind: 'contact', kicker: 'let us talk',
+    title: 'Deep Dive · 2026',
+    body: 'Say the word and we will send the full deck, the Etna sequence, and the current cut of the sizzle.',
+    accent: '#0a2b4f', audiences: ['sponsor', 'coproducer', 'fund', 'broadcaster', 'festival', 'general'],
+  },
+];
+
+export const SEED_PITCH_DECKS: PitchDeck[] = [
+  {
+    id: 'pd-sponsor', name: 'Sponsor / brand partner', audience: 'sponsor',
+    note: 'For a title or gear partner — the audience, the news cycle, and the ask.',
+    cardIds: ['pc-cover', 'pc-logline', 'pc-four', 'pc-records', 'pc-etna', 'pc-stakes', 'pc-offer-sponsor', 'pc-contact'],
+    accent: '#9e7a63', updatedAt: '2026-07-13T10:00:00Z',
+  },
+  {
+    id: 'pd-copro', name: 'Co-production', audience: 'coproducer',
+    note: 'For a co-producer / production partner — the film, the ambition, the numbers.',
+    cardIds: ['pc-cover', 'pc-thesis', 'pc-four', 'pc-visual', 'pc-arc', 'pc-access', 'pc-comparables', 'pc-schedule', 'pc-budget', 'pc-offer-copro', 'pc-contact'],
+    accent: '#5b7da1', updatedAt: '2026-07-13T10:00:00Z',
+  },
+  {
+    id: 'pd-fund', name: 'Public fund (HAVC · EU MEDIA)', audience: 'fund',
+    note: 'For a national / European fund — cultural value, team, budget, festival path.',
+    cardIds: ['pc-cover', 'pc-thesis', 'pc-four', 'pc-arc', 'pc-access', 'pc-team', 'pc-schedule', 'pc-budget', 'pc-festivals', 'pc-contact'],
+    accent: '#4c7a8a', updatedAt: '2026-07-13T10:00:00Z',
+  },
+  {
+    id: 'pd-broadcaster', name: 'Broadcaster / streamer', audience: 'broadcaster',
+    note: 'For a broadcaster or streamer — format, cast, comparables, market.',
+    cardIds: ['pc-cover', 'pc-logline', 'pc-four', 'pc-records', 'pc-comparables', 'pc-schedule', 'pc-festivals', 'pc-contact'],
+    accent: '#c9a961', updatedAt: '2026-07-13T10:00:00Z',
+  },
+];
+
 /* ---------- Initial state factory ---------- */
 
 export function makeInitialState(): AppState {
@@ -1328,6 +1476,8 @@ export function makeInitialState(): AppState {
     festivals: SEED_FESTIVALS,
     salesAgents: SEED_SALES_AGENTS,
     broadcasters: SEED_BROADCASTERS,
+    pitchCards: SEED_PITCH_CARDS,
+    pitchDecks: SEED_PITCH_DECKS,
     tasks: [],
     notes: [],
     assets: [],

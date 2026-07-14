@@ -24,6 +24,7 @@ export const en = {
   'nav.watchers':     'Watchers',
   'nav.camera-team':  'Camera Team',
   'nav.pitch':        'Pitch',
+  'nav.pitch-deck':   'Pitch Deck',
   'nav.distribution': 'Distribution',
   'nav.contracts':    'Contracts',
   'nav.journal':      'Journal',
@@ -354,6 +355,8 @@ export const en = {
   /* ---------- Pitch ---------- */
   'pitch.title':                  'Pitch',
   'pitch.subtitle':               'one film · four rooms · sponsors, HAVC, festivals, partners',
+  'pitch-deck.title':             'Pitch Deck',
+  'pitch-deck.subtitle':          'cards → a deck for each room · present or export to send',
   'pitch.tab.sponsors':           'Sponsors',
   'pitch.tab.havc':               'HAVC',
   'pitch.tab.festivals':          'Festivals',

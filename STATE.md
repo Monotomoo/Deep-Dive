@@ -1,9 +1,19 @@
-# Deep Dive · V1.1 — session checkpoint (v0.13 · beta revisions)
+# Deep Dive · V1.1 — session checkpoint (v0.14 · pitch deck)
 
 ## Deploy note (do first tomorrow)
 Beta punch-list is DONE. To ship: `vercel` (or the Vercel MCP `deploy_to_vercel`) from `D:/CLAUDE PROJECTS/Deep Dive V1.1`. `vercel.json` already has the SPA rewrite + build config. Tell viewers: open on a laptop; it's localStorage-only (each viewer starts from the seed, edits stay in their browser, "reset to seed" in the sidebar footer). Post-beta optimisation: lazy-load PhysiologyView to defer the recharts chunk (~107 KB gzip) off the initial load. **Storage key is now `deep-dive-dashboard-v9`** (seed changed in v0.13). Pushed to GitHub — `github.com/Monotomoo/Deep-Dive`, branch `main`. Vercel deploy: Tomo imports the repo in the Vercel dashboard (git-linked auto-deploy); `vercel.json` is preconfigured. Private planning docs are gitignored.
 
 ---
+
+### v0.14 · Pitch Deck — cards → decks → send (2026-07-13)
+
+A new external-facing module for financing: a library of modular **pitch cards** you compose into audience-tailored **decks**, then **present** live or **export to send**. The existing internal Pitch (angle/ask/proof strategy) stays; this is the deliverable side. Build clean; browser-verified end-to-end. Additive storage migration — **no key bump**, existing edits survive.
+
+- **18-card library** — each a self-contained one-pager. Ten kinds bind to LIVE workbook data so the pitch never goes stale: the Four (names/roles), Records (real standing records), Etna ("already captured" — pulls the Sicily moment), Formal ambition (the Bigger Swings), Team (crew), Comparables (the reference films), Budget (real numbers from the active scenario), Festivals, Status (shoots done vs planned), Contact (Tomo + terminimal.com). The rest (cover, logline, thesis, why-now, the shape, access, the offer ×2) are editable copy. Add / edit / delete + per-card accent.
+- **4 starter decks**, each an ordered, audience-tuned selection: **Sponsor** (8), **Co-production** (11), **Public fund · HAVC/EU** (10), **Broadcaster** (8). Editable name / audience / recipient / cover-note; add-remove cards (suited cards marked ★), reorder.
+- **Present** — fullscreen, one card at a time, ← → / space / esc — for pitching live on a screen-share.
+- **Export / Send** — a print-preview overlay → **Print / Save PDF** (one card per A4 page, print-isolated so only the deck prints) + **Copy as text** (a markdown draft with live data folded in, for the email body). Actual sending stays the user's action.
+- Data: `PitchCard` + `PitchDeck` types, reducer CRUD (deleting a card also unlinks it from every deck). Nav: **Pitch Deck** in the Tell group, beside the strategy Pitch.
 
 ### v0.13 · beta revisions — client-feedback pass (2026-07-13)
 
