@@ -186,7 +186,7 @@ export const SEED_STORY_EVENTS: StoryEvent[] = [
   { id: 'ev-couples',    title: 'Two couples, one unit',                       kind: 'turning-point', year: 2024,                    summary: 'Petar and Zsófia. Vito and Sanda already. One mentor at the centre of all four. The sport becomes a family — and the family becomes the film.', personKeys: ['petar', 'vito', 'sanda', 'zsofia'], topicIds: ['top-bond'] },
   { id: 'ev-sanda-103',  title: 'FIM 103m at Mabini',                          kind: 'record',        year: 2025, date: '2025-05-04', summary: 'The Philippines give the number back. Among fewer than ten women ever past 100m.', personKeys: ['sanda'], topicIds: ['top-deep', 'top-record'] },
   { id: 'ev-petar-103',  title: 'CNF 103m — the 17-year reign ends',           kind: 'record',        year: 2025, date: '2025-05-10', summary: "Sharm el Sheikh. Petar takes Trubridge's wall down by a metre. The sport's oldest record falls to the man 2023 branded.", personKeys: ['petar'], topicIds: ['top-record', 'top-recognition'] },
-  { id: 'ev-vito-2903',  title: 'The 29:03 · Opatija',                         kind: 'record',        year: 2025, date: '2025-06-14', summary: 'A hotel pool, five judges, a hundred spectators. Nearly half an hour without a breath, on pure O₂ — Guinness. His mother was not there.', personKeys: ['vito'], topicIds: ['top-body', 'top-longdeep', 'top-recognition'] },
+  { id: 'ev-vito-2903',  title: 'The 29:03 · Opatija',                         kind: 'record',        year: 2025, date: '2025-06-14', summary: 'A hotel pool, five judges, a hundred spectators. Nearly half an hour without a breath, on pure O₂ — Guinness.', personKeys: ['vito'], topicIds: ['top-body', 'top-longdeep', 'top-recognition'] },
   { id: 'ev-chengdu',    title: '300m · first woman · Chengdu gold',           kind: 'record',        year: 2025, date: '2025-08-10', summary: 'World Games. Three years after Malta, Zsófia becomes the first woman to 300m in a pool.', personKeys: ['zsofia'], topicIds: ['top-outsider', 'top-record'] },
   { id: 'ev-zsofia-105', title: 'Zsófia · FIM 105m',                           kind: 'record',        year: 2026, date: '2026-04-20', summary: 'An absolute free-immersion world record three years after her first freedive. One of the fastest arrivals the sport has ever seen.', personKeys: ['zsofia'], topicIds: ['top-outsider'] },
   { id: 'ev-etna',       title: 'Etna erupts during the shoot',                kind: 'shoot-moment',  year: 2026, date: '2026-07-04', summary: "The mountain lights up during Petar's monofin window. 'Fire breathes in, water breathes out' stops being a storyboard.", personKeys: ['petar', 'vito', 'sanda', 'zsofia'], shootId: 'shoot-sicily', topicIds: ['top-fear'] },
@@ -337,8 +337,8 @@ export const SEED_SHOOTS: Shoot[] = [
     status: 'completed',
     startDate: '2026-04-01',
     endDate: '2026-04-07',
-    spirit: 'The foundation — the four, the bonds, the family, the home water.',
-    captures: ['who they are · at home', 'the bonds, seen', 'the family that watched it begin', 'first breath-up templates', 'grey winter Adriatic as the "before"'],
+    spirit: 'The foundation — the four, the bonds, the home water.',
+    captures: ['who they are · at home', 'the bonds, seen', 'first breath-up templates', 'grey winter Adriatic as the "before"'],
     presentFour: ['petar','vito','sanda','zsofia'],
     bible: '# Krk — the "before"\n\nSoft opening. First shoot. The four at home, in their home water. Establishes the world before Sicily disrupts it.',
     colorHint: '#4c7a8a',            // steel-teal · winter Adriatic
@@ -969,7 +969,6 @@ export const SEED_HOLDERS: Holder[] = [
   { id: 'h-p-1', subjectKey: 'petar', kind: 'person', name: 'Zsófia',     relationship: 'partner',               oneLine: 'his partner — the room in the world he comes back to.', consent: 'pending', onCameraWilling: true, colorHint: '#e39a5b' },
   { id: 'h-p-2', subjectKey: 'petar', kind: 'person', name: 'Vito',       relationship: 'mentor, oldest friend', oneLine: 'the one who saw him first — before the records.', consent: 'pending', onCameraWilling: true, colorHint: '#3d7a94' },
   { id: 'h-p-3', subjectKey: 'petar', kind: 'place',  name: 'Rijeka',     relationship: 'hometown',              oneLine: 'the harbour that raised a beach-rescue kid into the sport.', consent: 'na', colorHint: '#4c7a8a' },
-  { id: 'h-p-6', subjectKey: 'petar', kind: 'person', name: 'His father', relationship: 'the fisherman',         oneLine: 'a working fisherman — the family that watched it begin.', consent: 'pending', colorHint: '#7a5c4a' },
 
   /* VITO — the heart and mind */
   { id: 'h-v-1', subjectKey: 'vito',  kind: 'person', name: 'Sanda',        relationship: 'partner',                    oneLine: 'the woman who lets him be both coach and man.', consent: 'pending', onCameraWilling: true, colorHint: '#6f8a72' },
@@ -986,7 +985,6 @@ export const SEED_HOLDERS: Holder[] = [
   /* ZSÓFIA — the newcomer's eyes */
   { id: 'h-z-1', subjectKey: 'zsofia', kind: 'person', name: 'Petar',      relationship: 'partner',              oneLine: 'her partner in the sport and the deep.', consent: 'pending', onCameraWilling: true, colorHint: '#d96c3d' },
   { id: 'h-z-2', subjectKey: 'zsofia', kind: 'person', name: 'Sanda',      relationship: 'closest friend in the sport', oneLine: 'already deep when she arrived, and welcomed her anyway.', consent: 'pending', onCameraWilling: true, colorHint: '#6f8a72' },
-  { id: 'h-z-3', subjectKey: 'zsofia', kind: 'person', name: 'Her sister', relationship: 'the keeper of the previous life', oneLine: 'the reminder that three years ago she was still a triathlete.', consent: 'pending', colorHint: '#8fa57e' },
   { id: 'h-z-4', subjectKey: 'zsofia', kind: 'place',  name: 'Hungary',    relationship: 'birthplace',           oneLine: 'the country she carries in her second passport and her English interviews.', consent: 'na', colorHint: '#e39a5b' },
   { id: 'h-z-7', subjectKey: 'zsofia', kind: 'place',  name: 'Malta · October 2022', relationship: 'the holiday that rerouted a life', oneLine: 'one snorkel in Malta and the pool career ended itself.', consent: 'na', colorHint: '#4c7a8a' },
 ];
@@ -1049,7 +1047,6 @@ export const SEED_LIFE_EVENTS: LifeEvent[] = [
   { id: 'le-v-3',  subjectKey: 'vito',   year: 2006,            title: 'first competitive freedive',                           category: 'first-dive',   significance: 3 },
   { id: 'le-v-4',  subjectKey: 'vito',   year: 2012,            title: 'joins University of Rijeka diving + hyperbaric centre', category: 'breakthrough', significance: 4 },
   { id: 'le-v-5',  subjectKey: 'vito',   year: 2017,            title: 'meets Sanda',                                          category: 'love',         significance: 5 },
-  { id: 'le-v-6',  subjectKey: 'vito',   year: 2019,            title: 'his mother stops coming to competitions',              category: 'loss',         significance: 4 },
   { id: 'le-v-7',  subjectKey: 'vito',   year: 2020,            title: 'nearly leaves the sport · Petar arrives',              category: 'crisis',       significance: 4 },
   { id: 'le-v-8',  subjectKey: 'vito',   year: 2021,            title: 'Guinness · 107m underwater walk on one breath',        category: 'record',       significance: 4 },
   { id: 'le-v-9',  subjectKey: 'vito',   year: 2022,            title: 'heads AIDA Croatia',                                   category: 'breakthrough', significance: 3, note: 'year approximate' },
@@ -1062,7 +1059,6 @@ export const SEED_LIFE_EVENTS: LifeEvent[] = [
   { id: 'le-s-2',  subjectKey: 'sanda',  year: 2008,            title: 'first freedive',                                       category: 'first-dive',   significance: 3 },
   { id: 'le-s-3',  subjectKey: 'sanda',  year: 2015,            title: 'first of 12 national records',                         category: 'record',       significance: 4 },
   { id: 'le-s-4',  subjectKey: 'sanda',  year: 2017,            title: 'meets Vito',                                           category: 'love',         significance: 5 },
-  { id: 'le-s-5',  subjectKey: 'sanda',  year: 2018,            title: 'father dies',                                          category: 'loss',         significance: 5, note: 'she starts wearing his watch on land' },
   { id: 'le-s-6',  subjectKey: 'sanda',  year: 2021,            title: 'two world-championship bronzes',                       category: 'record',       significance: 4, note: 'year approximate' },
   { id: 'le-s-7',  subjectKey: 'sanda',  year: 2023, month: 5,  title: 'FIM world record · 98m · Sharm el Sheikh',             category: 'record',       significance: 5, note: '3:58 dive time' },
   { id: 'le-s-8',  subjectKey: 'sanda',  year: 2023, month: 9,  title: 'moves to Trieste',                                     category: 'family',       significance: 4 },
@@ -1095,7 +1091,7 @@ export const SEED_MOTIF_CHAINS: MotifChain[] = [
     items: [
       { id: 'mi-1-1', description: "Sanda's hair rising as she breaches, back-lit",          source: 'shoot',    sourceContext: 'Krk · surface hero',   colorHint: '#6f8a72' },
       { id: 'mi-1-2', description: "Zsófia's hair fanning at the top of the ascent",         source: 'shoot',    sourceContext: 'Lastovo · planned',    colorHint: '#e39a5b' },
-      { id: 'mi-1-3', description: 'A fishing net catching sun in the same shape',           source: 'observed', sourceContext: "Petar's father, Rijeka harbour", colorHint: '#7a5c4a' },
+      { id: 'mi-1-3', description: 'A fishing net catching sun in the same shape',           source: 'observed', sourceContext: 'Rijeka harbour', colorHint: '#7a5c4a' },
       { id: 'mi-1-4', description: 'Kelp moving with a current — held-breath tempo',         source: 'imagined', sourceContext: 'Coda opening',         colorHint: '#3d7a94' },
     ],
   },

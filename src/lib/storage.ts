@@ -1,10 +1,12 @@
 import type { AppState } from '../types';
 import { makeInitialState } from './seed';
 
-/* v11 bump (2026-07-15): shoots gained lat/lng for the Overview map, and Note
-   gained authorLabel for crew comments. Bumping re-seeds coordinates rather
-   than leaving stored shoots unplottable. */
-const STORAGE_KEY = 'deep-dive-dashboard-v11';
+/* v12 bump (2026-07-15): family removed from the plan — Petar's father and
+   Zsófia's sister as holders, plus the biographical beats about Sanda's father
+   and Vito's mother. A stored v11 doc would keep serving them, so the key has
+   to move for the removal to mean anything.
+   v11: shoots gained lat/lng for the Overview map; Note gained authorLabel. */
+const STORAGE_KEY = 'deep-dive-dashboard-v12';
 const SPLASH_KEY = 'deep-dive-splash-seen';
 const SNAPSHOT_KEY = 'deep-dive-snapshots-v1';
 
