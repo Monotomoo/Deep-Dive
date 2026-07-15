@@ -659,25 +659,141 @@ export const SEED_WATCHER_MOMENTS: WatcherMoment[] = [
    film's would-be score. Bradycardia: the diving reflex drops the heart
    toward a fraction of its resting rate. */
 
+/* ---------- Physiology · the body as witness ----------------------------
+   IMPORTANT: every series below is `modelled` — an expected curve built from
+   established freediving physiology and each diver's real record. None of it
+   has been measured off these people yet. That's the whole point of the Rijeka
+   lab shoot: go and get the real numbers, then flip provenance to 'measured'
+   and replace the curve. Until then nothing here should be quoted as fact.
+
+   The physics they're built on is real and well established: face immersion
+   triggers bradycardia; peripheral vasoconstriction raises blood pressure;
+   blood shifts into the chest as the lungs compress past residual volume; the
+   spleen contracts and releases stored red cells; SpO₂ stays high at depth
+   because partial pressure is high, then collapses on ascent as pressure drops
+   — which is why the last ten metres are the dangerous ones. */
+
 export const SEED_PHYSIOLOGY: PhysiologyDatum[] = [
+  /* ---- VITO · the 29:03 (real record: rec-vito-sta, 1743s) ---- */
   {
     id: 'phys-vito-hr', personKey: 'vito', metric: 'heart-rate',
-    contextNote: 'Vito · static apnea, Rijeka lab. The diving reflex pulls his heart toward 20-something bpm, then it surges back on the recovery breath.',
+    contextNote: 'Vito · static apnea. The diving reflex pulls his heart toward 20-something bpm, then it surges back on the recovery breath.',
     unit: 'bpm', dataPointsCsv: '76,72,66,58,50,44,39,35,31,28,26,25,24,24,25,27,33,44,60,74,80,72',
-    peakValue: 80, minValue: 24, duration: 1743, date: '2025-06-14', source: 'University of Rijeka · hyperbaric centre', usedInScore: true,
-    notes: 'The 29:03 hold. This curve is the spine of the "score is their bodies" swing.',
-  },
-  {
-    id: 'phys-petar-hr', personKey: 'petar', metric: 'heart-rate',
-    contextNote: "Petar · a deep constant-weight descent. Heart slows on the way down as pressure builds, spikes at the turn, races on the ascent.",
-    unit: 'bpm', dataPointsCsv: '84,78,70,62,55,49,45,43,42,44,48,55,64,74,86,96,90,80',
-    peakValue: 96, minValue: 42, duration: 195, date: '2025-05-10', source: 'Wrist + chest telemetry', usedInScore: true,
+    peakValue: 80, minValue: 24, duration: 1743, date: '2025-06-14',
+    source: 'Expected curve · to be measured at Rijeka', provenance: 'modelled',
+    recordId: 'rec-vito-sta', usedInScore: true,
+    notes: 'The 29:03 hold. This curve is the spine of the "score is their bodies" swing — and the first thing the lab day should replace with real telemetry.',
   },
   {
     id: 'phys-vito-spo2', personKey: 'vito', metric: 'blood-oxygen',
-    contextNote: 'Vito · blood-oxygen saturation across the long hold. It falls quietly, then the body defends the brain last.',
+    contextNote: 'Vito · blood-oxygen across the long hold. On pure O₂ the fall is slower than air, but it still falls — and the body defends the brain last.',
     unit: '% SpO₂', dataPointsCsv: '99,98,97,95,92,88,84,79,74,69,64,61,58,57,60,72,88,97',
-    peakValue: 99, minValue: 57, date: '2025-06-14', source: 'University of Rijeka · hyperbaric centre',
+    peakValue: 99, minValue: 57, duration: 1743, date: '2025-06-14',
+    source: 'Expected curve · to be measured at Rijeka', provenance: 'modelled',
+    recordId: 'rec-vito-sta',
+  },
+  {
+    id: 'phys-vito-brain', personKey: 'vito', metric: 'brain-activity',
+    contextNote: 'Vito · cerebral oxygenation (NIRS). The organ that is him, running down — and still the last thing the body gives up.',
+    unit: '% rSO₂', dataPointsCsv: '72,72,71,70,69,67,65,63,61,58,56,54,52,50,48,47,46,45,45,46,52,62,70',
+    peakValue: 72, minValue: 45, duration: 1743, date: '2025-06-14',
+    source: 'Expected curve · to be measured at Rijeka', provenance: 'modelled',
+    recordId: 'rec-vito-sta', usedInScore: true,
+    notes: 'If we get this signal, the film has a shot of a mind going quiet and coming back.',
+  },
+  {
+    id: 'phys-vito-lactate', personKey: 'vito', metric: 'lactate',
+    contextNote: 'Vito · blood lactate, sampled after the hold. The cost arrives late — the body pays for the stillness once it is over.',
+    unit: 'mmol/L', dataPointsCsv: '0.9,0.9,1.0,1.2,1.5,1.9,2.4,3.0,3.7,4.5,5.4,6.3,7.1,7.8,8.3,8.6,8.4,7.6,6.5,5.2,4.0,3.0,2.2,1.6',
+    peakValue: 8.6, minValue: 0.9, date: '2025-06-14',
+    source: 'Expected curve · to be measured at Rijeka', provenance: 'modelled',
+    recordId: 'rec-vito-sta',
+    notes: 'Post-hold sampling, ~30 min. Needs venous draws — has to be planned into the lab day, not improvised.',
+  },
+
+  /* ---- PETAR · CNF 103m (real record: rec-petar-cnf) ---- */
+  {
+    id: 'phys-petar-hr', personKey: 'petar', metric: 'heart-rate',
+    contextNote: 'Petar · the 103m no-fins descent. Heart slows on the way down as pressure builds, spikes at the turn, races on the ascent.',
+    unit: 'bpm', dataPointsCsv: '84,78,70,62,55,49,45,43,42,44,48,55,64,74,86,96,90,80',
+    peakValue: 96, minValue: 42, duration: 195, date: '2025-05-10',
+    source: 'Expected curve · to be measured', provenance: 'modelled',
+    recordId: 'rec-petar-cnf', depthM: 103, usedInScore: true,
+  },
+  {
+    id: 'phys-petar-spo2', personKey: 'petar', metric: 'blood-oxygen',
+    contextNote: "Petar · saturation on the 103m. It holds high at depth — pressure keeps the oxygen useful — then collapses on the way up. The last ten metres are the dangerous ones, in full view of everyone at the surface.",
+    unit: '% SpO₂', dataPointsCsv: '99,99,98,98,97,97,96,95,95,94,93,91,89,86,82,77,71,64,59,62,78,94',
+    peakValue: 99, minValue: 59, duration: 195, date: '2025-05-10',
+    source: 'Expected curve · to be measured', provenance: 'modelled',
+    recordId: 'rec-petar-cnf', depthM: 103, usedInScore: true,
+    notes: 'This shape is the argument for the whole watchers device: the crisis happens where the camera can see it.',
+  },
+  {
+    id: 'phys-petar-bp', personKey: 'petar', metric: 'blood-pressure',
+    contextNote: 'Petar · systolic pressure. The body clamps the limbs shut to keep the core and brain fed — the pressure climbs because the blood has nowhere else to go.',
+    unit: 'mmHg systolic', dataPointsCsv: '120,124,130,138,145,152,158,164,170,175,178,180,181,180,176,170,162,152,140,128,122',
+    peakValue: 181, minValue: 120, duration: 195, date: '2025-05-10',
+    source: 'Literature · elite apneist vasoconstriction response', provenance: 'literature',
+    depthM: 103,
+    notes: 'Published range for elite apneists, not Petar. Shown to plan the measurement, not to state his numbers.',
+  },
+
+  /* ---- SANDA · FIM 98m, 3:58 (real record: rec-sanda-fim-98) ---- */
+  {
+    id: 'phys-sanda-hr', personKey: 'sanda', metric: 'heart-rate',
+    contextNote: 'Sanda · the 98m free immersion, 3:58. Hand over hand down the rope and back. Her heart finds its floor at the bottom — the quietest her body ever gets, in the one place that belongs only to her.',
+    unit: 'bpm', dataPointsCsv: '70,64,56,48,43,39,36,34,32,30,29,28,30,33,36,40,44,48,54,62,78,104,96,82',
+    peakValue: 104, minValue: 28, duration: 238, date: '2023-05-15',
+    source: 'Expected curve · to be measured', provenance: 'modelled',
+    recordId: 'rec-sanda-fim-98', depthM: 98, usedInScore: true,
+    notes: 'The floor of this curve is the film: below coaches, below cameras, below records.',
+  },
+  {
+    id: 'phys-sanda-spo2', personKey: 'sanda', metric: 'blood-oxygen',
+    contextNote: 'Sanda · saturation across the 98m. High while she is deep, falling as she rises — the body is safest where it looks most dangerous.',
+    unit: '% SpO₂', dataPointsCsv: '99,99,98,98,97,97,96,96,95,95,94,93,92,90,88,84,79,73,66,60,58,64,80,95',
+    peakValue: 99, minValue: 58, duration: 238, date: '2023-05-15',
+    source: 'Expected curve · to be measured', provenance: 'modelled',
+    recordId: 'rec-sanda-fim-98', depthM: 98,
+  },
+  {
+    id: 'phys-sanda-lung', personKey: 'sanda', metric: 'lung-volume',
+    contextNote: 'Sanda · lung volume down the rope. At 98m her lungs are squeezed to roughly a tenth of what they were at the surface — smaller than a body is supposed to allow. Blood moves into the chest to fill what air cannot.',
+    unit: 'L', dataPointsCsv: '5.2,4.1,3.2,2.6,2.1,1.7,1.4,1.2,1.0,0.85,0.72,0.62,0.55,0.5,0.48,0.55,0.65,0.8,1.0,1.3,1.8,2.6,3.8,5.2',
+    peakValue: 5.2, minValue: 0.48, duration: 238, date: '2023-05-15',
+    source: 'Boyle\'s law from a 5.2L surface volume · volume assumed', provenance: 'modelled',
+    recordId: 'rec-sanda-fim-98', depthM: 98,
+    notes: 'The compression is physics and exact; the 5.2L starting volume is an assumption. Spirometry at the lab fixes that in ten minutes.',
+  },
+  {
+    id: 'phys-sanda-contractions', personKey: 'sanda', metric: 'contractions',
+    contextNote: 'Sanda · involuntary diaphragm contractions. Not pain, not panic — the body knocking on the door, and the mind deciding not to answer. This is what discipline looks like from inside.',
+    unit: 'per 10s', dataPointsCsv: '0,0,0,0,0,0,0,0,1,1,2,2,3,3,4,4,5,6,6,7,8,9,4,0',
+    peakValue: 9, minValue: 0, duration: 238, date: '2023-05-15',
+    source: 'Expected onset at CO₂ threshold · to be measured', provenance: 'modelled',
+    recordId: 'rec-sanda-fim-98', depthM: 98, usedInScore: true,
+    notes: 'A rhythm section that starts two thirds of the way in and accelerates to the surface. Percussion the diver cannot choose.',
+  },
+
+  /* ---- ZSÓFIA · FIM 105m (real record: rec-zsofia-fim) ---- */
+  {
+    id: 'phys-zsofia-hr', personKey: 'zsofia', metric: 'heart-rate',
+    contextNote: "Zsófia · the 105m. Three years ago she was a triathlete. The dive reflex sharpens with years of training, so hers is expected to sit higher than Sanda's — her body is still learning what the others' have known for decades, and she goes deeper than them anyway.",
+    unit: 'bpm', dataPointsCsv: '78,72,66,60,55,51,48,45,43,41,40,39,40,42,45,48,52,57,63,72,88,112,102,88',
+    peakValue: 112, minValue: 39, duration: 250, date: '2026-04-20',
+    source: 'Expected curve · to be measured', provenance: 'modelled',
+    recordId: 'rec-zsofia-fim', depthM: 105, usedInScore: true,
+    notes: 'Put this against Sanda in Compare: the newcomer works harder for a deeper number. If the real data shows that, it is a scene. If it does not, we have learned something better.',
+  },
+  {
+    id: 'phys-zsofia-spleen', personKey: 'zsofia', metric: 'spleen',
+    contextNote: 'Zsófia · spleen volume. It contracts under apnea and pushes stored red cells into the blood — the body opening a reserve tank it never mentions.',
+    unit: 'ml', dataPointsCsv: '220,215,205,192,180,170,162,156,152,150,149,148,148,150,155,162,172,185,198,210',
+    peakValue: 220, minValue: 148, duration: 250, date: '2026-04-20',
+    source: 'Literature · spleen contraction in trained apneists', provenance: 'literature',
+    depthM: 105,
+    notes: 'Published effect, not her measurement. Needs ultrasound — which is exactly what the Rijeka lab has.',
   },
 ];
 

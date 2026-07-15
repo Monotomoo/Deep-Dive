@@ -497,7 +497,20 @@ export type PhysiologyMetric =
   | 'brain-activity'
   | 'blood-shift'
   | 'thermal'
+  /* v0.19 — the rest of what the body does down there */
+  | 'lung-volume'
+  | 'spleen'
+  | 'lactate'
+  | 'contractions'
   | 'other';
+
+/* Where a series actually came from. This matters: these are real, named
+   people, and a modelled curve presented as a measurement is a lie about their
+   bodies. Nothing here is measured until someone measures it.
+     measured   — recorded off this person, on this date, by this source
+     modelled   — an expected curve built from known physiology; to be measured
+     literature — a published finding about elite apneists, not this individual */
+export type PhysiologyProvenance = 'measured' | 'modelled' | 'literature';
 
 export interface PhysiologyDatum {
   id: string;
@@ -511,6 +524,13 @@ export interface PhysiologyDatum {
   duration?: number;
   date?: string;
   source: string;
+  /* Undefined is treated as 'modelled' in the UI — never claim a measurement
+     that nobody can point at. */
+  provenance?: PhysiologyProvenance;
+  /* The dive this series belongs to, when it's a depth dive — lets the curve
+     be read against a real record. */
+  depthM?: number;
+  recordId?: string;
   usedInScore?: boolean;
   notes?: string;
 }
