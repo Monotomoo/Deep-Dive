@@ -1,10 +1,22 @@
 import type { AppState } from '../types';
 import { makeInitialState } from './seed';
 
-/* v7 bump (2026-07-13): beta prep — seeded watcher moments + physiology so
-   those pillars aren't blank. Empty stored arrays [] would mask the new seed. */
-const STORAGE_KEY = 'deep-dive-dashboard-v10';
+/* v11 bump (2026-07-15): shoots gained lat/lng for the Overview map, and Note
+   gained authorLabel for crew comments. Bumping re-seeds coordinates rather
+   than leaving stored shoots unplottable. */
+const STORAGE_KEY = 'deep-dive-dashboard-v11';
 const SPLASH_KEY = 'deep-dive-splash-seen';
+const SNAPSHOT_KEY = 'deep-dive-snapshots-v1';
+
+/** A restore point. Kept small in number — this is a scratch safety net, not an archive. */
+export interface LocalSnapshot {
+  id: string;
+  name: string;
+  createdAt: string;
+  doc: AppState;
+}
+
+const MAX_LOCAL_SNAPSHOTS = 12;
 
 export function loadState(): AppState | null {
   try {
@@ -19,9 +31,17 @@ export function loadState(): AppState | null {
 
 function migrateState(loaded: Partial<AppState>): AppState {
   const defaults = makeInitialState();
+  /* Coordinates arrived in v11. A cloud doc written before that has shoots with
+     no lat/lng and would silently vanish from the map, so backfill from the
+     seed by shoot key while leaving every user-edited field alone. */
+  const seedCoords = new Map(defaults.shoots.map((s) => [s.key, { lat: s.lat, lng: s.lng }]));
+  const shoots = (loaded.shoots ?? defaults.shoots).map((s) =>
+    s.lat === undefined && s.lng === undefined ? { ...s, ...(seedCoords.get(s.key) ?? {}) } : s,
+  );
   return {
     ...defaults,
     ...loaded,
+    shoots,
     /* Hard guarantees on every array/object so views never crash on
        undefined access. Uses loaded-if-present-else-default merge. */
     scenarios: loaded.scenarios ?? defaults.scenarios,
@@ -30,7 +50,6 @@ function migrateState(loaded: Partial<AppState>): AppState {
     threads: loaded.threads ?? defaults.threads,
     threadQuestions: loaded.threadQuestions ?? defaults.threadQuestions,
     spineIdeas: loaded.spineIdeas ?? defaults.spineIdeas,
-    shoots: loaded.shoots ?? defaults.shoots,
     shootDays: loaded.shootDays ?? defaults.shootDays,
     coverageCams: loaded.coverageCams ?? defaults.coverageCams,
     interviews: loaded.interviews ?? defaults.interviews,
@@ -101,6 +120,59 @@ export function clearState(): void {
   } catch {
     /* noop */
   }
+}
+
+/* ---------- Local snapshots ----------------------------------------------
+   Fast, free, per-browser restore points. These protect against "I broke
+   something in the last hour." They do NOT protect against a dead laptop or a
+   crew member overwriting the shared cloud doc — cloud snapshots cover that. */
+
+export function listLocalSnapshots(): LocalSnapshot[] {
+  try {
+    const raw = localStorage.getItem(SNAPSHOT_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw) as LocalSnapshot[];
+    if (!Array.isArray(parsed)) return [];
+    return parsed.sort((a, b) => b.createdAt.localeCompare(a.createdAt));
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalSnapshots(list: LocalSnapshot[]): boolean {
+  try {
+    localStorage.setItem(SNAPSHOT_KEY, JSON.stringify(list.slice(0, MAX_LOCAL_SNAPSHOTS)));
+    return true;
+  } catch {
+    /* Almost always a quota error — the caller surfaces it rather than
+       pretending the snapshot was taken. */
+    return false;
+  }
+}
+
+export function saveLocalSnapshot(name: string, state: AppState): LocalSnapshot | null {
+  const snap: LocalSnapshot = {
+    id: `snap-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 7)}`,
+    name: name.trim() || new Date().toLocaleString(),
+    createdAt: new Date().toISOString(),
+    doc: { ...state, paletteOpen: false, captureOpen: false, printMode: false },
+  };
+  const next = [snap, ...listLocalSnapshots()];
+  return writeLocalSnapshots(next) ? snap : null;
+}
+
+export function restoreLocalSnapshot(id: string): AppState | null {
+  const found = listLocalSnapshots().find((s) => s.id === id);
+  if (!found) return null;
+  try {
+    return migrateState(found.doc as Partial<AppState>);
+  } catch {
+    return null;
+  }
+}
+
+export function deleteLocalSnapshot(id: string): void {
+  writeLocalSnapshots(listLocalSnapshots().filter((s) => s.id !== id));
 }
 
 export function hasSeenSplash(): boolean {

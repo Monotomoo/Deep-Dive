@@ -3,6 +3,7 @@ import { Plus, Trash2, Edit3, Check, X, Share2 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import { useT } from '../../i18n';
 import { ConnectionDrawer } from '../ConnectionDrawer';
+import { CommentBadge, CommentThread } from '../comments/CommentThread';
 import { VIEW_FOR_ENTITY, type EntityRef } from '../../lib/connections';
 import type { Shoot, ShootDay } from '../../types';
 
@@ -50,8 +51,9 @@ function ShootCard({ shoot, isOpen, onToggle, onConnections }: { shoot: Shoot; i
         <div className="flex items-baseline justify-between gap-3">
           <div>
             <div className="flex items-baseline gap-2">
-              <span className={`label-caps text-[9px] ${statusColor(shoot.status)}`}>{shoot.status}</span>
-              {shoot.wonderfulness && <span className="label-caps text-[9px] text-[color:var(--color-brass-deep)]">★ captured</span>}
+              <span className={`label-caps ${statusColor(shoot.status)}`}>{shoot.status}</span>
+              {shoot.wonderfulness && <span className="label-caps text-[color:var(--color-brass-deep)]">★ captured</span>}
+              <CommentBadge targetType="shoot" targetId={shoot.id} />
             </div>
             <div className="display-italic text-[24px] text-[color:var(--color-on-paper)] leading-tight mt-1">{shoot.title}</div>
             <div className="prose-body italic text-[12px] text-[color:var(--color-on-paper-muted)]">{shoot.location}</div>
@@ -98,6 +100,10 @@ function ShootCard({ shoot, isOpen, onToggle, onConnections }: { shoot: Shoot; i
           <DaysEditor shootId={shoot.id} days={days} />
 
           <EditableField label={t('shoots.bible')} value={shoot.bible} onSave={(v) => patch({ bible: v })} multiline longform />
+
+          <div className="pt-3 border-t-[0.5px] border-[color:var(--color-border-paper)]">
+            <CommentThread targetType="shoot" targetId={shoot.id} label={shoot.title.split('·')[0].trim()} />
+          </div>
         </div>
       )}
     </li>

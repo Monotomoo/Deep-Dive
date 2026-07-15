@@ -251,6 +251,10 @@ export interface Shoot {
   bible: string;
   wonderfulness?: string;
   colorHint?: string;             // signature color · hex · used in calendar chip borders
+  /* Real coordinates — plotted on the Overview map. Shoots outside the
+     Mediterranean frame (the USA leg) are shown as an off-map marker. */
+  lat?: number;
+  lng?: number;
   notes?: string;
 }
 
@@ -1142,11 +1146,23 @@ export type NoteTargetType =
   | 'swing'
   | 'device'
   | 'risk'
+  /* v0.18 — comments reach the rest of the graph */
+  | 'topic'
+  | 'event'
+  | 'holder'
+  | 'hub-idea'
+  | 'record'
+  | 'spine-idea'
+  | 'pitch-card'
+  | 'shoot-day'
   | 'global';
 
 export interface Note {
   id: string;
   authorId?: string;
+  /* Who wrote it, as displayed. Signed-in crew email when the cloud is on;
+     falls back to a local label when it's off. authorId stays for crew links. */
+  authorLabel?: string;
   targetType: NoteTargetType;
   targetId: string;
   body: string;
@@ -1176,6 +1192,7 @@ export interface Asset {
 export type ViewKey =
   /* Plan */
   | 'overview'
+  | 'gap-radar'
   | 'vision'
   | 'idea-hub'
   | 'neuron'

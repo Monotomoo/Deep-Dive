@@ -45,6 +45,26 @@ create policy "crew updates" on public.deep_dive_shared
 
 -- Live-refresh: broadcast row changes to every connected client.
 alter publication supabase_realtime add table public.deep_dive_shared;
+
+-- Restore points. The shared project is last-write-wins, so this table is the
+-- only thing standing between one bad overwrite and a lost workbook.
+create table if not exists public.deep_dive_snapshots (
+  id         uuid        primary key default gen_random_uuid(),
+  project    text        not null default 'main',
+  name       text        not null,
+  doc        jsonb       not null,
+  created_at timestamptz not null default now(),
+  created_by text
+);
+
+alter table public.deep_dive_snapshots enable row level security;
+
+create policy "crew reads snapshots"   on public.deep_dive_snapshots
+  for select to authenticated using (true);
+create policy "crew makes snapshots"   on public.deep_dive_snapshots
+  for insert to authenticated with check (true);
+create policy "crew deletes snapshots" on public.deep_dive_snapshots
+  for delete to authenticated using (true);
 ```
 
 `to authenticated` means only signed-in users get in at all; RLS + invite-only

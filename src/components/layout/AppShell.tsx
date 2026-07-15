@@ -7,6 +7,7 @@ import type { ScenarioKey, ViewKey } from '../../types';
 
 const VIEW_NAMES: Record<ViewKey, string> = {
   overview:      'Overview',
+  'gap-radar':   'Gap Radar',
   vision:        'Vision',
   'idea-hub':    'Idea Hub',
   neuron:        'Neuron',
@@ -42,7 +43,8 @@ const VIEW_NAMES: Record<ViewKey, string> = {
 };
 
 const VIEW_SUBTITLES: Partial<Record<ViewKey, string>> = {
-  overview:      "one person holds another in the world · the film at a glance",
+  overview:      "one person holds another in the world · what needs you now",
+  'gap-radar':   'the negative space · what the film is missing, ranked',
   vision:        'the film in one breath · grammar · north star',
   'idea-hub':    "the team's open inbox · every idea wired to the film",
   neuron:         'the film as a nervous system · every entity linked',

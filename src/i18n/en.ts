@@ -7,6 +7,7 @@
 export const en = {
   /* ---------- Sidebar nav ---------- */
   'nav.overview':     'Overview',
+  'nav.gap-radar':    'Gap Radar',
   'nav.vision':       'Vision',
   'nav.schedule':     'Schedule',
   'nav.crew':         'Crew',

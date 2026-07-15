@@ -146,6 +146,11 @@ body {
   Paper texture — like light through water.
   Multiply blend, low opacity, deep-blue tinted noise. Reads like the
   film's tone: alive but with something sacred underneath.
+
+  Static by design. This is a fixed, full-viewport, multiply-blended layer —
+  animating it meant compositing the entire screen forever, on every view, for
+  a shimmer that never resolves. The texture is the point; the motion was cost.
+  Add .grain-alive to opt a specific surface back into moving grain.
 */
 body::after {
   content: '';
@@ -157,7 +162,15 @@ body::after {
   background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='280' height='280'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch' seed='5'/><feColorMatrix values='0 0 0 0 0.04  0 0 0 0 0.17  0 0 0 0 0.31  0 0 0 0.55 0'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
   background-size: 280px 280px;
   mix-blend-mode: multiply;
+}
+
+/* Opt-in moving grain — for a moment, not a permanent state. */
+.grain-alive::after {
   animation: grain-shift 1.4s steps(8) infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain-alive::after { animation: none; }
 }
 
 @keyframes grain-shift {

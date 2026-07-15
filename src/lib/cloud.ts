@@ -29,6 +29,7 @@ export const cloud: SupabaseClient | null = cloudEnabled
   : null;
 
 const TABLE = 'deep_dive_shared';
+const SNAP_TABLE = 'deep_dive_snapshots';
 const PROJECT = 'main'; // the single shared project every crew member edits
 
 /* A stable per-tab id so we can tell our own Realtime echoes apart from
@@ -90,6 +91,67 @@ export async function saveSharedDoc(state: AppState): Promise<{ error?: string }
   );
   if (error) console.warn('[cloud] save failed:', error.message);
   return { error: error?.message };
+}
+
+/* ---------- Cloud snapshots ----------------------------------------------
+   Crew-wide restore points. Unlike local snapshots these survive a dead laptop
+   and — the real reason they exist — they're the only defence against someone
+   overwriting the shared doc, since the shared doc is last-write-wins. */
+
+export interface CloudSnapshot {
+  id: string;
+  name: string;
+  createdAt: string;
+  createdBy?: string;
+}
+
+export async function listCloudSnapshots(): Promise<CloudSnapshot[]> {
+  if (!cloud) return [];
+  const { data, error } = await cloud
+    .from(SNAP_TABLE)
+    .select('id, name, created_at, created_by')
+    .eq('project', PROJECT)
+    .order('created_at', { ascending: false })
+    .limit(50);
+  if (error) { console.warn('[cloud] snapshot list failed:', error.message); return []; }
+  return (data ?? []).map((r) => ({
+    id: r.id as string,
+    name: r.name as string,
+    createdAt: r.created_at as string,
+    createdBy: (r.created_by as string | null) ?? undefined,
+  }));
+}
+
+export async function saveCloudSnapshot(
+  name: string,
+  state: AppState,
+  createdBy?: string,
+): Promise<{ error?: string }> {
+  if (!cloud) return { error: 'Cloud is not configured.' };
+  const { error } = await cloud.from(SNAP_TABLE).insert({
+    project: PROJECT,
+    name,
+    doc: stripEphemeral(state),
+    created_by: createdBy ?? null,
+  });
+  if (error) console.warn('[cloud] snapshot save failed:', error.message);
+  return { error: error?.message };
+}
+
+export async function restoreCloudSnapshot(id: string): Promise<AppState | null> {
+  if (!cloud) return null;
+  const { data, error } = await cloud.from(SNAP_TABLE).select('doc').eq('id', id).maybeSingle();
+  if (error || !data?.doc) {
+    if (error) console.warn('[cloud] snapshot restore failed:', error.message);
+    return null;
+  }
+  try { return migrateLoaded(data.doc as Partial<AppState>); } catch { return null; }
+}
+
+export async function deleteCloudSnapshot(id: string): Promise<void> {
+  if (!cloud) return;
+  const { error } = await cloud.from(SNAP_TABLE).delete().eq('id', id);
+  if (error) console.warn('[cloud] snapshot delete failed:', error.message);
 }
 
 /* Live-refresh: fire `onRemoteChange` with the fresh doc whenever ANOTHER

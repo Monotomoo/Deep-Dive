@@ -22,9 +22,11 @@ import {
   Orbit,
   Presentation,
   Quote,
+  Radar,
   Route,
   Redo2,
   RotateCcw,
+  Save,
   ScrollText,
   Sparkles,
   Trophy,
@@ -32,7 +34,8 @@ import {
   Undo2,
   Users,
 } from 'lucide-react';
-import type { ComponentType } from 'react';
+import { useState, type ComponentType } from 'react';
+import { BackupPanel } from '../backup/BackupPanel';
 import { useApp } from '../../state/AppContext';
 import type { ViewKey } from '../../types';
 import { useT } from '../../i18n';
@@ -54,6 +57,7 @@ const GROUPS: NavGroup[] = [
     labelKey: 'nav.group.plan',
     items: [
       { key: 'overview', labelKey: 'nav.overview', icon: LayoutDashboard },
+      { key: 'gap-radar', labelKey: 'nav.gap-radar', icon: Radar },
       { key: 'vision',   labelKey: 'nav.vision',   icon: Quote },
       { key: 'idea-hub', labelKey: 'nav.idea-hub', icon: Lightbulb },
       { key: 'neuron',   labelKey: 'nav.neuron',   icon: Network },
@@ -113,6 +117,7 @@ interface SidebarProps {
 export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}) {
   const { state, dispatch, undo, redo, canUndo, canRedo, cloudEnabled, session, cloudStatus, signOut, publishLocal } = useApp();
   const t = useT();
+  const [backupOpen, setBackupOpen] = useState(false);
 
   function setView(view: ViewKey) {
     dispatch({ type: 'SET_VIEW', view });
@@ -246,16 +251,26 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
           <span className="italic">reset to seed</span>
         </button>
 
+        <button
+          type="button"
+          onClick={() => setBackupOpen(true)}
+          className="flex items-center gap-1.5 text-[11px] text-[color:var(--color-on-chrome-faint)] hover:text-[color:var(--color-brass)] transition-colors"
+        >
+          <Save size={11} />
+          <span className="italic">backup &amp; restore</span>
+        </button>
+        <BackupPanel open={backupOpen} onClose={() => setBackupOpen(false)} />
+
         {cloudEnabled && session && (
           <div className="pt-1 border-t-[0.5px] border-[color:var(--color-border-chrome)]/60">
-            <div className="flex items-center gap-2 text-[10px] text-[color:var(--color-on-chrome-faint)]">
+            <div className="flex items-center gap-2 text-[11px] text-[color:var(--color-on-chrome-faint)]">
               <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: cloudStatus === 'synced' ? 'var(--color-success)' : 'var(--color-brass)' }} />
               <span className="italic truncate flex-1">{session.user.email}</span>
               <button type="button" onClick={signOut} title="sign out" className="flex items-center gap-1 hover:text-[color:var(--color-on-chrome)]">
                 <LogOut size={10} /> out
               </button>
             </div>
-            <div className="text-[9px] tracking-[0.12em] uppercase text-[color:var(--color-on-chrome-faint)]/70 mt-1">
+            <div className="text-[11px] tracking-[0.12em] uppercase text-[color:var(--color-on-chrome-faint)]/70 mt-1">
               {cloudStatus === 'synced' ? 'shared crew project · synced' : 'shared crew project · syncing…'}
             </div>
             <button
@@ -266,14 +281,14 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
                 }
               }}
               title="overwrite the shared crew project with this browser's data"
-              className="mt-1.5 text-[9px] tracking-[0.1em] uppercase text-[color:var(--color-on-chrome-faint)]/60 hover:text-[color:var(--color-brass)] transition-colors"
+              className="mt-1.5 text-[11px] tracking-[0.1em] uppercase text-[color:var(--color-on-chrome-faint)]/60 hover:text-[color:var(--color-brass)] transition-colors"
             >
               ↑ publish my copy to crew
             </button>
           </div>
         )}
 
-        <div className="font-sans text-[10px] tracking-[0.14em] uppercase text-[color:var(--color-on-chrome-faint)] flex items-center gap-2">
+        <div className="font-sans text-[11px] tracking-[0.14em] uppercase text-[color:var(--color-on-chrome-faint)] flex items-center gap-2">
           <span className="border-[0.5px] border-[color:var(--color-border-chrome-strong)] rounded px-1.5 py-[1px]">
             ⌘K
           </span>
