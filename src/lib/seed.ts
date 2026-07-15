@@ -1261,8 +1261,8 @@ export const SEED_USA_TRIP: UsaTrip = {
     { id: 'cost-camp',   label: 'RV parks / campgrounds',        category: 'camp',      amountUsd: 65,  per: 'night' },
     { id: 'cost-food',   label: 'Food (group, per day)',         category: 'food',      amountUsd: 210, per: 'day',    notes: '~$35/person/day × 6.' },
     { id: 'cost-parks',  label: 'America the Beautiful park pass',category: 'park',      amountUsd: 80,  per: 'trip' },
-    { id: 'cost-fly-in', label: 'Flights → San Francisco',       category: 'flights',   amountUsd: 750, per: 'person', notes: 'EU → SFO, September.' },
-    { id: 'cost-fly-out',label: 'Flights Las Vegas → Cyprus',    category: 'flights',   amountUsd: 950, per: 'person', notes: 'LAS → LCA, long-haul + connection.' },
+    /* Flights are deliberately out of this tracker — it costs the road-trip
+       on the ground. Air fare is budgeted elsewhere. */
     { id: 'cost-ins',    label: 'RV insurance + roadside',       category: 'insurance', amountUsd: 40,  per: 'day' },
     { id: 'cost-gear',   label: 'Production + activities buffer', category: 'gear',      amountUsd: 1500, per: 'trip',  notes: 'Permits, park filming, gear, contingencies.' },
   ],
