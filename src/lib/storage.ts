@@ -1,15 +1,16 @@
 import type { AppState } from '../types';
 import { makeInitialState } from './seed';
 
-/* v14 bump (2026-07-15): physiology gained Sanda and Zsófia, six new signals,
-   and an honest `provenance` flag — a stored v13 doc has only the old three
-   series and would show none of it.
+/* v15 bump (2026-07-15): HAVC funding fixed at €30k in every scenario — a
+   stored v14 doc keeps the old 40/60/80 and would misreport the funding gap.
+   v14: physiology gained Sanda and Zsófia, six new signals, and an honest
+   `provenance` flag — a stored v13 doc has only the old three series.
    v13: flights out of the USA cost tracker — it prices the road-trip on the
    ground, and air fare is budgeted elsewhere.
    v12: family removed from the plan — Petar's father and Zsófia's sister as
    holders, plus the biographical beats about Sanda's father and Vito's mother.
    v11: shoots gained lat/lng for the Overview map; Note gained authorLabel. */
-const STORAGE_KEY = 'deep-dive-dashboard-v14';
+const STORAGE_KEY = 'deep-dive-dashboard-v15';
 const SPLASH_KEY = 'deep-dive-splash-seen';
 const SNAPSHOT_KEY = 'deep-dive-snapshots-v1';
 

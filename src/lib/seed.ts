@@ -87,9 +87,12 @@ const emptyCashflow: CashflowQuarter[] = [
 ];
 
 export const SCENARIOS: Record<ScenarioKey, ScenarioData> = {
-  lean:       { episodes: 3, funding: { havc: 40, hrt: 30, eu: 60, sponsors: 40, sports: 20, rebate: 20 }, costs: { dev: 20, prod: 90, post: 60, sound: 30, legal: 15, travel: 40, safety: 15, mkt: 20, gna: 10 }, cashflow: emptyCashflow, qualifyingSpendPct: 55, blendedRebateRate: 25 },
-  realistic:  { episodes: 3, funding: { havc: 60, hrt: 50, eu: 100, sponsors: 80, sports: 40, rebate: 40 }, costs: { dev: 30, prod: 140, post: 90, sound: 50, legal: 25, travel: 60, safety: 25, mkt: 40, gna: 20 }, cashflow: emptyCashflow, qualifyingSpendPct: 60, blendedRebateRate: 25 },
-  ambitious:  { episodes: 3, funding: { havc: 80, hrt: 70, eu: 140, sponsors: 120, sports: 60, rebate: 60 }, costs: { dev: 40, prod: 200, post: 140, sound: 80, legal: 40, travel: 90, safety: 40, mkt: 80, gna: 30 }, cashflow: emptyCashflow, qualifyingSpendPct: 65, blendedRebateRate: 25 },
+  /* HAVC fixed at €30k across every scenario — a state grant is one committed
+     number, not a figure that scales with ambition. 30 is below even the old
+     lean target (40), so it widens the funding gap in all three plans. */
+  lean:       { episodes: 3, funding: { havc: 30, hrt: 30, eu: 60, sponsors: 40, sports: 20, rebate: 20 }, costs: { dev: 20, prod: 90, post: 60, sound: 30, legal: 15, travel: 40, safety: 15, mkt: 20, gna: 10 }, cashflow: emptyCashflow, qualifyingSpendPct: 55, blendedRebateRate: 25 },
+  realistic:  { episodes: 3, funding: { havc: 30, hrt: 50, eu: 100, sponsors: 80, sports: 40, rebate: 40 }, costs: { dev: 30, prod: 140, post: 90, sound: 50, legal: 25, travel: 60, safety: 25, mkt: 40, gna: 20 }, cashflow: emptyCashflow, qualifyingSpendPct: 60, blendedRebateRate: 25 },
+  ambitious:  { episodes: 3, funding: { havc: 30, hrt: 70, eu: 140, sponsors: 120, sports: 60, rebate: 60 }, costs: { dev: 40, prod: 200, post: 140, sound: 80, legal: 40, travel: 90, safety: 40, mkt: 80, gna: 30 }, cashflow: emptyCashflow, qualifyingSpendPct: 65, blendedRebateRate: 25 },
 };
 
 /* ---------- The Four ---------- */
