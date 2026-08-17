@@ -17,6 +17,7 @@ import {
   cloudEnabled, getSession, loadSharedDoc, onAuthChange, saveSharedDoc, signOutCloud, subscribeShared,
 } from '../lib/cloud';
 import { SignIn } from '../components/auth/SignIn';
+import { UI_MODE_KEY, type UiMode } from '../lib/shortcuts';
 import { type Action } from './reducer';
 import { historyReducer, makeHistory } from './history';
 
@@ -32,6 +33,11 @@ interface ContextShape {
   session: Session | null;
   cloudStatus: 'off' | 'syncing' | 'synced';
   signOut: () => Promise<void>;
+  /* Simple vs Full sidebar. Per-device (own localStorage key), deliberately NOT
+     part of the synced doc — a crew member switching to Full mustn't flip
+     everyone else. Defaults to 'simple': the curated version is the front door. */
+  uiMode: UiMode;
+  setUiMode: (m: UiMode) => void;
   /* Push this browser's local copy up as the shared crew project (overwrites
      the cloud doc). Used to seed the crew project from the machine that holds
      the real data. Resolves once the upload lands. */
@@ -132,6 +138,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setSession(null);
   }, []);
 
+  /* Simple/Full — read once, persist on change. Anything but an explicit
+     'full' is treated as simple, so the curated view is the safe default. */
+  const [uiMode, setUiModeState] = useState<UiMode>(() => {
+    try { return localStorage.getItem(UI_MODE_KEY) === 'full' ? 'full' : 'simple'; } catch { return 'simple'; }
+  });
+  const setUiMode = useCallback((m: UiMode) => {
+    setUiModeState(m);
+    try { localStorage.setItem(UI_MODE_KEY, m); } catch { /* noop */ }
+  }, []);
+
   const publishLocal = useCallback(async () => {
     if (!cloudEnabled || !userId) return;
     setCloudStatus('syncing');
@@ -151,6 +167,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     cloudStatus,
     signOut,
     publishLocal,
+    uiMode,
+    setUiMode,
   };
 
   return (

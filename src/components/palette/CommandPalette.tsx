@@ -23,7 +23,7 @@ interface Entry {
 
 const NAV: { view: ViewKey; label: string }[] = [
   { view: 'overview', label: 'Overview' }, { view: 'gap-radar', label: 'Gap Radar' },
-  { view: 'vision', label: 'Vision' },
+  { view: 'scenario', label: 'The Money · Scenarios' }, { view: 'vision', label: 'Vision' },
   { view: 'idea-hub', label: 'Idea Hub' }, { view: 'neuron', label: 'Neuron' },
   { view: 'schedule', label: 'Schedule' }, { view: 'crew', label: 'Crew' },
   { view: 'cast', label: 'Cast · Story' }, { view: 'surface', label: 'Surface' },

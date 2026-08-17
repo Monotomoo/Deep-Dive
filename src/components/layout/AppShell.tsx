@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Menu, Mic, X } from 'lucide-react';
 import { Sidebar, NAV_VIEW_ORDER } from './Sidebar';
+import { SIMPLE_VIEW_SET } from '../../lib/shortcuts';
 import { PageHeader } from './PageHeader';
 import { useApp } from '../../state/AppContext';
 import type { ScenarioKey, ViewKey } from '../../types';
@@ -33,6 +34,7 @@ const VIEW_NAMES: Record<ViewKey, string> = {
   watchers:      'Watchers',
   'camera-team': 'Camera Team',
   pitch:         'Pitch',
+  scenario:      'The Money',
   'pitch-deck':  'Pitch Deck',
   distribution:  'Distribution',
   contracts:     'Contracts',
@@ -70,6 +72,7 @@ const VIEW_SUBTITLES: Partial<Record<ViewKey, string>> = {
   watchers:      'the faces watching · the emotional centre of every attempt',
   'camera-team': 'cameras · lenses · mics · lights · per-operator kit bag',
   pitch:         'Sundance · Berlinale · IDFA · CPH:DOX targets',
+  scenario:      'three plans · what each raises, costs, and the gap between',
   'pitch-deck':  'cards → a deck for each room · present or export to send',
   distribution:  'sales agents · broadcasters · markets · deals',
   contracts:     'talent releases · consent · veto tracking',
@@ -86,7 +89,8 @@ interface Props {
 }
 
 export function AppShell({ children }: Props) {
-  const { state, dispatch } = useApp();
+  const { state, dispatch, uiMode } = useApp();
+  const tabViews = uiMode === 'simple' ? NAV_VIEW_ORDER.filter((v) => SIMPLE_VIEW_SET.has(v)) : NAV_VIEW_ORDER;
 
   /* Phase 11 — sidebar drawer state for phone (<md). Desktop ignores. */
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -207,7 +211,7 @@ export function AppShell({ children }: Props) {
           className="lg:hidden shrink-0 no-print overflow-x-auto border-b-[0.5px] border-[color:var(--color-border-paper)] [scrollbar-width:none] [-ms-overflow-style:none] [&::-webkit-scrollbar]:hidden"
         >
           <div className="flex items-stretch gap-0.5 px-3 md:px-6 min-w-max">
-            {NAV_VIEW_ORDER.map((v) => {
+            {tabViews.map((v) => {
               const active = state.activeView === v;
               return (
                 <button

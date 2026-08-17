@@ -31,6 +31,7 @@ import { PostProductionView } from './components/views/PostProductionView';
 import { ReferencesView } from './components/views/ReferencesView';
 import { Chapter2023View } from './components/views/Chapter2023View';
 import { SurfaceView } from './components/views/SurfaceView';
+import { ScenarioView } from './components/views/ScenarioView';
 import { ChoirView } from './components/views/ChoirView';
 import type { ViewKey } from './types';
 
@@ -102,6 +103,7 @@ function renderView(view: ViewKey) {
     case 'watchers':      return <WatchersView />;
     case 'camera-team':   return <CameraTeamView />;
     case 'pitch':         return <PitchView />;
+    case 'scenario':      return <ScenarioView />;
     case 'pitch-deck':    return <PitchDeckView />;
     case 'distribution':  return <DistributionView />;
     case 'contracts':     return <ContractsView />;

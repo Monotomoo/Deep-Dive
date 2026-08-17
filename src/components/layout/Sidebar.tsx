@@ -4,7 +4,9 @@ import {
   BookOpen,
   CalendarRange,
   Clapperboard,
+  Coins,
   Compass,
+  Layers2,
   Eye,
   FileText,
   GitBranch,
@@ -36,6 +38,7 @@ import {
 } from 'lucide-react';
 import { useState, type ComponentType } from 'react';
 import { BackupPanel } from '../backup/BackupPanel';
+import { SIMPLE_VIEW_SET } from '../../lib/shortcuts';
 import { useApp } from '../../state/AppContext';
 import type { ViewKey } from '../../types';
 import { useT } from '../../i18n';
@@ -91,6 +94,7 @@ const GROUPS: NavGroup[] = [
     labelKey: 'nav.group.tell',
     items: [
       { key: 'pitch',        labelKey: 'nav.pitch',        icon: FileText },
+      { key: 'scenario',     labelKey: 'nav.scenario',     icon: Coins },
       { key: 'pitch-deck',   labelKey: 'nav.pitch-deck',   icon: Presentation },
       { key: 'journal',      labelKey: 'nav.journal',      icon: ScrollText },
     ],
@@ -115,9 +119,14 @@ interface SidebarProps {
 }
 
 export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}) {
-  const { state, dispatch, undo, redo, canUndo, canRedo, cloudEnabled, session, cloudStatus, signOut, publishLocal } = useApp();
+  const { state, dispatch, undo, redo, canUndo, canRedo, cloudEnabled, session, cloudStatus, signOut, publishLocal, uiMode, setUiMode } = useApp();
   const t = useT();
   const [backupOpen, setBackupOpen] = useState(false);
+
+  /* In simple mode, show only the core pillars; drop groups that empty out. */
+  const groups = uiMode === 'simple'
+    ? GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => SIMPLE_VIEW_SET.has(i.key)) })).filter((g) => g.items.length > 0)
+    : GROUPS;
 
   function setView(view: ViewKey) {
     dispatch({ type: 'SET_VIEW', view });
@@ -158,9 +167,35 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
         </div>
       </div>
 
+      {/* Simple / Full mode toggle */}
+      <div className="px-4 pb-3">
+        <div className="flex items-center gap-1 p-0.5 rounded-[4px] bg-[color:var(--color-chrome-deep)]/60 border-[0.5px] border-[color:var(--color-border-chrome)]">
+          {(['simple', 'full'] as const).map((m) => (
+            <button
+              key={m}
+              type="button"
+              onClick={() => setUiMode(m)}
+              className={`flex-1 flex items-center justify-center gap-1.5 py-1.5 rounded-[3px] text-[11px] tracking-[0.1em] uppercase transition-colors ${
+                uiMode === m
+                  ? 'bg-[color:var(--color-chrome-elevated)] text-[color:var(--color-brass)]'
+                  : 'text-[color:var(--color-on-chrome-faint)] hover:text-[color:var(--color-on-chrome-muted)]'
+              }`}
+            >
+              {m === 'simple' ? <Sparkles size={11} /> : <Layers2 size={11} />}
+              {m}
+            </button>
+          ))}
+        </div>
+        {uiMode === 'simple' && (
+          <div className="text-[11px] text-[color:var(--color-on-chrome-faint)] mt-1.5 px-1 leading-snug italic">
+            the essentials · switch to Full for every module
+          </div>
+        )}
+      </div>
+
       {/* Nav groups */}
       <nav className="flex-1 overflow-y-auto px-4 pb-4">
-        {GROUPS.map((group) => (
+        {groups.map((group) => (
           <div key={group.labelKey} className="mb-7">
             <div className="px-3 mb-2.5 flex items-center gap-2.5">
               <span className="label-caps text-[color:var(--color-brass)]/75">

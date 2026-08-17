@@ -1240,6 +1240,7 @@ export type ViewKey =
   | 'camera-team'
   /* Tell */
   | 'pitch'
+  | 'scenario'
   | 'pitch-deck'
   | 'distribution'
   | 'contracts'
