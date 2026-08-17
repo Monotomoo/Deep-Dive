@@ -38,6 +38,7 @@ import type {
   SalesAgent,
   ScenarioData,
   ScenarioKey,
+  ScenarioPart,
   Shoot,
   ShootDay,
   Sponsor,
@@ -175,6 +176,11 @@ export const SEED_TOPICS: Topic[] = [
   { id: 'top-recognition', title: 'Recognition',         question: 'When the world that doubted you stands to applaud — what happens inside?',           threadIds: ['t9'],  colorHint: '#c9a961' },
   { id: 'top-longdeep',    title: 'Long vs deep',        question: 'Two ways to leave the world — which is yours, and why?',                             threadIds: ['t10'], colorHint: '#4c6b93' },
   { id: 'top-surface',     title: 'The surface',         question: 'What does the surface sound like when you come back to it?',                         threadIds: [],      colorHint: '#c88a5a' },
+  /* v0.21 — themes opened at the Lastovo training camp */
+  { id: 'top-equalize',    title: 'Equalization',        question: 'The one skill that decides how deep a body can go — and how it is learned.',         threadIds: ['t4'],  colorHint: '#5b7da1' },
+  { id: 'top-safety',      title: 'The safety team',     question: 'Who is in the water so the diver can leave it — and what they carry.',               threadIds: ['t1'],  colorHint: '#6f8a72' },
+  { id: 'top-blackout',    title: 'The blackout',        question: 'What it is, why it happens, and what the surface does when it comes.',               threadIds: ['t8'],  colorHint: '#8a3a2e' },
+  { id: 'top-sport',       title: 'Freediving as a sport', question: 'The training, the discipline, the daily craft — the sport laid bare from inside.',   threadIds: ['t7'],  colorHint: '#4c7a8a' },
 ];
 
 /* ---------- Story events (v0.8) — the moments the film orbits ---------- */
@@ -193,6 +199,7 @@ export const SEED_STORY_EVENTS: StoryEvent[] = [
   { id: 'ev-chengdu',    title: '300m · first woman · Chengdu gold',           kind: 'record',        year: 2025, date: '2025-08-10', summary: 'World Games. Three years after Malta, Zsófia becomes the first woman to 300m in a pool.', personKeys: ['zsofia'], topicIds: ['top-outsider', 'top-record'] },
   { id: 'ev-zsofia-105', title: 'Zsófia · FIM 105m',                           kind: 'record',        year: 2026, date: '2026-04-20', summary: 'An absolute free-immersion world record three years after her first freedive. One of the fastest arrivals the sport has ever seen.', personKeys: ['zsofia'], topicIds: ['top-outsider'] },
   { id: 'ev-etna',       title: 'Etna erupts during the shoot',                kind: 'shoot-moment',  year: 2026, date: '2026-07-04', summary: "The mountain lights up during Petar's monofin window. 'Fire breathes in, water breathes out' stops being a storyboard.", personKeys: ['petar', 'vito', 'sanda', 'zsofia'], shootId: 'shoot-sicily', topicIds: ['top-fear'] },
+  { id: 'ev-pero-blackout', title: "Pero's blackout, Sicily",                 kind: 'crisis',        year: 2026, date: '2026-07-03', summary: "A severe blackout on a deep dive — the safety team on him at the surface, and the camera running. The thing everyone in the sport lives beside, seen. The watchers' faces are the scene.", personKeys: ['petar', 'vito', 'sanda', 'zsofia'], shootId: 'shoot-sicily', topicIds: ['top-blackout', 'top-safety', 'top-fear'] },
   { id: 'ev-hall',       title: 'Hall of Fame induction',                      kind: 'ceremony',      year: 2027,                    summary: 'The same world that branded him stands to applaud. The 2023 thread closes in America.', personKeys: ['vito'], shootId: 'shoot-usa', topicIds: ['top-recognition', 'top-2023'] },
 ];
 
@@ -332,7 +339,7 @@ export const SEED_SHOOTS: Shoot[] = [
   {
     id: 'shoot-krk',
     key: 'krk',
-    title: 'Krk · the "before"',
+    title: 'Krk · the Croatian Championship',
     location: 'Krk island',
     country: 'Croatia',
     lat: 45.03,
@@ -340,12 +347,12 @@ export const SEED_SHOOTS: Shoot[] = [
     status: 'completed',
     startDate: '2026-04-01',
     endDate: '2026-04-07',
-    spirit: 'The foundation — the four, the bonds, the home water.',
-    captures: ['who they are · at home', 'the bonds, seen', 'first breath-up templates', 'grey winter Adriatic as the "before"'],
+    spirit: 'The way in — the Croatian national depth championship. A real tournament, and the first time the camera meets the four. First competitive dives, first faces at the surface, first words about the sport.',
+    captures: ['the championship · first competitive dives filmed', 'the first surfacing faces', 'who they are · between rounds', 'the bonds, seen', 'each of the four says what the sport is to them'],
     presentFour: ['petar','vito','sanda','zsofia'],
-    bible: '# Krk — the "before"\n\nSoft opening. First shoot. The four at home, in their home water. Establishes the world before Sicily disrupts it.',
-    colorHint: '#4c7a8a',            // steel-teal · winter Adriatic
-    notes: 'Done · went beautifully.',
+    bible: '# Krk — the Croatian Championship\n\nThe first shoot: a national depth championship on Krk. The film\'s way in — we meet the four, film their first competitive dives, and catch the first expressions and their first thoughts on the sport. Went well.',
+    colorHint: '#4c7a8a',
+    notes: 'Done · went well. The championship gave us competition footage + the first interviews.',
   },
   {
     id: 'shoot-sicily',
@@ -359,9 +366,9 @@ export const SEED_SHOOTS: Shoot[] = [
     startDate: '2026-07-01',
     endDate: '2026-07-06',
     spirit: 'The second shoot · the camera meets all four in a real record attempt. The dive comes first, always.',
-    captures: ['the attempt · Petar\'s face at surface, every dive', "the watchers · Vito, Sanda, Zsófia while he's down", 'the four together · boat, dinner, between-dive laughs', 'more of Sanda and Zsófia in their own right', 'the volcano interview · Etna at golden hour'],
+    captures: ['the attempt · Petar\'s face at surface, every dive', "Pero's severe blackout · the safety team on him, the camera running", "the watchers · Vito, Sanda, Zsófia while he's down", 'the four together · boat, dinner, between-dive laughs', 'the no-dive day · a day of interviews when the sea shut us out', 'the volcano interview · Etna at golden hour'],
     presentFour: ['petar','vito','sanda','zsofia'],
-    bible: '# Sicily · 1-6 July 2026\n\nNot a film about depth — a film about who waits for you at the surface.\n\n## The stakes\nPetar attacks a monofin world record: a new discipline for him, the no-fins purist going for raw depth. Could make history. Could miss. Both outcomes are the film.\n\n## Coverage\n- **C1 — the face** · Petar\'s face at surface, every dive · locked · lav on Petar\n- **C2 — the moment + watchers** · turn to the three faces the instant the card shows\n- **C3 — roam** · wider scene · safety team · a quiet word after\n\n## Rules\n- The dive comes first · we shoot around, never in the way\n- Sicily is light · no heavy sit-downs · 2023 stays gentle\n- Two copies before anyone sleeps',
+    bible: '# Sicily · 1-6 July 2026\n\nNot a film about depth — a film about who waits for you at the surface.\n\n## The stakes\nPetar attacks a monofin world record: a new discipline for him, the no-fins purist going for raw depth. Could make history. Could miss. Both outcomes are the film.\n\n## What happened\nA severe blackout on one of Petar\'s deep dives — the safety team on him at the surface, and the camera running. One day the sea was unworkable, so we turned it into an interview day. And Etna erupted mid-shoot.\n\n## Coverage\n- **C1 — the face** · Petar\'s face at surface, every dive · locked · lav on Petar\n- **C2 — the moment + watchers** · turn to the three faces the instant the card shows\n- **C3 — roam** · wider scene · safety team · a quiet word after',
     wonderfulness: '★ Etna erupted DURING the shoot. The "Fire breathes in, water breathes out" swing became real — captured live. Not the world record, but the film gained something a script couldn\'t buy.',
     colorHint: '#d96c3d',            // Etna coral
     notes: 'Completed spectacularly. No WR but Etna erupted — the film opening writes itself.',
@@ -369,20 +376,20 @@ export const SEED_SHOOTS: Shoot[] = [
   {
     id: 'shoot-lastovo',
     key: 'lastovo',
-    title: 'Lastovo · the deep, and the sport itself',
+    title: 'Lastovo · the training camp',
     location: 'Lastovo island',
     country: 'Croatia',
     lat: 42.76,
     lng: 16.90,
-    status: 'planned',
+    status: 'completed',
     startDate: '2026-08-15',
     endDate: '2026-08-22',
-    spirit: "The deepest conversations · the inner world · 2023 when the time is right. AND the first real cinematic presentation of freediving as a sport.",
-    captures: ['the deep conversations · the inner world', 'the 2023 chapter when it feels right', 'training camps · breathing exercises · daily discipline', 'a real competition', 'if it happens — a record', 'the sport laid bare, from the inside'],
+    spirit: 'The training camp — where the film went deeper. The inner world, the sport laid bare, and the themes that carry the rest of the film opened here: freediving itself, training, equalization, the blackout, the safety team, and 2023.',
+    captures: ['the training camp · breathing, equalization, daily discipline', 'freediving as a sport · laid bare from the inside', 'the deeper conversations · the inner world', 'the blackout theme, opened', 'the safety team, opened', 'the 2023 chapter, opened at last'],
     presentFour: ['petar','vito','sanda','zsofia'],
-    bible: '# Lastovo — the soul, and the discipline\n\nHolds the most honest conversations AND the first real cinematic presentation of freediving as a sport. No film has shown the sport from the inside like this.\n\n## The 2023 conversation\nOnly here. Only when it\'s right. Never pushed. The wound never gets opened for a schedule.\n\n## The sport, laid bare\nDawn on the dock: breath-holds, the training camp, a real competition, maybe a record.',
-    colorHint: '#6f8a72',            // deep olive · Lastovo forests
-    notes: 'The soul-shoot. And the definitive document of the discipline.',
+    bible: '# Lastovo — the training camp\n\nWhere the film got deeper. A training camp on Lastovo that became the film\'s engine room: this is where we opened the themes that thread through everything after — freediving as a sport, training and equalization, the blackout, the safety team, and finally 2023. The first real cinematic presentation of the discipline from the inside.',
+    colorHint: '#6f8a72',
+    notes: 'Done. The soul-shoot — and where most of the film\'s themes were opened.',
   },
   {
     id: 'shoot-cyprus',
@@ -1402,10 +1409,10 @@ export const SEED_INTERVIEWS: Interview[] = [
   { id: 'int-sic-petar',  shootId: 'shoot-sicily', personKey: 'petar', setting: 'shore',   date: '2026-07-05', durationMin: 40, status: 'captured', threadIds: ['t3', 't8'],  topicIds: ['top-record', 'top-fear'], eventIds: ['ev-etna'], standoutQuotes: ["The mountain wouldn't stop breathing. So I did."] },
   { id: 'int-sic-vito',   shootId: 'shoot-sicily', personKey: 'vito',  setting: 'volcano', date: '2026-07-04', durationMin: 35, status: 'captured', threadIds: ['t8', 't10'], topicIds: ['top-fear', 'top-longdeep'], eventIds: ['ev-etna'], notes: 'The volcano interview — swing #7. Golden hour on the cooled lava.' },
 
-  /* Lastovo · August 2026 · planned follow-ups (chained) */
-  { id: 'int-las-petar',  shootId: 'shoot-lastovo', personKey: 'petar', setting: 'boat',  date: '2026-08-17', status: 'planned', threadIds: ['t1', 't2'], topicIds: ['top-bond', 'top-2023'],      followUpOfId: 'int-krk-petar',  notes: 'Follow-up: Krk answers on the bond, now with 2023 open — only if right.' },
-  { id: 'int-las-sanda',  shootId: 'shoot-lastovo', personKey: 'sanda', setting: 'shore', date: '2026-08-18', status: 'planned', threadIds: ['t5', 't2'], topicIds: ['top-friendship', 'top-2023'], followUpOfId: 'int-krk-sanda',  notes: 'Follow-up on the deep + the friendship, now with 2023 open.' },
-  { id: 'int-las-together', shootId: 'shoot-lastovo', personKey: 'together', setting: 'boat', date: '2026-08-20', status: 'planned', threadIds: ['t2'],   topicIds: ['top-2023'], eventIds: ['ev-storm'], notes: 'The four together. The 2023 conversation — never pushed, only if the week says yes.' },
+  /* Lastovo · August 2026 · the training camp · captured (chained follow-ups) */
+  { id: 'int-las-petar',  shootId: 'shoot-lastovo', personKey: 'petar', setting: 'boat',  date: '2026-08-17', status: 'captured', threadIds: ['t1', 't2', 't8'], topicIds: ['top-bond', 'top-2023', 'top-blackout', 'top-equalize'], followUpOfId: 'int-krk-petar',  notes: 'Follow-up: Krk answers on the bond, now with 2023 open. Also opened the blackout and equalization.' },
+  { id: 'int-las-sanda',  shootId: 'shoot-lastovo', personKey: 'sanda', setting: 'shore', date: '2026-08-18', status: 'captured', threadIds: ['t5', 't2', 't4'], topicIds: ['top-friendship', 'top-2023', 'top-safety', 'top-sport'], followUpOfId: 'int-krk-sanda',  notes: 'Follow-up on the deep + the friendship, with 2023 open. The safety team and the sport itself.' },
+  { id: 'int-las-together', shootId: 'shoot-lastovo', personKey: 'together', setting: 'boat', date: '2026-08-20', status: 'captured', threadIds: ['t2', 't7'], topicIds: ['top-2023', 'top-sport', 'top-blackout'], eventIds: ['ev-storm', 'ev-pero-blackout'], notes: 'The four together. The 2023 conversation happened here at last — and the sport, laid bare.' },
 ];
 
 /* ---------- Pitch Deck (v0.14) — the card library + starter decks ----------
@@ -1554,6 +1561,118 @@ export const SEED_PITCH_DECKS: PitchDeck[] = [
   },
 ];
 
+/* ---------- The Scenario · the film's screenplay, part by part (v0.21) ----------
+   Three shot, three to come. Grounded in what actually happened on each shoot;
+   the interviews/topics/threads referenced are the real ones in this seed. */
+
+export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
+  {
+    id: 'sp-krk', order: 1, title: 'Krk · the Croatian Championship', kicker: 'Part one · the way in',
+    location: 'Krk island, Croatia', dateLabel: '1–7 April 2026', status: 'shot', shootId: 'shoot-krk',
+    background: 'The first shoot, and the film\'s way in: the Croatian national depth championship on Krk. A real tournament — which meant real competitive dives and the four in their element from the first frame, before anyone had to perform for a camera.',
+    whatHappened: 'The championship ran well. We filmed the first competitive dives and caught the first faces at the surface. Between rounds, each of the four sat down for the first time and told us, in their own words, what the sport is to them — the raw material for everything the film builds on. This is "the before": who they are, and the bonds between them, before Sicily raises the stakes.',
+    peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
+    topicIds: ['top-bond', 'top-record', 'top-deep', 'top-outsider'],
+    threadIds: ['t1', 't3', 't4', 't6'],
+    interviewIds: ['int-krk-petar', 'int-krk-vito', 'int-krk-sanda', 'int-krk-zsofia'],
+    beats: [
+      { id: 'b-krk-1', text: 'First competitive dives, filmed at a real championship' },
+      { id: 'b-krk-2', text: 'The first surfacing faces — the film\'s recurring image, established' },
+      { id: 'b-krk-3', text: 'Four first-time interviews: what the sport means to each of them' },
+      { id: 'b-krk-4', text: 'The bonds, seen — on the boat, between rounds' },
+    ],
+    colorHint: '#4c7a8a',
+  },
+  {
+    id: 'sp-sicily', order: 2, title: "Sicily · the record attempt", kicker: 'Part two · fire and water',
+    location: 'Catania, next to Etna · Italy', dateLabel: '1–6 July 2026 · 5 days', status: 'shot', shootId: 'shoot-sicily',
+    background: 'Five days in Sicily for Petar\'s monofin world-record attempt — the no-fins purist going for raw depth in a new discipline. The camera meets all four in a real attempt, where the dive comes first and we shoot around it.',
+    whatHappened: 'The vibe was extraordinary. We witnessed the record attempt — and a severe blackout on one of Pero\'s deep dives, the safety team on him at the surface with the camera running: the thing the whole sport lives beside, seen. One day the sea shut us out, so we turned it into an interview day and got a great deal. And then Etna erupted in the middle of it all — "fire breathes in, water breathes out" stopped being a storyboard and became footage no script could buy.',
+    peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
+    topicIds: ['top-record', 'top-fear', 'top-blackout', 'top-safety', 'top-longdeep'],
+    threadIds: ['t3', 't8', 't10'],
+    interviewIds: ['int-sic-petar', 'int-sic-vito'],
+    eventIds: ['ev-etna', 'ev-pero-blackout'],
+    beats: [
+      { id: 'b-sic-1', text: 'The monofin record attempt — Petar\'s face at the surface, every dive' },
+      { id: 'b-sic-2', text: "Pero's severe blackout — the safety team, the watchers' faces, filmed" },
+      { id: 'b-sic-3', text: 'The no-dive day → a day of interviews' },
+      { id: 'b-sic-4', text: 'Etna erupts mid-shoot · the volcano interview at golden hour' },
+    ],
+    quotes: ["The mountain wouldn't stop breathing. So I did."],
+    colorHint: '#d96c3d',
+  },
+  {
+    id: 'sp-lastovo', order: 3, title: 'Lastovo · the training camp', kicker: 'Part three · the engine room',
+    location: 'Lastovo island, Croatia', dateLabel: '15–22 August 2026', status: 'shot', shootId: 'shoot-lastovo',
+    background: 'A training camp on Lastovo — and the film\'s engine room. Where we went deeper into the topics and opened most of the themes that carry the rest of the film. The first real cinematic presentation of freediving as a sport, from the inside.',
+    whatHappened: 'We got deeper. Around the daily discipline of a training camp — breathing, equalization, the craft of it — we opened the themes the rest of the film runs on: freediving as a sport, training and equalization, the blackout, the safety team, and finally 2023. The conversation about the storm happened here at last, never pushed, when the week was ready for it.',
+    peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
+    topicIds: ['top-sport', 'top-equalize', 'top-blackout', 'top-safety', 'top-2023', 'top-body'],
+    threadIds: ['t1', 't2', 't4', 't7', 't8'],
+    interviewIds: ['int-las-petar', 'int-las-sanda', 'int-las-together'],
+    eventIds: ['ev-storm'],
+    beats: [
+      { id: 'b-las-1', text: 'The training camp: breathing, equalization, daily discipline' },
+      { id: 'b-las-2', text: 'Freediving as a sport, laid bare from the inside' },
+      { id: 'b-las-3', text: 'New themes opened: the blackout, the safety team' },
+      { id: 'b-las-4', text: 'The 2023 conversation — opened at last, on the four\'s own terms' },
+    ],
+    colorHint: '#6f8a72',
+  },
+  /* ---- to come · open blocks ---- */
+  {
+    id: 'sp-usa', order: 4, title: 'The USA · Hall of Fame + the road-trip', kicker: 'Part four · recognition',
+    location: 'San Francisco → Las Vegas · USA', dateLabel: 'September 2026', status: 'upcoming', shootId: 'shoot-usa',
+    background: 'The recognition chapter. Vito\'s Hall of Fame induction in the country that once branded the sport, wrapped in an RV road-trip for the four — the world correcting itself, on the move.',
+    whatHappened: '',
+    peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
+    topicIds: ['top-recognition', 'top-2023'],
+    threadIds: ['t9', 't2'],
+    interviewIds: [],
+    eventIds: ['ev-hall'],
+    beats: [
+      { id: 'b-usa-1', text: 'The Hall of Fame induction — the recognition beat', done: false },
+      { id: 'b-usa-2', text: 'The road-trip: the four off the water, together', done: false },
+      { id: 'b-usa-3', text: 'Does the 2023 thread close here?', done: false },
+    ],
+    notes: 'Open block — to plan. See the USA Trip module for the itinerary + costs.',
+    colorHint: '#c9a961',
+  },
+  {
+    id: 'sp-cyprus', order: 5, title: 'Cyprus · the World Championship', kicker: 'Part five · the world stage',
+    location: 'Cyprus', dateLabel: 'October 2026', status: 'upcoming', shootId: 'shoot-cyprus',
+    background: 'The world stage. A world championship where the four dive against the best — the competitive climax the earlier parts have been building toward.',
+    whatHappened: '',
+    peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
+    topicIds: ['top-record', 'top-recognition'],
+    threadIds: ['t3', 't9'],
+    interviewIds: [],
+    beats: [
+      { id: 'b-cyp-1', text: 'The world championship dives', done: false },
+      { id: 'b-cyp-2', text: 'The four against the world — where do they stand?', done: false },
+    ],
+    notes: 'Open block — to plan.',
+    colorHint: '#5b7da1',
+  },
+  {
+    id: 'sp-sicily2', order: 6, title: 'Sicily · the tournament, again', kicker: 'Part six · full circle',
+    location: 'Sicily · Italy', dateLabel: 'TBD', status: 'upcoming',
+    background: 'A return to Sicily for a tournament — closing the circle on the place where the film found its fire. What has changed since the record attempt and the eruption?',
+    whatHappened: '',
+    peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
+    topicIds: ['top-record', 'top-surface'],
+    threadIds: ['t3'],
+    interviewIds: [],
+    beats: [
+      { id: 'b-sic2-1', text: 'Return to Sicily · the tournament', done: false },
+      { id: 'b-sic2-2', text: 'Full circle from the eruption — what has changed?', done: false },
+    ],
+    notes: 'Open block — to plan. A new return trip, not the July shoot.',
+    colorHint: '#b54f26',
+  },
+];
+
 /* ---------- Initial state factory ---------- */
 
 export function makeInitialState(): AppState {
@@ -1605,6 +1724,7 @@ export function makeInitialState(): AppState {
     broadcasters: SEED_BROADCASTERS,
     pitchCards: SEED_PITCH_CARDS,
     pitchDecks: SEED_PITCH_DECKS,
+    scenarioParts: SEED_SCENARIO_PARTS,
     tasks: [],
     notes: [],
     assets: [],

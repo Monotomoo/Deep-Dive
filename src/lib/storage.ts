@@ -1,8 +1,12 @@
 import type { AppState } from '../types';
 import { makeInitialState } from './seed';
 
-/* v15 bump (2026-07-15): HAVC funding fixed at €30k in every scenario — a
-   stored v14 doc keeps the old 40/60/80 and would misreport the funding gap.
+/* v16 bump (2026-07-15): the Scenario (screenplay) module — scenarioParts +
+   4 new Lastovo topics + Krk reframed as the championship + Lastovo marked
+   completed + Pero's blackout event. A stored v15 doc has none of it and would
+   keep Lastovo as an upcoming shoot.
+   v15: HAVC funding fixed at €30k in every scenario — a stored v14 doc keeps
+   the old 40/60/80 and would misreport the funding gap.
    v14: physiology gained Sanda and Zsófia, six new signals, and an honest
    `provenance` flag — a stored v13 doc has only the old three series.
    v13: flights out of the USA cost tracker — it prices the road-trip on the
@@ -10,7 +14,7 @@ import { makeInitialState } from './seed';
    v12: family removed from the plan — Petar's father and Zsófia's sister as
    holders, plus the biographical beats about Sanda's father and Vito's mother.
    v11: shoots gained lat/lng for the Overview map; Note gained authorLabel. */
-const STORAGE_KEY = 'deep-dive-dashboard-v15';
+const STORAGE_KEY = 'deep-dive-dashboard-v16';
 const SPLASH_KEY = 'deep-dive-splash-seen';
 const SNAPSHOT_KEY = 'deep-dive-snapshots-v1';
 
@@ -95,6 +99,7 @@ function migrateState(loaded: Partial<AppState>): AppState {
     broadcasters: loaded.broadcasters ?? defaults.broadcasters,
     pitchCards: loaded.pitchCards ?? defaults.pitchCards,
     pitchDecks: loaded.pitchDecks ?? defaults.pitchDecks,
+    scenarioParts: loaded.scenarioParts ?? defaults.scenarioParts,
     tasks: loaded.tasks ?? defaults.tasks,
     notes: loaded.notes ?? defaults.notes,
     assets: loaded.assets ?? defaults.assets,

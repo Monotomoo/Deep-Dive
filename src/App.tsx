@@ -47,6 +47,7 @@ const ResonanceView = lazy(() => import('./components/views/ResonanceView').then
 const UsaTripView = lazy(() => import('./components/views/UsaTripView').then((m) => ({ default: m.UsaTripView })));
 const PitchDeckView = lazy(() => import('./components/views/PitchDeckView').then((m) => ({ default: m.PitchDeckView })));
 const GapRadarView = lazy(() => import('./components/views/GapRadarView').then((m) => ({ default: m.GapRadarView })));
+const ScreenplayView = lazy(() => import('./components/views/ScreenplayView').then((m) => ({ default: m.ScreenplayView })));
 
 function ViewLoading() {
   return (
@@ -78,6 +79,7 @@ function renderView(view: ViewKey) {
   switch (view) {
     case 'overview':      return <OverviewView />;
     case 'gap-radar':     return <GapRadarView />;
+    case 'screenplay':    return <ScreenplayView />;
     case 'vision':        return <VisionView />;
     case 'idea-hub':      return <IdeaHubView />;
     case 'neuron':        return <NeuronView />;

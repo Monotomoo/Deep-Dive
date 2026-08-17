@@ -37,6 +37,7 @@ import type {
   SalesAgent,
   SchedulePhase,
   ScenarioKey,
+  ScenarioPart,
   Shoot,
   ShootDay,
   Sponsor,
@@ -242,7 +243,11 @@ export type Action =
   | { type: 'DELETE_NOTE'; id: string }
   | { type: 'ADD_ASSET'; asset: Asset }
   | { type: 'UPDATE_ASSET'; id: string; patch: Partial<Asset> }
-  | { type: 'DELETE_ASSET'; id: string };
+  | { type: 'DELETE_ASSET'; id: string }
+  | { type: 'ADD_SCENARIO_PART'; part: ScenarioPart }
+  | { type: 'UPDATE_SCENARIO_PART'; id: string; patch: Partial<ScenarioPart> }
+  | { type: 'DELETE_SCENARIO_PART'; id: string }
+  | { type: 'MOVE_SCENARIO_PART'; id: string; dir: -1 | 1 };
 
 /* Generic list CRUD helpers */
 function upd<T extends { id: string }>(arr: T[], id: string, patch: Partial<T>): T[] {
@@ -520,6 +525,21 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'ADD_ASSET':   return { ...state, assets: [...state.assets, action.asset] };
     case 'UPDATE_ASSET':return { ...state, assets: upd(state.assets, action.id, action.patch) };
     case 'DELETE_ASSET':return { ...state, assets: del(state.assets, action.id) };
+    case 'ADD_SCENARIO_PART':    return { ...state, scenarioParts: [...state.scenarioParts, action.part] };
+    case 'UPDATE_SCENARIO_PART': return { ...state, scenarioParts: upd(state.scenarioParts, action.id, action.patch) };
+    case 'DELETE_SCENARIO_PART': return { ...state, scenarioParts: del(state.scenarioParts, action.id) };
+    case 'MOVE_SCENARIO_PART': {
+      const sorted = [...state.scenarioParts].sort((a, b) => a.order - b.order);
+      const i = sorted.findIndex((p) => p.id === action.id);
+      const j = i + action.dir;
+      if (i < 0 || j < 0 || j >= sorted.length) return state;
+      /* Swap the two parts' order values so the sequence reshuffles. */
+      const oi = sorted[i].order, oj = sorted[j].order;
+      const parts = state.scenarioParts.map((p) =>
+        p.id === sorted[i].id ? { ...p, order: oj } : p.id === sorted[j].id ? { ...p, order: oi } : p,
+      );
+      return { ...state, scenarioParts: parts };
+    }
 
     default:
       return state;

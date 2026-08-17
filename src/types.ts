@@ -1137,6 +1137,44 @@ export interface PitchDeck {
   updatedAt: string;
 }
 
+/* ---------- Scenario · the film's screenplay / treatment (v0.21) ----------
+   The narrative spine: the film part by part, in order. Each part records what
+   actually happened — who appeared, what they talked about, what got filmed —
+   and links the real interviews, threads and topics, so the scenario is the
+   connective tissue between "what we shot" and "what the film is". Done parts
+   are filled from the shoots; future parts are open blocks to plan into. */
+
+export type ScenarioPartStatus = 'shot' | 'upcoming' | 'idea';
+
+export interface ScenarioBeat {
+  id: string;
+  text: string;
+  done?: boolean;           // for upcoming parts — a thing to get
+}
+
+export interface ScenarioPart {
+  id: string;
+  order: number;
+  title: string;            // "Krk · the Croatian Championship"
+  kicker?: string;          // "Part one · the before"
+  location: string;
+  dateLabel: string;        // "1–7 April 2026" · free text
+  status: ScenarioPartStatus;
+  shootId?: string;         // the shoot this part came from / will come from
+  background: string;       // context — what this part is, why it matters
+  whatHappened: string;     // the events, in prose (blank for upcoming)
+  peopleKeys: FourKey[];    // who appeared
+  talentIds?: string[];     // other cast who appeared
+  topicIds: string[];       // what they talked about
+  threadIds: string[];      // threads opened or advanced
+  interviewIds: string[];   // interviews taken here
+  eventIds?: string[];      // story events this part touches
+  beats: ScenarioBeat[];    // scene beats / bullets (or a shot-list for upcoming)
+  quotes?: string[];        // standout lines
+  colorHint?: string;
+  notes?: string;           // editor's notes
+}
+
 /* ---------- Cross-cutting primitives ---------- */
 
 export type TaskStatus = 'todo' | 'in-progress' | 'blocked' | 'done';
@@ -1213,6 +1251,7 @@ export type ViewKey =
   /* Plan */
   | 'overview'
   | 'gap-radar'
+  | 'screenplay'
   | 'vision'
   | 'idea-hub'
   | 'neuron'
@@ -1307,6 +1346,8 @@ export interface AppState {
   /* v0.14 — Pitch Deck: modular cards → audience-tailored decks */
   pitchCards: PitchCard[];
   pitchDecks: PitchDeck[];
+  /* v0.21 — the film's screenplay, part by part */
+  scenarioParts: ScenarioPart[];
   /* Cross-cutting primitives */
   tasks: Task[];
   notes: Note[];

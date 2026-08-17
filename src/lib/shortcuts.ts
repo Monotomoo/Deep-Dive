@@ -20,6 +20,7 @@ export const VIEW_ORDER: ViewKey[] = [
 export const SIMPLE_VIEWS: readonly ViewKey[] = [
   'overview',
   'gap-radar',
+  'screenplay',
   'four',
   'cast',
   'shoots',

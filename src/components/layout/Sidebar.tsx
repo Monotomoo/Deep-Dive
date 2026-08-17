@@ -9,6 +9,7 @@ import {
   Layers2,
   Eye,
   FileText,
+  Film,
   GitBranch,
   HeartPulse,
   Layers,
@@ -61,6 +62,7 @@ const GROUPS: NavGroup[] = [
     items: [
       { key: 'overview', labelKey: 'nav.overview', icon: LayoutDashboard },
       { key: 'gap-radar', labelKey: 'nav.gap-radar', icon: Radar },
+      { key: 'screenplay', labelKey: 'nav.screenplay', icon: Film },
       { key: 'vision',   labelKey: 'nav.vision',   icon: Quote },
       { key: 'idea-hub', labelKey: 'nav.idea-hub', icon: Lightbulb },
       { key: 'neuron',   labelKey: 'nav.neuron',   icon: Network },
