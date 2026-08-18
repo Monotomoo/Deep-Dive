@@ -182,18 +182,19 @@ export function BackupPanel({ open, onClose }: { open: boolean; onClose: () => v
           {/* Snapshots */}
           <section>
             <h3 className="label-caps text-[color:var(--color-on-paper-muted)] mb-2">restore points</h3>
-            <div className="flex gap-2">
-              <input
-                value={name}
-                onChange={(e) => setName(e.target.value)}
-                placeholder="name this moment…"
-                className="flex-1 bg-[color:var(--color-paper-card)] rounded-[3px] border-[0.5px] border-[color:var(--color-border-paper)] px-2.5 py-1.5 prose-body text-[13px] outline-none focus:border-[color:var(--color-border-brass)]"
-              />
-              <button type="button" onClick={takeLocal} title="snapshot in this browser" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[3px] border-[0.5px] border-[color:var(--color-border-paper-strong)] text-[11px] uppercase tracking-[0.08em] text-[color:var(--color-on-paper-muted)] hover:text-[color:var(--color-on-paper)]">
+            {/* Input on its own line, buttons below — never clips on narrow/phone widths. */}
+            <input
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              placeholder="name this moment…"
+              className="w-full bg-[color:var(--color-paper-card)] rounded-[3px] border-[0.5px] border-[color:var(--color-border-paper)] px-2.5 py-1.5 prose-body text-[13px] outline-none focus:border-[color:var(--color-border-brass)]"
+            />
+            <div className="flex flex-wrap gap-2 mt-2">
+              <button type="button" onClick={takeLocal} title="snapshot in this browser" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] border-[0.5px] border-[color:var(--color-border-paper-strong)] text-[11px] uppercase tracking-[0.08em] text-[color:var(--color-on-paper-muted)] hover:text-[color:var(--color-on-paper)]">
                 <HardDrive size={12} /> local
               </button>
               {signedIn && (
-                <button type="button" onClick={takeCloud} title="snapshot for the whole crew" className="inline-flex items-center gap-1.5 px-2.5 py-1.5 rounded-[3px] bg-[color:var(--color-brass)] text-[color:var(--color-paper-light)] text-[11px] uppercase tracking-[0.08em] hover:bg-[color:var(--color-brass-deep)]">
+                <button type="button" onClick={takeCloud} title="snapshot for the whole crew" className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] bg-[color:var(--color-brass)] text-[color:var(--color-paper-light)] text-[11px] uppercase tracking-[0.08em] hover:bg-[color:var(--color-brass-deep)]">
                   <Cloud size={12} /> cloud
                 </button>
               )}
