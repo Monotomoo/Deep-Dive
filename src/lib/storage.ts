@@ -186,6 +186,21 @@ export function deleteLocalSnapshot(id: string): void {
   writeLocalSnapshots(listLocalSnapshots().filter((s) => s.id !== id));
 }
 
+/* The cloud row's updated_at as of this browser's last successful sync (push,
+   pull, or realtime). On load we compare the cloud's current updated_at to this:
+   if the cloud hasn't advanced past it, our LOCAL copy is authoritative (it may
+   hold edits the debounced push never sent) and we keep it instead of letting a
+   stale cloud pull overwrite them. */
+const CLOUD_SYNCED_AT_KEY = 'deep-dive-cloud-synced-at';
+
+export function getCloudSyncedAt(): string | null {
+  try { return localStorage.getItem(CLOUD_SYNCED_AT_KEY); } catch { return null; }
+}
+
+export function setCloudSyncedAt(iso: string): void {
+  try { localStorage.setItem(CLOUD_SYNCED_AT_KEY, iso); } catch { /* noop */ }
+}
+
 export function hasSeenSplash(): boolean {
   try {
     return sessionStorage.getItem(SPLASH_KEY) === '1';

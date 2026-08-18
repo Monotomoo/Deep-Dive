@@ -68,29 +68,40 @@ export async function signOutCloud(): Promise<void> {
   if (cloud) await cloud.auth.signOut();
 }
 
+export interface SharedLoad {
+  doc: AppState;
+  /* The row's updated_at — the marker used to tell whether the cloud has moved
+     since this browser last synced, so a quick local edit isn't clobbered. */
+  updatedAt: string | null;
+}
+
 /* Load the one shared project doc (same row for every crew member). */
-export async function loadSharedDoc(): Promise<AppState | null> {
+export async function loadSharedDoc(): Promise<SharedLoad | null> {
   if (!cloud) return null;
   const { data, error } = await cloud
     .from(TABLE)
-    .select('doc')
+    .select('doc, updated_at')
     .eq('project', PROJECT)
     .maybeSingle();
   if (error) { console.warn('[cloud] load failed:', error.message); return null; }
   if (!data?.doc) return null;
-  try { return migrateLoaded(data.doc as Partial<AppState>); } catch { return null; }
+  try {
+    return { doc: migrateLoaded(data.doc as Partial<AppState>), updatedAt: (data.updated_at as string | null) ?? null };
+  } catch { return null; }
 }
 
 /* Upsert the shared project doc. `updated_by` carries our clientId so our own
-   Realtime echo can be ignored by this tab. */
-export async function saveSharedDoc(state: AppState): Promise<{ error?: string }> {
+   Realtime echo can be ignored by this tab. Returns the timestamp written, so
+   the caller can record "the cloud is at this point" and detect later drift. */
+export async function saveSharedDoc(state: AppState): Promise<{ error?: string; updatedAt?: string }> {
   if (!cloud) return {};
+  const updatedAt = new Date().toISOString();
   const { error } = await cloud.from(TABLE).upsert(
-    { project: PROJECT, doc: stripEphemeral(state), updated_at: new Date().toISOString(), updated_by: clientId },
+    { project: PROJECT, doc: stripEphemeral(state), updated_at: updatedAt, updated_by: clientId },
     { onConflict: 'project' },
   );
   if (error) console.warn('[cloud] save failed:', error.message);
-  return { error: error?.message };
+  return { error: error?.message, updatedAt: error ? undefined : updatedAt };
 }
 
 /* ---------- Cloud snapshots ----------------------------------------------
@@ -157,7 +168,7 @@ export async function deleteCloudSnapshot(id: string): Promise<void> {
 /* Live-refresh: fire `onRemoteChange` with the fresh doc whenever ANOTHER
    client writes the shared row. Our own writes (matching clientId) are skipped.
    Returns an unsubscribe fn. */
-export function subscribeShared(onRemoteChange: (doc: AppState) => void): () => void {
+export function subscribeShared(onRemoteChange: (doc: AppState, updatedAt: string | null) => void): () => void {
   if (!cloud) return () => {};
   const channel = cloud
     .channel('deep-dive-shared')
@@ -165,10 +176,10 @@ export function subscribeShared(onRemoteChange: (doc: AppState) => void): () => 
       'postgres_changes',
       { event: '*', schema: 'public', table: TABLE, filter: `project=eq.${PROJECT}` },
       (payload) => {
-        const row = payload.new as { doc?: unknown; updated_by?: string } | undefined;
+        const row = payload.new as { doc?: unknown; updated_by?: string; updated_at?: string } | undefined;
         if (!row?.doc) return;
         if (row.updated_by === clientId) return; // our own echo
-        try { onRemoteChange(migrateLoaded(row.doc as Partial<AppState>)); } catch { /* ignore */ }
+        try { onRemoteChange(migrateLoaded(row.doc as Partial<AppState>), row.updated_at ?? null); } catch { /* ignore */ }
       },
     )
     .subscribe();

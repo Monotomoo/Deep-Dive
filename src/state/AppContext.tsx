@@ -12,7 +12,7 @@ import {
 import type { Session } from '@supabase/supabase-js';
 import type { AppState } from '../types';
 import { makeInitialState } from '../lib/seed';
-import { loadState, saveState } from '../lib/storage';
+import { loadState, saveState, getCloudSyncedAt, setCloudSyncedAt } from '../lib/storage';
 import {
   cloudEnabled, getSession, loadSharedDoc, onAuthChange, saveSharedDoc, signOutCloud, subscribeShared,
 } from '../lib/cloud';
@@ -91,14 +91,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!cloudEnabled || !userId) return;
     let active = true;
     setCloudStatus('syncing');
-    loadSharedDoc().then((doc) => {
+    loadSharedDoc().then((res) => {
       if (!active) return;
-      if (doc) {
-        try { window.localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(history.present)); } catch { /* ignore */ }
-        internalDispatch({ type: 'HYDRATE', state: doc });
+      if (res) {
+        /* If the cloud hasn't advanced past the point we last synced to, our
+           local copy is the source of truth — it may hold edits the debounced
+           push never got to send (e.g. an edit followed by a fast refresh).
+           Keep local and push it up rather than overwriting it with a stale
+           cloud pull. Otherwise the cloud moved (another device / crew member),
+           so take it. */
+        const syncedAt = getCloudSyncedAt();
+        const cloudMoved = !syncedAt || !res.updatedAt || res.updatedAt > syncedAt;
+        if (cloudMoved) {
+          try { window.localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(history.present)); } catch { /* ignore */ }
+          internalDispatch({ type: 'HYDRATE', state: res.doc });
+          if (res.updatedAt) setCloudSyncedAt(res.updatedAt);
+        } else {
+          saveSharedDoc(history.present).then((r) => { if (r.updatedAt) setCloudSyncedAt(r.updatedAt); });
+        }
       } else {
         // First crew member in — seed the shared project from local data.
-        saveSharedDoc(history.present);
+        saveSharedDoc(history.present).then((r) => { if (r.updatedAt) setCloudSyncedAt(r.updatedAt); });
       }
       cloudReadyRef.current = true;
       setCloudStatus('synced');
@@ -114,8 +127,14 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCloudStatus('syncing');
     window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
-      saveSharedDoc(history.present).then(() => setCloudStatus('synced'));
-    }, 900);
+      /* Clear the marker as the push commits, so the live-refresh subscription
+         knows we're no longer mid-edit and can pull crew changes again. */
+      saveTimer.current = undefined;
+      saveSharedDoc(history.present).then((r) => {
+        if (r.updatedAt) setCloudSyncedAt(r.updatedAt);
+        setCloudStatus('synced');
+      });
+    }, 700);
     return () => window.clearTimeout(saveTimer.current);
   }, [history.present, userId]);
 
@@ -123,9 +142,10 @@ export function AppProvider({ children }: { children: ReactNode }) {
      we have an edit of our own pending (our debounced save will win instead). */
   useEffect(() => {
     if (!cloudEnabled || !userId) return;
-    const unsub = subscribeShared((doc) => {
+    const unsub = subscribeShared((doc, updatedAt) => {
       if (saveTimer.current) return; // mid-edit locally — don't stomp our work
       internalDispatch({ type: 'HYDRATE', state: doc });
+      if (updatedAt) setCloudSyncedAt(updatedAt);
       setCloudStatus('synced');
     });
     return unsub;
@@ -151,7 +171,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const publishLocal = useCallback(async () => {
     if (!cloudEnabled || !userId) return;
     setCloudStatus('syncing');
-    await saveSharedDoc(history.present);
+    const r = await saveSharedDoc(history.present);
+    if (r.updatedAt) setCloudSyncedAt(r.updatedAt);
     setCloudStatus('synced');
   }, [userId, history.present]);
 
