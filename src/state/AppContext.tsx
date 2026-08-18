@@ -76,7 +76,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!cloudEnabled) return;
     let active = true;
     getSession().then((s) => { if (active) setSession(s); });
-    const unsub = onAuthChange((s) => { if (active) { cloudReadyRef.current = false; setSession(s); } });
+    /* Only track the session here. Do NOT reset cloudReadyRef on every auth
+       event — Supabase fires INITIAL_SESSION and periodic TOKEN_REFRESHED for
+       the same user, and resetting the flag left it stuck false (the load
+       effect only re-pulls on a userId change), which silently killed every
+       cloud push. Readiness is (re)established by the load effect per userId,
+       and cleared on sign-out. */
+    const unsub = onAuthChange((s) => { if (active) setSession(s); });
     return () => { active = false; unsub(); };
   }, []);
 
