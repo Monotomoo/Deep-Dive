@@ -1,6 +1,6 @@
 import { useMemo, useState, type ReactNode } from 'react';
 import {
-  ChevronDown, ChevronUp, Film, MessageSquare, Mic, Plus, Quote, Trash2, Users, X,
+  ChevronDown, ChevronUp, Film, MessageSquare, Mic, Plus, Quote, Sparkles, Trash2, Users, X,
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import type { FourKey, ScenarioArc, ScenarioPart, ScenarioPartStatus, ViewKey } from '../../types';
@@ -266,9 +266,9 @@ function PartCard({ part, isFirst, isLast, onArcClick }: { part: ScenarioPart; i
         {/* header */}
         <div className="flex items-start justify-between gap-3">
           <div className="min-w-0 flex-1">
-            {part.kicker !== undefined && (
+            {(part.kicker !== undefined || editing) && (
               <EditableText
-                value={part.kicker} placeholder="kicker…" editing={editing}
+                value={part.kicker ?? ''} placeholder="kicker — e.g. Part ten · the return…" editing={editing}
                 onSave={(v) => patch({ kicker: v })}
                 className="label-caps text-[color:var(--color-brass-deep)]"
               />
@@ -414,6 +414,25 @@ function PartCard({ part, isFirst, isLast, onArcClick }: { part: ScenarioPart; i
           </ChipRow>
         )}
 
+        {/* moments — the story events this part touches */}
+        {(((part.eventIds?.length ?? 0) > 0) || editing) && (
+          <ChipRow icon={<Sparkles size={11} />} label="moments">
+            {(editing
+              ? [...state.storyEvents].sort((a, b) => a.year - b.year)
+              : (part.eventIds ?? []).map((id) => state.storyEvents.find((e) => e.id === id)).filter(Boolean)
+            ).map((ev) => {
+              if (!ev) return null;
+              const on = (part.eventIds ?? []).includes(ev.id);
+              return (
+                <Chip key={ev.id} dim={editing && !on}
+                  onClick={() => editing ? patch({ eventIds: toggle(part.eventIds, ev.id) }) : go('cast')}>
+                  {ev.title}
+                </Chip>
+              );
+            })}
+          </ChipRow>
+        )}
+
         {/* beats */}
         {(part.beats.length > 0 || editing) && (
           <Field label={part.status === 'shot' ? 'beats' : 'to get'} className="mt-3">
@@ -477,8 +496,14 @@ function PartCard({ part, isFirst, isLast, onArcClick }: { part: ScenarioPart; i
           </div>
         )}
 
-        {part.notes && (
-          <p className="prose-body italic text-[12px] text-[color:var(--color-on-paper-faint)] mt-3">{part.notes}</p>
+        {(part.notes || editing) && (
+          <Field label="notes" className="mt-3">
+            <EditableText
+              multiline value={part.notes ?? ''} placeholder="editor's notes…" editing={editing}
+              onSave={(v) => patch({ notes: v })}
+              className="prose-body italic text-[12px] text-[color:var(--color-on-paper-faint)] leading-snug block"
+            />
+          </Field>
         )}
       </div>
     </article>

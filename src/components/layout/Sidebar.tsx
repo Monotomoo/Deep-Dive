@@ -40,7 +40,7 @@ import {
 import { useState, type ComponentType } from 'react';
 import { BackupPanel } from '../backup/BackupPanel';
 import { SIMPLE_VIEW_SET } from '../../lib/shortcuts';
-import { loadSharedDoc, probeWrite } from '../../lib/cloud';
+import { authInfo, loadSharedDoc, probeWrite } from '../../lib/cloud';
 import { getCloudSyncedAt, getCloudDirty, STORAGE_KEY } from '../../lib/storage';
 import { useApp } from '../../state/AppContext';
 import type { ViewKey } from '../../types';
@@ -149,6 +149,7 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
       else cloudLine = 'NO CLOUD DOC';
     } catch (e) { cloudLine = 'ERROR: ' + String(e); }
     const rt = await probeWrite();
+    const auth = await authInfo();
     window.alert(
       `SYNC CHECK · ${location.host}\n\n` +
       `on screen:   ${probe(state as unknown as Doc)}\n` +
@@ -156,7 +157,8 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
       `the cloud:   ${cloudLine}\n\n` +
       `cloud updated_at: ${cloudAt}\n` +
       `local marker:     ${getCloudSyncedAt()}\n` +
-      `dirty (unpushed edit): ${getCloudDirty() ? 'YES' : 'no'}\n\n` +
+      `dirty (unpushed edit): ${getCloudDirty() ? 'YES' : 'no'}\n` +
+      `auth: ${auth}\n\n` +
       `WRITE ROUND-TRIP: ${rt.ok ? 'OK' : 'FAILED'} — ${rt.detail}`,
     );
   }

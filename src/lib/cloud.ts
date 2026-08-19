@@ -96,12 +96,33 @@ export async function loadSharedDoc(): Promise<SharedLoad | null> {
 export async function saveSharedDoc(state: AppState): Promise<{ error?: string; updatedAt?: string }> {
   if (!cloud) return {};
   const updatedAt = new Date().toISOString();
-  const { error } = await cloud.from(TABLE).upsert(
-    { project: PROJECT, doc: stripEphemeral(state), updated_at: updatedAt, updated_by: clientId },
-    { onConflict: 'project' },
-  );
-  if (error) console.warn('[cloud] save failed:', error.message);
-  return { error: error?.message, updatedAt: error ? undefined : updatedAt };
+  /* VERIFIED write. `.select()` makes PostgREST return the row it actually
+     wrote — an upsert whose UPDATE half is silently filtered by RLS otherwise
+     reports success with 0 rows, and every layer above would believe a save
+     that never happened. No row back = the write did not persist = an error. */
+  const { data, error } = await cloud
+    .from(TABLE)
+    .upsert(
+      { project: PROJECT, doc: stripEphemeral(state), updated_at: updatedAt, updated_by: clientId },
+      { onConflict: 'project' },
+    )
+    .select('updated_at')
+    .maybeSingle();
+  if (error) { console.error('[cloud] save failed:', error.message); return { error: error.message }; }
+  if (!data) { console.error('[cloud] save wrote 0 rows — RLS filtered it'); return { error: 'write did not persist (0 rows) — check table policies' }; }
+  return { updatedAt: (data.updated_at as string) ?? updatedAt };
+}
+
+/* Diagnostic: is this tab's auth actually alive at the server? An expired or
+   broken token makes writes silently act as anon (filtered to nothing). */
+export async function authInfo(): Promise<string> {
+  if (!cloud) return 'cloud off';
+  const { data } = await cloud.auth.getSession();
+  const exp = data.session?.expires_at ? new Date(data.session.expires_at * 1000) : null;
+  const expIn = exp ? Math.round((exp.getTime() - Date.now()) / 60000) : null;
+  const { data: u, error } = await cloud.auth.getUser();
+  const server = error ? `server says: ${error.message}` : u.user ? `server confirms ${u.user.email}` : 'server sees NO user';
+  return `token ${exp ? (expIn !== null && expIn >= 0 ? `expires in ${expIn} min` : 'EXPIRED') : 'MISSING'} · ${server}`;
 }
 
 /* Diagnostic round-trip: write a nonce to the shared row's updated_by and read
