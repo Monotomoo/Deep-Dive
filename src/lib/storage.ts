@@ -44,13 +44,22 @@ export function loadState(): AppState | null {
 
 function migrateState(loaded: Partial<AppState>): AppState {
   const defaults = makeInitialState();
+  /* Content generation. A doc below the current SCENARIO_SEED_VERSION (this
+     includes the shared cloud doc, which was seeded from an earlier build) gets
+     the fresh narrative collections wholesale — the screenplay, its stories,
+     and everything the screenplay links to (shoots, interviews, records, story
+     events, topics, USA trip, calendar). Everything else in the doc — notes,
+     ideas, holders, journal, pitch decks, budgets — is left alone. */
+  const contentUpgrade = (loaded.scenarioSeedVersion ?? 1) < defaults.scenarioSeedVersion;
   /* Coordinates arrived in v11. A cloud doc written before that has shoots with
      no lat/lng and would silently vanish from the map, so backfill from the
      seed by shoot key while leaving every user-edited field alone. */
   const seedCoords = new Map(defaults.shoots.map((s) => [s.key, { lat: s.lat, lng: s.lng }]));
-  const shoots = (loaded.shoots ?? defaults.shoots).map((s) =>
-    s.lat === undefined && s.lng === undefined ? { ...s, ...(seedCoords.get(s.key) ?? {}) } : s,
-  );
+  const shoots = contentUpgrade
+    ? defaults.shoots
+    : (loaded.shoots ?? defaults.shoots).map((s) =>
+        s.lat === undefined && s.lng === undefined ? { ...s, ...(seedCoords.get(s.key) ?? {}) } : s,
+      );
   return {
     ...defaults,
     ...loaded,
@@ -65,12 +74,12 @@ function migrateState(loaded: Partial<AppState>): AppState {
     spineIdeas: loaded.spineIdeas ?? defaults.spineIdeas,
     shootDays: loaded.shootDays ?? defaults.shootDays,
     coverageCams: loaded.coverageCams ?? defaults.coverageCams,
-    interviews: loaded.interviews ?? defaults.interviews,
+    interviews: contentUpgrade ? defaults.interviews : (loaded.interviews ?? defaults.interviews),
     swings: loaded.swings ?? defaults.swings,
     devices: loaded.devices ?? defaults.devices,
     rituals: loaded.rituals ?? defaults.rituals,
     watcherMoments: loaded.watcherMoments ?? defaults.watcherMoments,
-    records: loaded.records ?? defaults.records,
+    records: contentUpgrade ? defaults.records : (loaded.records ?? defaults.records),
     attempts: loaded.attempts ?? defaults.attempts,
     physiology: loaded.physiology ?? defaults.physiology,
     evidence2023: loaded.evidence2023 ?? defaults.evidence2023,
@@ -81,16 +90,16 @@ function migrateState(loaded: Partial<AppState>): AppState {
     crew: loaded.crew ?? defaults.crew,
     schedulePhases: loaded.schedulePhases ?? defaults.schedulePhases,
     milestones: loaded.milestones ?? defaults.milestones,
-    calendarEvents: loaded.calendarEvents ?? defaults.calendarEvents,
+    calendarEvents: contentUpgrade ? defaults.calendarEvents : (loaded.calendarEvents ?? defaults.calendarEvents),
     holders: loaded.holders ?? defaults.holders,
     choirQuestions: loaded.choirQuestions ?? defaults.choirQuestions,
     choirEntries: loaded.choirEntries ?? defaults.choirEntries,
     lifeEvents: loaded.lifeEvents ?? defaults.lifeEvents,
     motifChains: loaded.motifChains ?? defaults.motifChains,
-    storyEvents: loaded.storyEvents ?? defaults.storyEvents,
-    topics: loaded.topics ?? defaults.topics,
+    storyEvents: contentUpgrade ? defaults.storyEvents : (loaded.storyEvents ?? defaults.storyEvents),
+    topics: contentUpgrade ? defaults.topics : (loaded.topics ?? defaults.topics),
     hubIdeas: loaded.hubIdeas ?? defaults.hubIdeas,
-    usaTrip: loaded.usaTrip ?? defaults.usaTrip,
+    usaTrip: contentUpgrade ? defaults.usaTrip : (loaded.usaTrip ?? defaults.usaTrip),
     locale: 'en',
     sponsors: loaded.sponsors ?? defaults.sponsors,
     risks: loaded.risks ?? defaults.risks,
@@ -105,15 +114,8 @@ function migrateState(loaded: Partial<AppState>): AppState {
     /* Scenario content upgrade: docs from an older seed generation (including
        the shared cloud doc) get the rewritten parts + the four stories. Docs
        already on the current generation keep their own edits. */
-    ...(((loaded.scenarioSeedVersion ?? 1) >= defaults.scenarioSeedVersion)
-      ? {
-          scenarioParts: loaded.scenarioParts ?? defaults.scenarioParts,
-          scenarioArcs: loaded.scenarioArcs ?? defaults.scenarioArcs,
-        }
-      : {
-          scenarioParts: defaults.scenarioParts,
-          scenarioArcs: defaults.scenarioArcs,
-        }),
+    scenarioParts: contentUpgrade ? defaults.scenarioParts : (loaded.scenarioParts ?? defaults.scenarioParts),
+    scenarioArcs: contentUpgrade ? defaults.scenarioArcs : (loaded.scenarioArcs ?? defaults.scenarioArcs),
     scenarioSeedVersion: Math.max(loaded.scenarioSeedVersion ?? 1, defaults.scenarioSeedVersion),
     tasks: loaded.tasks ?? defaults.tasks,
     notes: loaded.notes ?? defaults.notes,

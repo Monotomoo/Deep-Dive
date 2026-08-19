@@ -63,7 +63,7 @@ const VIEW_SUBTITLES: Partial<Record<ViewKey, string>> = {
   threads:       '10 narrative arcs woven across every shoot',
   spine:         '5 questions · every person · every shoot · the returning matrix',
   shoots:        '6 stages · Krk ✓ · Sicily ✓ + Etna · Lastovo · Cyprus · Rijeka · USA · Coda',
-  'usa-trip':    'Sept RV road-trip for six · SF → Las Vegas → fly Cyprus',
+  'usa-trip':    'Vito + crew · Sept RV road-trip · SF → Las Vegas → fly Cyprus',
   interviews:    'grouped by location · chained by follow-ups',
   choir:         'same question · four voices side by side',
   swings:        'the ambitious bets · fire breathes in ✓ · water breathes out',

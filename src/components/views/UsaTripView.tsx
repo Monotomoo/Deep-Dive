@@ -10,7 +10,7 @@ import type {
   TripCostCategory, TripCostLine, TripCostPer, TripDay, TripPoi, TripPoiKind, TripStop, UsaTrip,
 } from '../../types';
 
-/* USA Trip · the September RV road-trip for six.
+/* USA Trip · Vito + film crew, September.
    A stylised map you can read + edit — climbing walls, dive lakes, desert
    sights, stops on the way — plus a live RV budget. Fly SF → drive the
    Sierra + desert loop → end Las Vegas → fly straight to Cyprus. */

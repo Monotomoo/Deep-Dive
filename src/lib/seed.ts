@@ -1100,11 +1100,11 @@ export const SEED_CALENDAR_EVENTS: CalendarEvent[] = [
 
   /* Travel legs */
   { id: 'ce-lastovo-tr', title: 'Travel to Lastovo',             startDate: '2026-08-14',                        kind: 'travel' },
-  { id: 'ce-usa-trip',   title: 'USA road-trip (RV)',            startDate: '2026-09-01', endDate: '2026-09-27', kind: 'travel', personKeys: ['petar','vito','sanda','zsofia'], shootId: 'shoot-usa', notes: 'SF → Black Rock (Burning Man) → Sierra → Death Valley → Vegas → fly Cyprus.' },
+  { id: 'ce-usa-trip',   title: 'USA road-trip (RV) — Vito',     startDate: '2026-09-01', endDate: '2026-09-27', kind: 'travel', personKeys: ['vito'], shootId: 'shoot-usa', notes: 'Vito + film crew. SF → Black Rock (Burning Man) → Sierra → Death Valley → Vegas → fly Cyprus. Surf + climb stops on the way; the Hall of Fame at the centre.' },
   { id: 'ce-fly-cyprus', title: 'Fly USA → Cyprus',              startDate: '2026-09-27', endDate: '2026-09-28', kind: 'travel', notes: 'Main unit straight from Las Vegas to the Cyprus shoot.' },
 
   /* Parallel September shoot strands */
-  { id: 'ce-burningman', title: 'Burning Man — last 3 days',     startDate: '2026-09-05', endDate: '2026-09-07', kind: 'shoot', personKeys: ['petar','vito','sanda','zsofia'], colorHint: '#c94a3a', notes: 'The Man + the Temple burn. Fire in the desert — echoes Etna. Filmed with the main unit on the road-trip.' },
+  { id: 'ce-burningman', title: 'Burning Man — last 3 days',     startDate: '2026-09-05', endDate: '2026-09-07', kind: 'shoot', personKeys: ['vito'], colorHint: '#c94a3a', notes: 'The Man + the Temple burn. Fire in the desert — echoes Etna. Vito + the crew on the road-trip.' },
   { id: 'ce-sicily-sep', title: 'Sicily · second-unit pickups',  startDate: '2026-09-10', endDate: '2026-09-14', kind: 'shoot', personKeys: ['sanda'], shootId: 'shoot-sicily', colorHint: '#d96c3d', notes: 'Parallel 5-day unit — Mediterranean pickups + interviews running while the main unit is in the USA.' },
 
   /* Post-production */
@@ -1371,7 +1371,7 @@ export const SEED_USA_TRIP: UsaTrip = {
     },
     {
       id: 'stop-death', name: 'Death Valley NP', role: 'stop', nights: 2, driveMiles: 200, driveHours: 4,
-      note: 'The anti-Adriatic — zero water, geological time, the lowest ground in North America. The four stand on the surface at its deepest floor.',
+      note: 'The anti-Adriatic — zero water, geological time, the lowest ground in North America. The deep diver standing on the driest floor there is.',
       colorHint: '#c9a961', mapX: 64, mapY: 63,
       pois: [
         { id: 'poi-dv-1', name: 'Badwater Basin',        kind: 'sight', detail: '−86 m · lowest in N. America', note: 'The inverse of a dive: the deepest point you reach by standing still on dry salt.' },
@@ -1626,10 +1626,12 @@ export const SEED_PITCH_DECKS: PitchDeck[] = [
    are the real ones in this seed.
 
    SCENARIO_SEED_VERSION gates the content upgrade: any stored doc (local or the
-   shared cloud doc) below this generation gets these parts+arcs on load. Bump it
-   whenever the seeded narrative is rewritten wholesale. */
+   shared cloud doc) below this generation gets the fresh narrative collections
+   on load — parts, arcs, shoots, interviews, records, story events, topics,
+   the USA trip and calendar. Bump it whenever the seeded story is rewritten
+   wholesale. (v3: the four-stories rebuild + only-Vito USA.) */
 
-export const SCENARIO_SEED_VERSION = 2;
+export const SCENARIO_SEED_VERSION = 3;
 
 export const SEED_SCENARIO_ARCS: ScenarioArc[] = [
   {
