@@ -17,7 +17,7 @@ import { makeInitialState } from './seed';
    v12: family removed from the plan — Petar's father and Zsófia's sister as
    holders, plus the biographical beats about Sanda's father and Vito's mother.
    v11: shoots gained lat/lng for the Overview map; Note gained authorLabel. */
-const STORAGE_KEY = 'deep-dive-dashboard-v17';
+export const STORAGE_KEY = 'deep-dive-dashboard-v17';
 const SPLASH_KEY = 'deep-dive-splash-seen';
 const SNAPSHOT_KEY = 'deep-dive-snapshots-v1';
 
@@ -209,6 +209,22 @@ export function deleteLocalSnapshot(id: string): void {
    hold edits the debounced push never sent) and we keep it instead of letting a
    stale cloud pull overwrite them. */
 const CLOUD_SYNCED_AT_KEY = 'deep-dive-cloud-synced-at';
+/* True while this browser holds a local edit the cloud hasn't confirmed yet.
+   Set the moment a user edit happens (BEFORE the debounced push — so a refresh
+   inside the debounce window still knows), cleared when a push lands. On load,
+   dirty + an unmoved cloud = keep the local copy and push it up. */
+const CLOUD_DIRTY_KEY = 'deep-dive-cloud-dirty';
+
+export function getCloudDirty(): boolean {
+  try { return localStorage.getItem(CLOUD_DIRTY_KEY) === '1'; } catch { return false; }
+}
+
+export function setCloudDirty(dirty: boolean): void {
+  try {
+    if (dirty) localStorage.setItem(CLOUD_DIRTY_KEY, '1');
+    else localStorage.removeItem(CLOUD_DIRTY_KEY);
+  } catch { /* noop */ }
+}
 
 export function getCloudSyncedAt(): string | null {
   try { return localStorage.getItem(CLOUD_SYNCED_AT_KEY); } catch { return null; }

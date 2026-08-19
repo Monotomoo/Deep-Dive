@@ -104,6 +104,22 @@ export async function saveSharedDoc(state: AppState): Promise<{ error?: string; 
   return { error: error?.message, updatedAt: error ? undefined : updatedAt };
 }
 
+/* Diagnostic round-trip: write a nonce to the shared row's updated_by and read
+   it back. Proves (or disproves) that this session's UPDATEs actually persist
+   under RLS — a write can report success while a policy filters it to 0 rows. */
+export async function probeWrite(): Promise<{ ok: boolean; detail: string }> {
+  if (!cloud) return { ok: false, detail: 'cloud off' };
+  const nonce = `probe:${clientId}:${Math.random().toString(36).slice(2, 7)}`;
+  const { error: upErr } = await cloud.from(TABLE).update({ updated_by: nonce }).eq('project', PROJECT);
+  if (upErr) return { ok: false, detail: `update rejected: ${upErr.message}` };
+  const { data, error: selErr } = await cloud.from(TABLE).select('updated_by').eq('project', PROJECT).maybeSingle();
+  if (selErr) return { ok: false, detail: `read failed: ${selErr.message}` };
+  const got = (data?.updated_by as string | null) ?? '(null)';
+  return got === nonce
+    ? { ok: true, detail: 'write persisted and read back' }
+    : { ok: false, detail: `WRITE DID NOT PERSIST — read back "${got}"` };
+}
+
 /* ---------- Cloud snapshots ----------------------------------------------
    Crew-wide restore points. Unlike local snapshots these survive a dead laptop
    and — the real reason they exist — they're the only defence against someone

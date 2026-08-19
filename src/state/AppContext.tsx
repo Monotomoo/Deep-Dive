@@ -12,7 +12,7 @@ import {
 import type { Session } from '@supabase/supabase-js';
 import type { AppState } from '../types';
 import { makeInitialState } from '../lib/seed';
-import { loadState, saveState, getCloudSyncedAt, setCloudSyncedAt } from '../lib/storage';
+import { loadState, saveState, getCloudSyncedAt, setCloudSyncedAt, getCloudDirty, setCloudDirty } from '../lib/storage';
 import {
   cloudEnabled, getSession, loadSharedDoc, onAuthChange, saveSharedDoc, signOutCloud, subscribeShared,
 } from '../lib/cloud';
@@ -105,20 +105,31 @@ export function AppProvider({ children }: { children: ReactNode }) {
     loadSharedDoc().then((res) => {
       if (!active) return;
       if (res) {
-        /* The cloud is the source of truth: load it. (Pushes are reliable now,
-           so whatever you last synced is up there.) We stash the pre-hydrate
-           local copy under a backup key first, so a machine's work is never lost
-           to a surprising cloud state. The only thing this can't preserve is an
-           edit made in the ~0.7s before its push fired and then refreshed over —
-           acceptable, and far safer than the keep-local logic that was dropping
-           edits the cloud actually had. */
-        try { window.localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(history.present)); } catch { /* ignore */ }
-        remoteHydrateRef.current = true;
-        internalDispatch({ type: 'HYDRATE', state: res.doc });
-        if (res.updatedAt) setCloudSyncedAt(res.updatedAt);
+        /* Who wins on load?
+           - This browser is DIRTY (a local edit whose push never landed — e.g.
+             an edit followed by an instant refresh, killing the debounced push)
+             AND the cloud hasn't moved past our last sync → the LOCAL copy is
+             the newest truth: keep it and push it up.
+           - Otherwise → the cloud is the truth: hydrate it. (If we were dirty
+             but the cloud DID move, someone else edited meanwhile — last write
+             wins, the cloud copy stands, and our unpushed edit is dropped.) */
+        const marker = getCloudSyncedAt();
+        const cloudMoved = !marker || !res.updatedAt || res.updatedAt > marker;
+        if (getCloudDirty() && !cloudMoved) {
+          saveSharedDoc(history.present).then((r) => {
+            if (r.updatedAt) setCloudSyncedAt(r.updatedAt);
+            if (!r.error) setCloudDirty(false);
+          });
+        } else {
+          try { window.localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(history.present)); } catch { /* ignore */ }
+          remoteHydrateRef.current = true;
+          internalDispatch({ type: 'HYDRATE', state: res.doc });
+          if (res.updatedAt) setCloudSyncedAt(res.updatedAt);
+          setCloudDirty(false);
+        }
       } else {
         // First crew member in — seed the shared project from local data.
-        saveSharedDoc(history.present).then((r) => { if (r.updatedAt) setCloudSyncedAt(r.updatedAt); });
+        saveSharedDoc(history.present).then((r) => { if (r.updatedAt) setCloudSyncedAt(r.updatedAt); if (!r.error) setCloudDirty(false); });
       }
       cloudReadyRef.current = true;
       setCloudStatus('synced');
@@ -133,6 +144,9 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!cloudEnabled || !userId || !cloudReadyRef.current) return;
     /* This change came from the cloud — don't push it straight back. */
     if (remoteHydrateRef.current) { remoteHydrateRef.current = false; return; }
+    /* A real local edit: mark dirty NOW, before the debounce — so a refresh
+       inside the window still knows there's an unpushed edit to defend. */
+    setCloudDirty(true);
     setCloudStatus('syncing');
     window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
@@ -145,7 +159,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
            rejected (e.g. RLS), the footer says so and we know the edit didn't
            reach the cloud. */
         if (r.error) { console.error('[cloud] push rejected:', r.error); setCloudStatus('error'); }
-        else setCloudStatus('synced');
+        else { setCloudDirty(false); setCloudStatus('synced'); }
       });
     }, 700);
     return () => window.clearTimeout(saveTimer.current);
@@ -210,6 +224,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCloudStatus('syncing');
     const r = await saveSharedDoc(history.present);
     if (r.updatedAt) setCloudSyncedAt(r.updatedAt);
+    if (!r.error) setCloudDirty(false);
     setCloudStatus('synced');
   }, [userId, history.present]);
 

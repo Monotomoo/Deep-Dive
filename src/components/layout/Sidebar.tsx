@@ -40,8 +40,8 @@ import {
 import { useState, type ComponentType } from 'react';
 import { BackupPanel } from '../backup/BackupPanel';
 import { SIMPLE_VIEW_SET } from '../../lib/shortcuts';
-import { loadSharedDoc } from '../../lib/cloud';
-import { getCloudSyncedAt } from '../../lib/storage';
+import { loadSharedDoc, probeWrite } from '../../lib/cloud';
+import { getCloudSyncedAt, getCloudDirty, STORAGE_KEY } from '../../lib/storage';
 import { useApp } from '../../state/AppContext';
 import type { ViewKey } from '../../types';
 import { useT } from '../../i18n';
@@ -132,30 +132,32 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
     ? GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => SIMPLE_VIEW_SET.has(i.key)) })).filter((g) => g.items.length > 0)
     : GROUPS;
 
-  /* TEMP diagnostic — shows the Sicily-again checklist as it stands on screen,
-     in this browser's storage, and in the cloud, so we can see exactly where an
-     edit is (or isn't) landing. Remove once sync is confirmed. */
+  /* TEMP diagnostic — compares generation + one money value across screen /
+     localStorage / cloud, and runs a live write round-trip. Remove once sync
+     is confirmed. */
   async function runSyncCheck() {
-    type Beat = { text: string; done?: boolean };
-    type Doc = { scenarioParts?: Array<{ id: string; beats?: Beat[] }> };
-    const show = (doc: Doc | undefined) => {
-      const p = doc?.scenarioParts?.find((x) => x.id === 'sp-sicily2');
-      if (!p) return '  (part not found)';
-      return (p.beats ?? []).map((b) => `  ${b.done ? '[x]' : '[ ]'} ${b.text.slice(0, 22)}`).join('\n') || '  (no beats)';
-    };
-    let ls: Doc = {};
-    try { ls = JSON.parse(localStorage.getItem('deep-dive-dashboard-v16') || '{}') as Doc; } catch { /* ignore */ }
-    let cloudBlock = '  (loading failed)';
+    type Doc = { scenarioSeedVersion?: number; scenarios?: { realistic?: { funding?: Record<string, number> } } };
+    const probe = (d: Doc | undefined) =>
+      d ? `gen ${d.scenarioSeedVersion ?? '?'} · sponsors €${d.scenarios?.realistic?.funding?.sponsors ?? '?'}k` : '(missing)';
+    let ls: Doc | undefined;
+    try { ls = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') as Doc; } catch { /* ignore */ }
+    let cloudLine = '(load failed)';
+    let cloudAt: string | null = null;
     try {
       const res = await loadSharedDoc();
-      cloudBlock = res ? `  updated_at: ${res.updatedAt}\n${show(res.doc as unknown as Doc)}` : '  NO CLOUD DOC';
-    } catch (e) { cloudBlock = '  ERROR: ' + String(e); }
+      if (res) { cloudLine = probe(res.doc as unknown as Doc); cloudAt = res.updatedAt; }
+      else cloudLine = 'NO CLOUD DOC';
+    } catch (e) { cloudLine = 'ERROR: ' + String(e); }
+    const rt = await probeWrite();
     window.alert(
-      `SYNC CHECK  ·  ${location.host}\n\n` +
-      `ON SCREEN (React):\n${show(state as unknown as Doc)}\n\n` +
-      `THIS BROWSER (localStorage):\n${show(ls)}\n\n` +
-      `THE CLOUD (Supabase):\n${cloudBlock}\n\n` +
-      `marker: ${getCloudSyncedAt()}`,
+      `SYNC CHECK · ${location.host}\n\n` +
+      `on screen:   ${probe(state as unknown as Doc)}\n` +
+      `this browser: ${probe(ls)}\n` +
+      `the cloud:   ${cloudLine}\n\n` +
+      `cloud updated_at: ${cloudAt}\n` +
+      `local marker:     ${getCloudSyncedAt()}\n` +
+      `dirty (unpushed edit): ${getCloudDirty() ? 'YES' : 'no'}\n\n` +
+      `WRITE ROUND-TRIP: ${rt.ok ? 'OK' : 'FAILED'} — ${rt.detail}`,
     );
   }
 
