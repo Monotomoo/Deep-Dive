@@ -1678,9 +1678,11 @@ export const SEED_PITCH_DECKS: PitchDeck[] = [
    money — scenarios join the upgrade set this once. v5: the truth batch —
    real dates (Cyprus 27.9–7.10, HoF 26.9, Molchanov 15–22.9), Part 10 coda,
    two-beat 2023 resolution, contingency/finishing/reserve budget lines,
-   shootDays + milestones + schedulePhases join the upgrade set.) */
+   shootDays + milestones + schedulePhases join the upgrade set. v6: Vito's-
+   dive arc corrected per Tomo — mentioned at Lastovo, reveal in USA/Cyprus,
+   to be decided WITH Vito; the invented Sicily volcano plant removed.) */
 
-export const SCENARIO_SEED_VERSION = 5;
+export const SCENARIO_SEED_VERSION = 6;
 
 export const SEED_SCENARIO_ARCS: ScenarioArc[] = [
   {
@@ -1702,6 +1704,7 @@ export const SEED_SCENARIO_ARCS: ScenarioArc[] = [
     id: 'arc-vito-deep', num: 4, title: "Vito's deep dive",
     synopsis: 'The long-breath man goes deep. The teacher’s own attempt — not for the student, not for the sport, for himself.',
     personKeys: ['vito'], colorHint: '#123c68',
+    notes: 'Mentioned and explained a little at Lastovo. The real reveal (USA → Cyprus) is to be DECIDED WITH VITO — nothing written as fact until then.',
   },
 ];
 
@@ -1736,7 +1739,7 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
   {
     id: 'sp-sicily', order: 2, title: 'Sicily · the record attempt', kicker: 'Part two · fire and water',
     location: 'Catania, next to Etna · Italy', dateLabel: '1–6 July 2026 · 5 days', status: 'shot', shootId: 'shoot-sicily',
-    arcIds: ['arc-records', 'arc-mentor', 'arc-unit', 'arc-vito-deep'],
+    arcIds: ['arc-records', 'arc-mentor', 'arc-unit'],
     episodeHint: 'Ep 1 · The Bond → Ep 2 · The Wound',
     background: 'Five days in Sicily for Pero’s world-record attempt — the camera inside a real attempt, where the dive comes first and the film shoots around it.',
     whatHappened: 'The attempt ended in a severe blackout — the safety team on him, the boat pickup, and the interview after, all filmed. The scare the whole sport lives beside, seen honestly. Around it: preparation days and a stack of boat pickups about the dives, the first solo interviews, and the first duos — Pero with Vito, Zso with Sanda. One day the sea shut us out and became an interview day. And Etna erupted in the middle of it all — footage no script could buy.',
@@ -1751,7 +1754,6 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
       { id: 'b-sic-3', text: 'First solo interviews' },
       { id: 'b-sic-4', text: 'First duos — Pero & Vito · Zso & Sanda' },
       { id: 'b-sic-5', text: 'Etna erupts mid-shoot · the volcano interview at golden hour' },
-      { id: 'b-sic-6', text: 'The plant: on the volcano, Vito first speaks about a deep dive of his own' },
     ],
     quotes: ["The mountain wouldn't stop breathing. So I did."],
     colorHint: '#d96c3d',
@@ -1759,7 +1761,7 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
   {
     id: 'sp-lastovo', order: 3, title: 'Lastovo · the training camp', kicker: 'Part three · the engine room',
     location: 'Lastovo island, Croatia', dateLabel: '15–22 August 2026', status: 'shot', shootId: 'shoot-lastovo',
-    arcIds: ['arc-unit', 'arc-mentor'],
+    arcIds: ['arc-unit', 'arc-mentor', 'arc-vito-deep'],
     episodeHint: 'Ep 2 · The Wound',
     background: 'The training camp — where the film went deeper. The sport presented from inside, the themes opened, and a world record nobody scripted.',
     whatHappened: 'Zso set a world record mid-camp — interviewed before and after the dive; the film was already there. Around it: the presentation of freediving itself — training sessions, dives, masterclasses, short pickups — and a constant stream of small talks around the camp and the boat. The interview block ran deep: all four solo, the first time 2023 was spoken about, Denis, Mikey and Michael, the Pero & Zso duo, Andre and Mariano, and students of the camps.',
@@ -1774,6 +1776,7 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
       { id: 'b-las-3', text: 'Training sessions, dives, masterclasses, short pickups' },
       { id: 'b-las-4', text: 'Small pickups and talks around the camp and the boat' },
       { id: 'b-las-5', text: 'All four solo · first time 2023 · Denis · Mikey & Michael · Pero & Zso · Andre & Mariano · camp students' },
+      { id: 'b-las-6', text: "Vito's own deep dive — mentioned and explained a little, for the first time" },
     ],
     colorHint: '#6f8a72',
   },
@@ -1781,7 +1784,7 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
   {
     id: 'sp-usa', order: 4, title: 'The USA · the Hall of Fame', kicker: 'Part four · recognition',
     location: 'San Francisco → Las Vegas · USA', dateLabel: 'September 2026', status: 'upcoming', shootId: 'shoot-usa',
-    arcIds: ['arc-mentor'],
+    arcIds: ['arc-mentor', 'arc-vito-deep'],
     episodeHint: 'Ep 3 · The Rise',
     background: 'Vito’s chapter, alone. Only he goes — inducted into the Hall of Fame by the world that once branded him — and the trip around the ceremony is his: surfing and climbing along the road, the deep diver on solid ground. Meanwhile Zso and Pero are training in Sicily. He flies straight from Vegas to the Cyprus World Cup.',
     whatHappened: '',
@@ -1794,6 +1797,7 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
       { id: 'b-usa-1', text: 'The Hall of Fame induction — only Vito', done: false },
       { id: 'b-usa-2', text: 'Surfing + climbing stops along the trip', done: false },
       { id: 'b-usa-3', text: 'The PUBLIC half of the 2023 resolution — the world honours him (the personal half is the studio)', done: false },
+      { id: 'b-usa-4', text: "Vito's deep dive — the real reveal may start here · HOW is to be decided with Vito", done: false },
     ],
     notes: 'Open block — to plan. See the USA Trip module for the itinerary + costs (Vito + film crew).',
     colorHint: '#c9a961',
@@ -1820,7 +1824,7 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
   {
     id: 'sp-cyprus', order: 6, title: 'Cyprus · the World Cup', kicker: 'Part six · the world stage',
     location: 'Cyprus', dateLabel: '27 September – 7 October 2026', status: 'upcoming', shootId: 'shoot-cyprus',
-    arcIds: ['arc-unit', 'arc-records'],
+    arcIds: ['arc-unit', 'arc-records', 'arc-vito-deep'],
     episodeHint: 'Ep 3 · The Rise',
     background: 'The competitive climax the whole year builds toward. Zso and Pero arrive straight from the Sicily camp; Vito lands on day one, straight from the Hall of Fame — vindicated in America, back in the water with his students. The plan must be careful: which topics, which people, which interviews. Film the competition if the organisers allow it.',
     whatHappened: '',
@@ -1833,6 +1837,7 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
       { id: 'b-cyp-2', text: 'The watchers at world scale — three faces at the surface, every dive', done: false },
       { id: 'b-cyp-3', text: 'Vito arrives vindicated — the mentor at the world level with his students', done: false },
       { id: 'b-cyp-4', text: 'The dive community around the four — the film meets the sport at scale', done: false },
+      { id: 'b-cyp-5', text: "Vito's deep dive — the reveal continues on the world stage · to be decided with Vito", done: false },
     ],
     notes: 'Competition filming permission to confirm with organisers.',
     colorHint: '#5b7da1',
