@@ -61,9 +61,8 @@ export const FUNDING_SOURCES: FundingSourceMeta[] = [
   { key: 'havc',   label: 'HAVC',        color: '#4C7A8A', isStateAid: true,  tag: 'state' },
   { key: 'hrt',    label: 'HRT',         color: '#7A5C4A', isStateAid: true,  tag: 'state' },
   { key: 'eu',     label: 'EU MEDIA',    color: '#8FA57E', isStateAid: true,  tag: 'state' },
-  { key: 'nfi',    label: 'Nordisk',     color: '#5B7DA1', isStateAid: false, tag: 'private' },
-  { key: 'sports', label: 'Sports/foundations', color: '#C88A5A', isStateAid: false, tag: 'private' },
   { key: 'sponsors', label: 'Sponsors',  color: '#9E7A63', isStateAid: false, tag: 'private' },
+  { key: 'sports', label: 'Foundations', color: '#C88A5A', isStateAid: false, tag: 'private' },
   { key: 'rebate', label: 'Rebate',      color: '#6B8AA1', isStateAid: false, isCalculated: true, tag: 'private' },
 ];
 
@@ -71,12 +70,10 @@ export const COST_CATEGORIES: CostCategoryMeta[] = [
   { key: 'dev',   label: 'Development' },
   { key: 'prod',  label: 'Production (shoots)' },
   { key: 'post',  label: 'Post-production' },
-  { key: 'sound', label: 'Sound design + mix' },
-  { key: 'legal', label: 'Legal + rights' },
-  { key: 'travel',label: 'Travel + accommodation' },
-  { key: 'safety',label: 'Safety + insurance' },
+  { key: 'legal', label: 'Legal' },
+  { key: 'safety',label: 'Insurance' },
   { key: 'mkt',   label: 'Marketing + festivals' },
-  { key: 'gna',   label: 'G&A' },
+  { key: 'other', label: 'Other' },
 ];
 
 const emptyCashflow: CashflowQuarter[] = [
@@ -89,12 +86,13 @@ const emptyCashflow: CashflowQuarter[] = [
 ];
 
 export const SCENARIOS: Record<ScenarioKey, ScenarioData> = {
-  /* HAVC fixed at €30k across every scenario — a state grant is one committed
-     number, not a figure that scales with ambition. 30 is below even the old
-     lean target (40), so it widens the funding gap in all three plans. */
-  lean:       { episodes: 3, funding: { havc: 30, hrt: 30, eu: 60, sponsors: 40, sports: 20, rebate: 20 }, costs: { dev: 20, prod: 90, post: 60, sound: 30, legal: 15, travel: 40, safety: 15, mkt: 20, gna: 10 }, cashflow: emptyCashflow, qualifyingSpendPct: 55, blendedRebateRate: 25 },
-  realistic:  { episodes: 3, funding: { havc: 30, hrt: 50, eu: 100, sponsors: 80, sports: 40, rebate: 40 }, costs: { dev: 30, prod: 140, post: 90, sound: 50, legal: 25, travel: 60, safety: 25, mkt: 40, gna: 20 }, cashflow: emptyCashflow, qualifyingSpendPct: 60, blendedRebateRate: 25 },
-  ambitious:  { episodes: 3, funding: { havc: 30, hrt: 70, eu: 140, sponsors: 120, sports: 60, rebate: 60 }, costs: { dev: 40, prod: 200, post: 140, sound: 80, legal: 40, travel: 90, safety: 40, mkt: 80, gna: 30 }, cashflow: emptyCashflow, qualifyingSpendPct: 65, blendedRebateRate: 25 },
+  /* Realistic carries Tomo's real numbers (2026-08-19): raise €290k, spend
+     €160k. Lean/ambitious are placeholder scalings of the same line items —
+     editable in The Money view, so tune them there. HAVC stays €30k in every
+     plan: a state grant is one committed number. G&A removed by request. */
+  lean:       { episodes: 3, funding: { havc: 30, hrt: 30, eu: 60,  sponsors: 30, sports: 20, rebate: 20 }, costs: { dev: 10, prod: 30, post: 35, legal: 10, safety: 10, mkt: 20, other: 5 },  cashflow: emptyCashflow, qualifyingSpendPct: 55, blendedRebateRate: 25 },
+  realistic:  { episodes: 3, funding: { havc: 30, hrt: 50, eu: 100, sponsors: 50, sports: 30, rebate: 30 }, costs: { dev: 10, prod: 40, post: 50, legal: 10, safety: 10, mkt: 30, other: 10 }, cashflow: emptyCashflow, qualifyingSpendPct: 60, blendedRebateRate: 25 },
+  ambitious:  { episodes: 3, funding: { havc: 30, hrt: 70, eu: 140, sponsors: 90, sports: 50, rebate: 50 }, costs: { dev: 15, prod: 70, post: 75, legal: 15, safety: 15, mkt: 45, other: 15 }, cashflow: emptyCashflow, qualifyingSpendPct: 65, blendedRebateRate: 25 },
 };
 
 /* ---------- The Four ---------- */
@@ -1629,9 +1627,10 @@ export const SEED_PITCH_DECKS: PitchDeck[] = [
    shared cloud doc) below this generation gets the fresh narrative collections
    on load — parts, arcs, shoots, interviews, records, story events, topics,
    the USA trip and calendar. Bump it whenever the seeded story is rewritten
-   wholesale. (v3: the four-stories rebuild + only-Vito USA.) */
+   wholesale. (v3: the four-stories rebuild + only-Vito USA. v4: Tomo's real
+   money — scenarios join the upgrade set this once.) */
 
-export const SCENARIO_SEED_VERSION = 3;
+export const SCENARIO_SEED_VERSION = 4;
 
 export const SEED_SCENARIO_ARCS: ScenarioArc[] = [
   {

@@ -251,7 +251,11 @@ export type Action =
   | { type: 'MOVE_SCENARIO_PART'; id: string; dir: -1 | 1 }
   | { type: 'ADD_SCENARIO_ARC'; arc: ScenarioArc }
   | { type: 'UPDATE_SCENARIO_ARC'; id: string; patch: Partial<ScenarioArc> }
-  | { type: 'DELETE_SCENARIO_ARC'; id: string };
+  | { type: 'DELETE_SCENARIO_ARC'; id: string }
+  /* The Money — edit a funding/cost line on one budget scenario (values in €k).
+     SET with a new key adds the line; DELETE removes it. */
+  | { type: 'SET_MONEY_LINE'; scenario: ScenarioKey; kind: 'funding' | 'costs'; key: string; value: number }
+  | { type: 'DELETE_MONEY_LINE'; scenario: ScenarioKey; kind: 'funding' | 'costs'; key: string };
 
 /* Generic list CRUD helpers */
 function upd<T extends { id: string }>(arr: T[], id: string, patch: Partial<T>): T[] {
@@ -532,6 +536,25 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'ADD_SCENARIO_PART':    return { ...state, scenarioParts: [...state.scenarioParts, action.part] };
     case 'UPDATE_SCENARIO_PART': return { ...state, scenarioParts: upd(state.scenarioParts, action.id, action.patch) };
     case 'DELETE_SCENARIO_PART': return { ...state, scenarioParts: del(state.scenarioParts, action.id) };
+    case 'SET_MONEY_LINE': {
+      const sc = state.scenarios[action.scenario];
+      return {
+        ...state,
+        scenarios: {
+          ...state.scenarios,
+          [action.scenario]: { ...sc, [action.kind]: { ...sc[action.kind], [action.key]: action.value } },
+        },
+      };
+    }
+    case 'DELETE_MONEY_LINE': {
+      const sc = state.scenarios[action.scenario];
+      const rest = { ...sc[action.kind] };
+      delete rest[action.key];
+      return {
+        ...state,
+        scenarios: { ...state.scenarios, [action.scenario]: { ...sc, [action.kind]: rest } },
+      };
+    }
     case 'ADD_SCENARIO_ARC':    return { ...state, scenarioArcs: [...state.scenarioArcs, action.arc] };
     case 'UPDATE_SCENARIO_ARC': return { ...state, scenarioArcs: upd(state.scenarioArcs, action.id, action.patch) };
     case 'DELETE_SCENARIO_ARC': return {

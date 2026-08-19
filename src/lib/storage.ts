@@ -66,7 +66,7 @@ function migrateState(loaded: Partial<AppState>): AppState {
     shoots,
     /* Hard guarantees on every array/object so views never crash on
        undefined access. Uses loaded-if-present-else-default merge. */
-    scenarios: loaded.scenarios ?? defaults.scenarios,
+    scenarios: contentUpgrade ? defaults.scenarios : (loaded.scenarios ?? defaults.scenarios),
     four: loaded.four ?? defaults.four,
     talents: loaded.talents ?? defaults.talents,
     threads: loaded.threads ?? defaults.threads,
