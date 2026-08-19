@@ -1,10 +1,13 @@
 import type { AppState } from '../types';
 import { makeInitialState } from './seed';
 
-/* v16 bump (2026-07-15): the Scenario (screenplay) module — scenarioParts +
-   4 new Lastovo topics + Krk reframed as the championship + Lastovo marked
-   completed + Pero's blackout event. A stored v15 doc has none of it and would
-   keep Lastovo as an upcoming shoot.
+/* v17 bump (2026-08-19): the Scenario rebuilt around the four connected
+   stories (scenarioArcs) + nine parts from Tomo's full outline (Zso's Lastovo
+   WR, the Sicily training month with Molchanov, the records attack, the
+   Philippines, the 2023 studio sessions). scenarioSeedVersion gates a content
+   upgrade for docs that already carry the old parts — including the cloud doc.
+   v16: the Scenario module, 4 Lastovo topics, Krk as the championship,
+   Lastovo completed, Pero's blackout event.
    v15: HAVC funding fixed at €30k in every scenario — a stored v14 doc keeps
    the old 40/60/80 and would misreport the funding gap.
    v14: physiology gained Sanda and Zsófia, six new signals, and an honest
@@ -14,7 +17,7 @@ import { makeInitialState } from './seed';
    v12: family removed from the plan — Petar's father and Zsófia's sister as
    holders, plus the biographical beats about Sanda's father and Vito's mother.
    v11: shoots gained lat/lng for the Overview map; Note gained authorLabel. */
-const STORAGE_KEY = 'deep-dive-dashboard-v16';
+const STORAGE_KEY = 'deep-dive-dashboard-v17';
 const SPLASH_KEY = 'deep-dive-splash-seen';
 const SNAPSHOT_KEY = 'deep-dive-snapshots-v1';
 
@@ -99,7 +102,19 @@ function migrateState(loaded: Partial<AppState>): AppState {
     broadcasters: loaded.broadcasters ?? defaults.broadcasters,
     pitchCards: loaded.pitchCards ?? defaults.pitchCards,
     pitchDecks: loaded.pitchDecks ?? defaults.pitchDecks,
-    scenarioParts: loaded.scenarioParts ?? defaults.scenarioParts,
+    /* Scenario content upgrade: docs from an older seed generation (including
+       the shared cloud doc) get the rewritten parts + the four stories. Docs
+       already on the current generation keep their own edits. */
+    ...(((loaded.scenarioSeedVersion ?? 1) >= defaults.scenarioSeedVersion)
+      ? {
+          scenarioParts: loaded.scenarioParts ?? defaults.scenarioParts,
+          scenarioArcs: loaded.scenarioArcs ?? defaults.scenarioArcs,
+        }
+      : {
+          scenarioParts: defaults.scenarioParts,
+          scenarioArcs: defaults.scenarioArcs,
+        }),
+    scenarioSeedVersion: Math.max(loaded.scenarioSeedVersion ?? 1, defaults.scenarioSeedVersion),
     tasks: loaded.tasks ?? defaults.tasks,
     notes: loaded.notes ?? defaults.notes,
     assets: loaded.assets ?? defaults.assets,

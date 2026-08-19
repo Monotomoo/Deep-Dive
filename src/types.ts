@@ -227,6 +227,10 @@ export type ShootKey =
   | 'cyprus'
   | 'rijeka-zagreb'
   | 'usa'
+  /* v0.22 — the road ahead */
+  | 'sicily-training'
+  | 'sicily-records'
+  | 'philippines'
   | 'coda';
 
 export type ShootStatus =
@@ -318,6 +322,9 @@ export interface Interview {
   id: string;
   shootId: string;
   personKey: FourKey | 'together' | 'other';   // 'other' → subject is a talent (talentIds)
+  /* Display name for the subject(s) when personKey alone can't say it —
+     duos ("Pero & Vito"), guests ("Alexey Molchanov"), groups ("camp students"). */
+  subjectLabel?: string;
   setting: InterviewSetting;
   date: string;
   durationMin?: number;
@@ -1146,6 +1153,19 @@ export interface PitchDeck {
 
 export type ScenarioPartStatus = 'shot' | 'upcoming' | 'idea';
 
+/* The connected stories — the film's four narrative through-lines. They sit at
+   the top of the Scenario as its highlight, and every part declares which of
+   them it advances. Editable and addable like everything else. */
+export interface ScenarioArc {
+  id: string;
+  num: number;               // 1–4 (and beyond, if new stories emerge)
+  title: string;             // "Pero the student & Vito the teacher"
+  synopsis: string;          // one breath on what this story is
+  personKeys: FourKey[];     // whose story it is
+  colorHint?: string;
+  notes?: string;
+}
+
 export interface ScenarioBeat {
   id: string;
   text: string;
@@ -1163,6 +1183,7 @@ export interface ScenarioPart {
   shootId?: string;         // the shoot this part came from / will come from
   background: string;       // context — what this part is, why it matters
   whatHappened: string;     // the events, in prose (blank for upcoming)
+  arcIds?: string[];        // which of the connected stories this part advances
   peopleKeys: FourKey[];    // who appeared
   talentIds?: string[];     // other cast who appeared
   topicIds: string[];       // what they talked about
@@ -1348,6 +1369,12 @@ export interface AppState {
   pitchDecks: PitchDeck[];
   /* v0.21 — the film's screenplay, part by part */
   scenarioParts: ScenarioPart[];
+  /* v0.22 — the four connected stories (the scenario's spine) */
+  scenarioArcs: ScenarioArc[];
+  /* Which generation of the seeded screenplay this doc carries. When the seed's
+     narrative is rewritten (a content upgrade, not a schema change), docs below
+     the current generation get the new parts+arcs on load. */
+  scenarioSeedVersion: number;
   /* Cross-cutting primitives */
   tasks: Task[];
   notes: Note[];

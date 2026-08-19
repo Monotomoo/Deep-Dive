@@ -37,6 +37,7 @@ import type {
   SalesAgent,
   SchedulePhase,
   ScenarioKey,
+  ScenarioArc,
   ScenarioPart,
   Shoot,
   ShootDay,
@@ -247,7 +248,10 @@ export type Action =
   | { type: 'ADD_SCENARIO_PART'; part: ScenarioPart }
   | { type: 'UPDATE_SCENARIO_PART'; id: string; patch: Partial<ScenarioPart> }
   | { type: 'DELETE_SCENARIO_PART'; id: string }
-  | { type: 'MOVE_SCENARIO_PART'; id: string; dir: -1 | 1 };
+  | { type: 'MOVE_SCENARIO_PART'; id: string; dir: -1 | 1 }
+  | { type: 'ADD_SCENARIO_ARC'; arc: ScenarioArc }
+  | { type: 'UPDATE_SCENARIO_ARC'; id: string; patch: Partial<ScenarioArc> }
+  | { type: 'DELETE_SCENARIO_ARC'; id: string };
 
 /* Generic list CRUD helpers */
 function upd<T extends { id: string }>(arr: T[], id: string, patch: Partial<T>): T[] {
@@ -528,6 +532,16 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'ADD_SCENARIO_PART':    return { ...state, scenarioParts: [...state.scenarioParts, action.part] };
     case 'UPDATE_SCENARIO_PART': return { ...state, scenarioParts: upd(state.scenarioParts, action.id, action.patch) };
     case 'DELETE_SCENARIO_PART': return { ...state, scenarioParts: del(state.scenarioParts, action.id) };
+    case 'ADD_SCENARIO_ARC':    return { ...state, scenarioArcs: [...state.scenarioArcs, action.arc] };
+    case 'UPDATE_SCENARIO_ARC': return { ...state, scenarioArcs: upd(state.scenarioArcs, action.id, action.patch) };
+    case 'DELETE_SCENARIO_ARC': return {
+      ...state,
+      scenarioArcs: del(state.scenarioArcs, action.id),
+      /* A story that no longer exists shouldn't linger as a chip on parts. */
+      scenarioParts: state.scenarioParts.map((p) =>
+        p.arcIds?.includes(action.id) ? { ...p, arcIds: p.arcIds.filter((a) => a !== action.id) } : p,
+      ),
+    };
     case 'MOVE_SCENARIO_PART': {
       const sorted = [...state.scenarioParts].sort((a, b) => a.order - b.order);
       const i = sorted.findIndex((p) => p.id === action.id);

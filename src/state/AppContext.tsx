@@ -71,6 +71,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [session, setSession] = useState<Session | null | undefined>(cloudEnabled ? undefined : null);
   const [cloudStatus, setCloudStatus] = useState<'off' | 'syncing' | 'synced' | 'error'>(cloudEnabled ? 'syncing' : 'off');
   const cloudReadyRef = useRef(false); // have we pulled the cloud doc for this session yet?
+  /* True while the latest history.present change came FROM the cloud (initial
+     pull or a realtime event). The push effect skips exactly one run when set —
+     otherwise every hydrate re-pushes the doc it just received, and with two
+     tabs open the echoes fight each other and can resurrect stale state. */
+  const remoteHydrateRef = useRef(false);
 
   useEffect(() => {
     if (!cloudEnabled) return;
@@ -108,6 +113,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
            acceptable, and far safer than the keep-local logic that was dropping
            edits the cloud actually had. */
         try { window.localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(history.present)); } catch { /* ignore */ }
+        remoteHydrateRef.current = true;
         internalDispatch({ type: 'HYDRATE', state: res.doc });
         if (res.updatedAt) setCloudSyncedAt(res.updatedAt);
       } else {
@@ -125,6 +131,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const saveTimer = useRef<number | undefined>(undefined);
   useEffect(() => {
     if (!cloudEnabled || !userId || !cloudReadyRef.current) return;
+    /* This change came from the cloud — don't push it straight back. */
+    if (remoteHydrateRef.current) { remoteHydrateRef.current = false; return; }
     setCloudStatus('syncing');
     window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
@@ -149,6 +157,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!cloudEnabled || !userId) return;
     const unsub = subscribeShared((doc, updatedAt) => {
       if (saveTimer.current) return; // mid-edit locally — don't stomp our work
+      remoteHydrateRef.current = true;
       internalDispatch({ type: 'HYDRATE', state: doc });
       if (updatedAt) setCloudSyncedAt(updatedAt);
       setCloudStatus('synced');

@@ -36,6 +36,7 @@ import type {
   Reference,
   Risk,
   SalesAgent,
+  ScenarioArc,
   ScenarioData,
   ScenarioKey,
   ScenarioPart,
@@ -199,6 +200,7 @@ export const SEED_STORY_EVENTS: StoryEvent[] = [
   { id: 'ev-chengdu',    title: '300m · first woman · Chengdu gold',           kind: 'record',        year: 2025, date: '2025-08-10', summary: 'World Games. Three years after Malta, Zsófia becomes the first woman to 300m in a pool.', personKeys: ['zsofia'], topicIds: ['top-outsider', 'top-record'] },
   { id: 'ev-zsofia-105', title: 'Zsófia · FIM 105m',                           kind: 'record',        year: 2026, date: '2026-04-20', summary: 'An absolute free-immersion world record three years after her first freedive. One of the fastest arrivals the sport has ever seen.', personKeys: ['zsofia'], topicIds: ['top-outsider'] },
   { id: 'ev-etna',       title: 'Etna erupts during the shoot',                kind: 'shoot-moment',  year: 2026, date: '2026-07-04', summary: "The mountain lights up during Petar's monofin window. 'Fire breathes in, water breathes out' stops being a storyboard.", personKeys: ['petar', 'vito', 'sanda', 'zsofia'], shootId: 'shoot-sicily', topicIds: ['top-fear'] },
+  { id: 'ev-zso-wr-lastovo', title: "Zsófia's record at the camp",                    kind: 'record',        year: 2026, date: '2026-08-18', summary: 'Mid-camp, on the Lastovo line — a world record with the camera on her before and after. The film was already there.', personKeys: ['zsofia'], shootId: 'shoot-lastovo', topicIds: ['top-record'] },
   { id: 'ev-pero-blackout', title: "Pero's blackout, Sicily",                 kind: 'crisis',        year: 2026, date: '2026-07-03', summary: "A severe blackout on a deep dive — the safety team on him at the surface, and the camera running. The thing everyone in the sport lives beside, seen. The watchers' faces are the scene.", personKeys: ['petar', 'vito', 'sanda', 'zsofia'], shootId: 'shoot-sicily', topicIds: ['top-blackout', 'top-safety', 'top-fear'] },
   { id: 'ev-hall',       title: 'Hall of Fame induction',                      kind: 'ceremony',      year: 2027,                    summary: 'The same world that branded him stands to applaud. The 2023 thread closes in America.', personKeys: ['vito'], shootId: 'shoot-usa', topicIds: ['top-recognition', 'top-2023'] },
 ];
@@ -339,7 +341,7 @@ export const SEED_SHOOTS: Shoot[] = [
   {
     id: 'shoot-krk',
     key: 'krk',
-    title: 'Krk · the Croatian Championship',
+    title: 'Krk · the Adriatic Championship',
     location: 'Krk island',
     country: 'Croatia',
     lat: 45.03,
@@ -347,10 +349,10 @@ export const SEED_SHOOTS: Shoot[] = [
     status: 'completed',
     startDate: '2026-04-01',
     endDate: '2026-04-07',
-    spirit: 'The way in — the Croatian national depth championship. A real tournament, and the first time the camera meets the four. First competitive dives, first faces at the surface, first words about the sport.',
-    captures: ['the championship · first competitive dives filmed', 'the first surfacing faces', 'who they are · between rounds', 'the bonds, seen', 'each of the four says what the sport is to them'],
+    spirit: 'The way in — the Adriatic Championship. A real tournament, and the first time the camera meets the four. First competitive dives, first faces at the surface, first words about the sport.',
+    captures: ['the Adriatic Championship · first competitive dives filmed', 'the first surfacing faces', 'sides talking about the event and about the four', 'Andre & Toma · first interviews', 'introduction to the sport and the crew', 'first talks of Sicily and Lastovo'],
     presentFour: ['petar','vito','sanda','zsofia'],
-    bible: '# Krk — the Croatian Championship\n\nThe first shoot: a national depth championship on Krk. The film\'s way in — we meet the four, film their first competitive dives, and catch the first expressions and their first thoughts on the sport. Went well.',
+    bible: '# Krk — the Adriatic Championship\n\nThe first shoot: the Adriatic Championship on Krk. The film\'s way in — we meet the four, film their first competitive dives, and catch the first expressions and their first thoughts on the sport. Went well.',
     colorHint: '#4c7a8a',
     notes: 'Done · went well. The championship gave us competition footage + the first interviews.',
   },
@@ -434,50 +436,89 @@ export const SEED_SHOOTS: Shoot[] = [
     status: 'planned',
     startDate: '2026-09-01',
     endDate: '2026-09-27',
-    spirit: "Vito's Hall of Fame induction · vindication made real · and a shared road-trip that could become the coda itself. Fly into SF, drive the Sierra + desert loop, end in Vegas, fly straight to Cyprus.",
+    spirit: "Vito's chapter. Only Vito attends the Hall of Fame — vindication made real — woven into a road-trip with surfing and climbing along the way. The others are training in Sicily.",
     captures: [
       'the ceremony · the applause · the standing',
       "Vito's face during the induction",
-      'the others watching him honoured',
-      'the four together on the road · out of the water · new geography',
-      'if the trip allows · a special dive · or the coda',
+      'surfing + climbing on the road · the diver out of the water',
+      'the trip as the long breath · desert, granite, altitude',
     ],
-    presentFour: ['petar','vito','sanda','zsofia'],
-    bible: `# USA · Hall of Fame + the road-trip
+    presentFour: ['vito'],
+    bible: `# USA · the Hall of Fame
 
-Vito is being inducted into a sports Hall of Fame in the USA. The perfect close to the 2023 thread: the same world that branded him coming, in the end, to honour him.
+Vito is being inducted into a sports Hall of Fame in the USA — the perfect close to the 2023 thread: the same world that branded him coming, in the end, to honour him.
 
-## The RV plan — Vegas → San Francisco
-
-Rent a cool 6-person RV. Drive from Las Vegas to San Francisco through:
-
-- **Death Valley** — otherworldly desert · zero water · the anti-Adriatic · geological time
-- **Mammoth Lakes** — high alpine · thin air (altitude hypoxia connects to Vito's science) · lakes deeper than they look
-- **Yosemite** — El Capitan · granite verticality · Free Solo geography — reference-film soil
-
-The trip is a category for itself: not a shoot around a dive, but four freedivers on solid ground, off-water, out of their world.
-
-## Why an RV, why together
-
-- The four of them living in one vehicle for days · the bond visible, unforced
-- Geographic contrast — everything ABOVE water · desert, mountain, granite
-- No cameras chase them; the cameras live with them
-- Could become the coda: "something together, free"
+Only Vito goes (Pero and Zso are training in Sicily for Cyprus). The trip around the ceremony is his chapter: surfing and climbing along the route — the deep diver on solid ground, above water for once.
 
 ## Editorial
 
-The RV footage is the "long breath" of the film — after every underwater sequence, cut to a moment on the road. Silence between them. The bond off duty.
+The USA footage is the "long breath" of the film — after the underwater chapters, one man on the road being honoured by the world that doubted him.
 
-## Open (fill together — Petar, Vito, Sanda, Zsófia jump in)
-
-- Dates
-- Which RV rental company (Cruise America? RVshare? Outdoorsy?)
-- Route stops in order
-- Any special dives (Mono Lake? Emerald Bay? Ocean cliffs?)
-- Meal / camp discipline
-- Music we play in the RV
-- Who drives what stretch`,
+## Open
+- Exact dates around the ceremony
+- Which surf / climb stops make the film
+- Crew headcount on the road`,
     colorHint: '#a05133',            // deep coral · desert dusk
+  },
+  {
+    id: 'shoot-sicily-training',
+    key: 'sicily-training',
+    title: 'Sicily · the training month',
+    location: 'Sicily · Italy',
+    country: 'Italy',
+    lat: 37.51,
+    lng: 15.09,
+    status: 'planned',
+    startDate: '2026-09-15',
+    spirit: 'A month of training for the Cyprus World Cup — Zso and Pero back in the water where the film found its fire. Alexey Molchanov joins for seven days.',
+    captures: [
+      'the training month · the daily grind toward Cyprus',
+      'Molchanov and Pero training together',
+      'the Pero × Molchanov interview',
+      'pickups · the water, the routine, the countdown',
+    ],
+    presentFour: ['petar','zsofia'],
+    bible: '# Sicily · the training month\n\nMid-September: Zso and Pero settle into Sicily for a month of training toward the World Cup in Cyprus. Alexey Molchanov is there for seven days — training alongside Pero, and sitting for a joint interview. The mentor thread gets a world-scale mirror: the greatest of the era beside the one chasing him.',
+    colorHint: '#c88a5a',            // training amber
+  },
+  {
+    id: 'shoot-sicily-records',
+    key: 'sicily-records',
+    title: 'Sicily · the records attack',
+    location: 'Sicily · Italy',
+    country: 'Italy',
+    lat: 37.51,
+    lng: 15.09,
+    status: 'planned',
+    spirit: 'After Cyprus — back to Sicily to attack the records. What the whole year of training was for.',
+    captures: [
+      'the record attempts',
+      'the surface · the watchers · the cards',
+      "Vito's own deep dive",
+    ],
+    presentFour: ['petar','vito'],
+    bible: '# Sicily · the records attack\n\nAfter the World Championship, the season turns to what it was all building toward: record attempts in Sicily. Pero attacks; and Vito — the teacher, the long-breath man — goes for his own deep dive.',
+    colorHint: '#b54f26',            // record coral
+  },
+  {
+    id: 'shoot-philippines',
+    key: 'philippines',
+    title: 'The Philippines · deeper still',
+    location: 'Philippines',
+    country: 'Philippines',
+    lat: 12.88,
+    lng: 121.77,
+    status: 'planned',
+    startDate: '2027-03-15',
+    spirit: 'March–April 2027. Warmer, clearer, deeper — more records, the best sessions of the film, and the deepest interviews.',
+    captures: [
+      'record attacks in world-class water',
+      'the cool sessions · the film at its most beautiful',
+      'the deep interviews · a year of story behind them',
+    ],
+    presentFour: ['petar','vito','sanda','zsofia'],
+    bible: '# The Philippines · deeper still\n\nSpring 2027. The season the film has earned: more records, sessions in the clearest water of the shoot, and the deepest interviews — asked with a year of shared story behind them.',
+    colorHint: '#3d7a94',            // clear-water teal
   },
   {
     id: 'shoot-coda',
@@ -647,6 +688,7 @@ export const SEED_RECORDS: DivingRecord[] = [
   { id: 'rec-sanda-fim-98',  personKey: 'sanda',  discipline: 'FIM',   scope: 'world',    depthM: 98,        date: '2023-05-15', event: 'AIDA World Cup',                                 location: 'Sharm el Sheikh, Egypt',            status: 'broken',   brokenByRecordId: 'rec-sanda-fim-103', notes: 'Her first FIM world record · 3:58 dive time.' },
   { id: 'rec-sanda-fim-103', personKey: 'sanda',  discipline: 'FIM',   scope: 'world',    depthM: 103,       date: '2025-05-04', event: 'FIM world record',                               location: 'Mabini, Philippines',               status: 'broken',   brokenByRecordId: 'rec-zsofia-fim', notes: 'Among fewer than ten women ever past 100m. 12 national records behind it.' },
   { id: 'rec-zsofia-fim',    personKey: 'zsofia', discipline: 'FIM',   scope: 'world',    depthM: 105,       date: '2026-04-20', event: 'Absolute FIM world record',                      location: '',                                   status: 'standing', notes: "Two metres past her best friend's number. The record that passed between them." },
+  { id: 'rec-zsofia-fim-lastovo', personKey: 'zsofia', discipline: 'FIM', scope: 'world',                    date: '2026-08-18', event: 'World record · Lastovo training camp',            location: 'Lastovo, Croatia',                   status: 'pending-ratification', notes: 'Set mid-camp on the Lastovo line, filmed before and after. Depth to confirm — supersedes the 105 once ratified.' },
   { id: 'rec-zsofia-dyn280', personKey: 'zsofia', discipline: 'DYN',   scope: 'world',    distanceM: 280,    date: '2025-04-15', event: 'DYN world record',                               location: '',                                   status: 'broken',   brokenByRecordId: 'rec-zsofia-dyn', notes: 'Broken by her own 300 four months later.' },
   { id: 'rec-zsofia-dyn',    personKey: 'zsofia', discipline: 'DYN',   scope: 'world',    distanceM: 300,    date: '2025-08-10', event: 'World Games',                                    location: 'Chengdu, China',                    status: 'standing', notes: 'First woman to 300m in a pool · gold.' },
 ];
@@ -1274,8 +1316,8 @@ export const SEED_USA_TRIP: UsaTrip = {
   startCity: 'San Francisco',
   endCity: 'Las Vegas',
   flyOnTo: 'Cyprus',
-  people: 6,
-  rvNote: '6-berth Class C RV. Fly into SFO, pick up the RV, catch the last 3 days of Burning Man, loop the Sierra + desert, drop in Las Vegas, fly LAS → Cyprus.',
+  people: 4,
+  rvNote: 'Vito + film crew (headcount to confirm — planned as 4). Fly into SFO, pick up the RV, loop the Sierra + desert with surf/climb stops, the Hall of Fame ceremony, drop in Las Vegas, fly LAS → Cyprus.',
   stops: [
     {
       id: 'stop-sf', name: 'San Francisco', role: 'start', nights: 3, driveMiles: 0, driveHours: 0,
@@ -1385,7 +1427,7 @@ export const SEED_USA_TRIP: UsaTrip = {
     { id: 'cost-rv',     label: 'RV rental (6-berth · incl. one-way drop)', category: 'rv',    amountUsd: 4000, per: 'trip',  notes: 'Whole-trip 6-berth Class C, one-way SF→Vegas.' },
     { id: 'cost-fuel',   label: 'Fuel (~1200 mi @ ~9 mpg)',      category: 'fuel',      amountUsd: 620, per: 'trip',   notes: 'Class C is thirsty; California gas is dear.' },
     { id: 'cost-camp',   label: 'RV parks / campgrounds',        category: 'camp',      amountUsd: 65,  per: 'night' },
-    { id: 'cost-food',   label: 'Food (group, per day)',         category: 'food',      amountUsd: 210, per: 'day',    notes: '~$35/person/day × 6.' },
+    { id: 'cost-food',   label: 'Food (group, per day)',         category: 'food',      amountUsd: 140, per: 'day',    notes: '~$35/person/day × 4 (Vito + crew).' },
     { id: 'cost-parks',  label: 'America the Beautiful park pass',category: 'park',      amountUsd: 80,  per: 'trip' },
     /* Flights are deliberately out of this tracker — it costs the road-trip
        on the ground. Air fare is budgeted elsewhere. */
@@ -1406,13 +1448,29 @@ export const SEED_INTERVIEWS: Interview[] = [
   { id: 'int-krk-zsofia', shootId: 'shoot-krk', personKey: 'zsofia', setting: 'poolside', date: '2026-04-05', durationMin: 50, status: 'transcribed', threadIds: ['t6'],       topicIds: ['top-outsider'],                 standoutQuotes: ["Three years ago I couldn't equalise. Nobody here lets me forget how lucky that makes me."] },
 
   /* Sicily · July 2026 · around the attempt + the volcano */
-  { id: 'int-sic-petar',  shootId: 'shoot-sicily', personKey: 'petar', setting: 'shore',   date: '2026-07-05', durationMin: 40, status: 'captured', threadIds: ['t3', 't8'],  topicIds: ['top-record', 'top-fear'], eventIds: ['ev-etna'], standoutQuotes: ["The mountain wouldn't stop breathing. So I did."] },
+  { id: 'int-sic-petar',  shootId: 'shoot-sicily', personKey: 'petar', setting: 'shore',   date: '2026-07-05', durationMin: 40, status: 'captured', threadIds: ['t3', 't8'],  topicIds: ['top-record', 'top-fear', 'top-blackout'], eventIds: ['ev-etna', 'ev-pero-blackout'], standoutQuotes: ["The mountain wouldn't stop breathing. So I did."], notes: 'Includes the interview after the blackout and the boat pickup.' },
   { id: 'int-sic-vito',   shootId: 'shoot-sicily', personKey: 'vito',  setting: 'volcano', date: '2026-07-04', durationMin: 35, status: 'captured', threadIds: ['t8', 't10'], topicIds: ['top-fear', 'top-longdeep'], eventIds: ['ev-etna'], notes: 'The volcano interview — swing #7. Golden hour on the cooled lava.' },
+  { id: 'int-sic-duo-pero-vito', shootId: 'shoot-sicily', personKey: 'other', subjectLabel: 'Pero & Vito', setting: 'boat', date: '2026-07-05', status: 'captured', threadIds: ['t1', 't10'], topicIds: ['top-bond'], notes: 'First duo — the student and the teacher, on the boat between dives.' },
+  { id: 'int-sic-duo-zso-sanda', shootId: 'shoot-sicily', personKey: 'other', subjectLabel: 'Zso & Sanda', setting: 'boat', date: '2026-07-05', status: 'captured', threadIds: ['t5'], topicIds: ['top-friendship'], notes: 'First duo — the two at the deep end.' },
+
+  /* Krk · the championship · sides + first outside voices */
+  { id: 'int-krk-andre-toma', shootId: 'shoot-krk', personKey: 'other', subjectLabel: 'Andre & Toma', setting: 'shore', date: '2026-04-04', status: 'captured', threadIds: [], topicIds: ['top-sport'], notes: 'First interviews with Andre and Toma at the championship.' },
+  { id: 'int-krk-voices', shootId: 'shoot-krk', personKey: 'other', subjectLabel: 'Voices at the championship', setting: 'shore', date: '2026-04-03', status: 'captured', threadIds: ['t1'], topicIds: ['top-sport', 'top-bond'], notes: 'Sides talking about the event and about the four.' },
 
   /* Lastovo · August 2026 · the training camp · captured (chained follow-ups) */
   { id: 'int-las-petar',  shootId: 'shoot-lastovo', personKey: 'petar', setting: 'boat',  date: '2026-08-17', status: 'captured', threadIds: ['t1', 't2', 't8'], topicIds: ['top-bond', 'top-2023', 'top-blackout', 'top-equalize'], followUpOfId: 'int-krk-petar',  notes: 'Follow-up: Krk answers on the bond, now with 2023 open. Also opened the blackout and equalization.' },
+  { id: 'int-las-vito',   shootId: 'shoot-lastovo', personKey: 'vito',  setting: 'shore', date: '2026-08-19', status: 'captured', threadIds: ['t7', 't2'], topicIds: ['top-body', 'top-2023', 'top-sport'], followUpOfId: 'int-krk-vito', notes: 'Solo — the teacher on the sport itself, and 2023 in his own words.' },
   { id: 'int-las-sanda',  shootId: 'shoot-lastovo', personKey: 'sanda', setting: 'shore', date: '2026-08-18', status: 'captured', threadIds: ['t5', 't2', 't4'], topicIds: ['top-friendship', 'top-2023', 'top-safety', 'top-sport'], followUpOfId: 'int-krk-sanda',  notes: 'Follow-up on the deep + the friendship, with 2023 open. The safety team and the sport itself.' },
+  { id: 'int-las-zsofia', shootId: 'shoot-lastovo', personKey: 'zsofia', setting: 'boat', date: '2026-08-18', status: 'captured', threadIds: ['t6', 't3'], topicIds: ['top-record', 'top-outsider'], eventIds: ['ev-zso-wr-lastovo'], followUpOfId: 'int-krk-zsofia', notes: 'The record day — interviewed before AND after the world-record dive.' },
+  { id: 'int-las-duo-pero-zso', shootId: 'shoot-lastovo', personKey: 'other', subjectLabel: 'Pero & Zso', setting: 'boat', date: '2026-08-20', status: 'captured', threadIds: ['t1'], topicIds: ['top-bond'], notes: 'The couple duo — partners in the sport and the deep.' },
+  { id: 'int-las-andre-mariano', shootId: 'shoot-lastovo', personKey: 'other', subjectLabel: 'Andre & Mariano', setting: 'shore', date: '2026-08-19', status: 'captured', threadIds: [], topicIds: ['top-sport', 'top-safety'] },
+  { id: 'int-las-denis', shootId: 'shoot-lastovo', personKey: 'other', subjectLabel: 'Denis', setting: 'shore', date: '2026-08-19', status: 'captured', threadIds: [], topicIds: ['top-safety', 'top-sport'] },
+  { id: 'int-las-mikey-michael', shootId: 'shoot-lastovo', personKey: 'other', subjectLabel: 'Mikey & Michael', setting: 'shore', date: '2026-08-21', status: 'captured', threadIds: [], topicIds: ['top-sport'] },
+  { id: 'int-las-students', shootId: 'shoot-lastovo', personKey: 'other', subjectLabel: 'Camp students', setting: 'poolside', date: '2026-08-21', status: 'captured', threadIds: [], topicIds: ['top-sport', 'top-outsider'], notes: 'Students of the camps — the sport through fresh eyes.' },
   { id: 'int-las-together', shootId: 'shoot-lastovo', personKey: 'together', setting: 'boat', date: '2026-08-20', status: 'captured', threadIds: ['t2', 't7'], topicIds: ['top-2023', 'top-sport', 'top-blackout'], eventIds: ['ev-storm', 'ev-pero-blackout'], notes: 'The four together. The 2023 conversation happened here at last — and the sport, laid bare.' },
+
+  /* Sicily · the training month · planned */
+  { id: 'int-sic2-pero-molchanov', shootId: 'shoot-sicily-training', personKey: 'other', subjectLabel: 'Pero & Alexey Molchanov', setting: 'shore', date: '2026-09-25', status: 'planned', threadIds: ['t3'], topicIds: ['top-record', 'top-sport'], notes: 'Their training together — Molchanov joins the camp for seven days.' },
 ];
 
 /* ---------- Pitch Deck (v0.14) — the card library + starter decks ----------
@@ -1561,43 +1619,79 @@ export const SEED_PITCH_DECKS: PitchDeck[] = [
   },
 ];
 
-/* ---------- The Scenario · the film's screenplay, part by part (v0.21) ----------
-   Three shot, three to come. Grounded in what actually happened on each shoot;
-   the interviews/topics/threads referenced are the real ones in this seed. */
+/* ---------- The Scenario · the four stories + the screenplay (v0.22) ----------
+   The spine first: four connected stories the whole film braids together. Then
+   the parts — three shot, six ahead — each declaring which stories it advances.
+   Grounded in what actually happened; the interviews/topics/threads referenced
+   are the real ones in this seed.
+
+   SCENARIO_SEED_VERSION gates the content upgrade: any stored doc (local or the
+   shared cloud doc) below this generation gets these parts+arcs on load. Bump it
+   whenever the seeded narrative is rewritten wholesale. */
+
+export const SCENARIO_SEED_VERSION = 2;
+
+export const SEED_SCENARIO_ARCS: ScenarioArc[] = [
+  {
+    id: 'arc-mentor', num: 1, title: 'Pero the student & Vito the teacher',
+    synopsis: 'The mentor who almost left the sport and the student who overtook everyone — a record passed from hand to hand, and what teaching costs.',
+    personKeys: ['petar', 'vito'], colorHint: '#3d7a94',
+  },
+  {
+    id: 'arc-unit', num: 2, title: 'The four as one unit',
+    synopsis: 'Two couples, one mentor at the centre, one sport between them. When one goes down, three wait at the surface — the film’s thesis, lived.',
+    personKeys: ['petar', 'vito', 'sanda', 'zsofia'], colorHint: '#d96c3d',
+  },
+  {
+    id: 'arc-records', num: 3, title: 'Pero attacking records',
+    synopsis: 'From the blackout in Sicily to the World Cup to the record attacks — the cost of the last metre, paid in public, one attempt at a time.',
+    personKeys: ['petar'], colorHint: '#c9a961',
+  },
+  {
+    id: 'arc-vito-deep', num: 4, title: "Vito's deep dive",
+    synopsis: 'The long-breath man goes deep. The teacher’s own attempt — not for the student, not for the sport, for himself.',
+    personKeys: ['vito'], colorHint: '#123c68',
+  },
+];
 
 export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
   {
-    id: 'sp-krk', order: 1, title: 'Krk · the Croatian Championship', kicker: 'Part one · the way in',
+    id: 'sp-krk', order: 1, title: 'Krk · the Adriatic Championship', kicker: 'Part one · the way in',
     location: 'Krk island, Croatia', dateLabel: '1–7 April 2026', status: 'shot', shootId: 'shoot-krk',
-    background: 'The first shoot, and the film\'s way in: the Croatian national depth championship on Krk. A real tournament — which meant real competitive dives and the four in their element from the first frame, before anyone had to perform for a camera.',
-    whatHappened: 'The championship ran well. We filmed the first competitive dives and caught the first faces at the surface. Between rounds, each of the four sat down for the first time and told us, in their own words, what the sport is to them — the raw material for everything the film builds on. This is "the before": who they are, and the bonds between them, before Sicily raises the stakes.',
+    arcIds: ['arc-mentor', 'arc-unit'],
+    background: 'The first shoot, and the film’s way in: the Adriatic Championship on Krk. A real tournament — real competitive dives, the four in their element from the first frame, and the sport introduced from inside.',
+    whatHappened: 'The championship ran well and gave the film its opening world. We introduced the four, filmed the first competitive dives, and gathered sides — people around the event talking about it and about the four. Andre and Toma sat for their first interviews. The sport and the crew got their introduction, and the first talks of what comes next — Sicily, Lastovo — were had on camera.',
     peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
-    topicIds: ['top-bond', 'top-record', 'top-deep', 'top-outsider'],
+    topicIds: ['top-bond', 'top-record', 'top-sport', 'top-outsider'],
     threadIds: ['t1', 't3', 't4', 't6'],
-    interviewIds: ['int-krk-petar', 'int-krk-vito', 'int-krk-sanda', 'int-krk-zsofia'],
+    interviewIds: ['int-krk-petar', 'int-krk-vito', 'int-krk-sanda', 'int-krk-zsofia', 'int-krk-andre-toma', 'int-krk-voices'],
     beats: [
-      { id: 'b-krk-1', text: 'First competitive dives, filmed at a real championship' },
-      { id: 'b-krk-2', text: 'The first surfacing faces — the film\'s recurring image, established' },
-      { id: 'b-krk-3', text: 'Four first-time interviews: what the sport means to each of them' },
-      { id: 'b-krk-4', text: 'The bonds, seen — on the boat, between rounds' },
+      { id: 'b-krk-1', text: 'Intro of the four' },
+      { id: 'b-krk-2', text: 'The Adriatic Championship — first competitive dives filmed' },
+      { id: 'b-krk-3', text: 'Sides talking about the event and about the four' },
+      { id: 'b-krk-4', text: 'Andre & Toma — first interviews' },
+      { id: 'b-krk-5', text: 'Introduction to the sport and the crew' },
+      { id: 'b-krk-6', text: 'First talks of Sicily and Lastovo' },
     ],
     colorHint: '#4c7a8a',
   },
   {
-    id: 'sp-sicily', order: 2, title: "Sicily · the record attempt", kicker: 'Part two · fire and water',
+    id: 'sp-sicily', order: 2, title: 'Sicily · the record attempt', kicker: 'Part two · fire and water',
     location: 'Catania, next to Etna · Italy', dateLabel: '1–6 July 2026 · 5 days', status: 'shot', shootId: 'shoot-sicily',
-    background: 'Five days in Sicily for Petar\'s monofin world-record attempt — the no-fins purist going for raw depth in a new discipline. The camera meets all four in a real attempt, where the dive comes first and we shoot around it.',
-    whatHappened: 'The vibe was extraordinary. We witnessed the record attempt — and a severe blackout on one of Pero\'s deep dives, the safety team on him at the surface with the camera running: the thing the whole sport lives beside, seen. One day the sea shut us out, so we turned it into an interview day and got a great deal. And then Etna erupted in the middle of it all — "fire breathes in, water breathes out" stopped being a storyboard and became footage no script could buy.',
+    arcIds: ['arc-records', 'arc-mentor', 'arc-unit'],
+    background: 'Five days in Sicily for Pero’s world-record attempt — the camera inside a real attempt, where the dive comes first and the film shoots around it.',
+    whatHappened: 'The attempt ended in a severe blackout — the safety team on him, the boat pickup, and the interview after, all filmed. The scare the whole sport lives beside, seen honestly. Around it: preparation days and a stack of boat pickups about the dives, the first solo interviews, and the first duos — Pero with Vito, Zso with Sanda. One day the sea shut us out and became an interview day. And Etna erupted in the middle of it all — footage no script could buy.',
     peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
     topicIds: ['top-record', 'top-fear', 'top-blackout', 'top-safety', 'top-longdeep'],
-    threadIds: ['t3', 't8', 't10'],
-    interviewIds: ['int-sic-petar', 'int-sic-vito'],
+    threadIds: ['t3', 't8', 't10', 't1', 't5'],
+    interviewIds: ['int-sic-petar', 'int-sic-vito', 'int-sic-duo-pero-vito', 'int-sic-duo-zso-sanda'],
     eventIds: ['ev-etna', 'ev-pero-blackout'],
     beats: [
-      { id: 'b-sic-1', text: 'The monofin record attempt — Petar\'s face at the surface, every dive' },
-      { id: 'b-sic-2', text: "Pero's severe blackout — the safety team, the watchers' faces, filmed" },
-      { id: 'b-sic-3', text: 'The no-dive day → a day of interviews' },
-      { id: 'b-sic-4', text: 'Etna erupts mid-shoot · the volcano interview at golden hour' },
+      { id: 'b-sic-1', text: 'The WR attempt → the blackout → boat pickup → the interview after' },
+      { id: 'b-sic-2', text: 'Preparation + boat pickups about the dives' },
+      { id: 'b-sic-3', text: 'First solo interviews' },
+      { id: 'b-sic-4', text: 'First duos — Pero & Vito · Zso & Sanda' },
+      { id: 'b-sic-5', text: 'Etna erupts mid-shoot · the volcano interview at golden hour' },
     ],
     quotes: ["The mountain wouldn't stop breathing. So I did."],
     colorHint: '#d96c3d',
@@ -1605,71 +1699,131 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
   {
     id: 'sp-lastovo', order: 3, title: 'Lastovo · the training camp', kicker: 'Part three · the engine room',
     location: 'Lastovo island, Croatia', dateLabel: '15–22 August 2026', status: 'shot', shootId: 'shoot-lastovo',
-    background: 'A training camp on Lastovo — and the film\'s engine room. Where we went deeper into the topics and opened most of the themes that carry the rest of the film. The first real cinematic presentation of freediving as a sport, from the inside.',
-    whatHappened: 'We got deeper. Around the daily discipline of a training camp — breathing, equalization, the craft of it — we opened the themes the rest of the film runs on: freediving as a sport, training and equalization, the blackout, the safety team, and finally 2023. The conversation about the storm happened here at last, never pushed, when the week was ready for it.',
+    arcIds: ['arc-unit', 'arc-mentor'],
+    background: 'The training camp — where the film went deeper. The sport presented from inside, the themes opened, and a world record nobody scripted.',
+    whatHappened: 'Zso set a world record mid-camp — interviewed before and after the dive; the film was already there. Around it: the presentation of freediving itself — training sessions, dives, masterclasses, short pickups — and a constant stream of small talks around the camp and the boat. The interview block ran deep: all four solo, the first time 2023 was spoken about, Denis, Mikey and Michael, the Pero & Zso duo, Andre and Mariano, and students of the camps.',
     peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
-    topicIds: ['top-sport', 'top-equalize', 'top-blackout', 'top-safety', 'top-2023', 'top-body'],
-    threadIds: ['t1', 't2', 't4', 't7', 't8'],
-    interviewIds: ['int-las-petar', 'int-las-sanda', 'int-las-together'],
-    eventIds: ['ev-storm'],
+    topicIds: ['top-sport', 'top-equalize', 'top-blackout', 'top-safety', 'top-2023', 'top-record'],
+    threadIds: ['t1', 't2', 't4', 't6', 't7', 't8'],
+    interviewIds: ['int-las-petar', 'int-las-vito', 'int-las-sanda', 'int-las-zsofia', 'int-las-together', 'int-las-duo-pero-zso', 'int-las-andre-mariano', 'int-las-denis', 'int-las-mikey-michael', 'int-las-students'],
+    eventIds: ['ev-zso-wr-lastovo', 'ev-storm'],
     beats: [
-      { id: 'b-las-1', text: 'The training camp: breathing, equalization, daily discipline' },
-      { id: 'b-las-2', text: 'Freediving as a sport, laid bare from the inside' },
-      { id: 'b-las-3', text: 'New themes opened: the blackout, the safety team' },
-      { id: 'b-las-4', text: 'The 2023 conversation — opened at last, on the four\'s own terms' },
+      { id: 'b-las-1', text: 'Zso’s world record — interviewed before and after' },
+      { id: 'b-las-2', text: 'Presentation of freediving — the sport from inside' },
+      { id: 'b-las-3', text: 'Training sessions, dives, masterclasses, short pickups' },
+      { id: 'b-las-4', text: 'Small pickups and talks around the camp and the boat' },
+      { id: 'b-las-5', text: 'All four solo · first time 2023 · Denis · Mikey & Michael · Pero & Zso · Andre & Mariano · camp students' },
     ],
     colorHint: '#6f8a72',
   },
   /* ---- to come · open blocks ---- */
   {
-    id: 'sp-usa', order: 4, title: 'The USA · Hall of Fame + the road-trip', kicker: 'Part four · recognition',
+    id: 'sp-usa', order: 4, title: 'The USA · the Hall of Fame', kicker: 'Part four · recognition',
     location: 'San Francisco → Las Vegas · USA', dateLabel: 'September 2026', status: 'upcoming', shootId: 'shoot-usa',
-    background: 'The recognition chapter. Vito\'s Hall of Fame induction in the country that once branded the sport, wrapped in an RV road-trip for the four — the world correcting itself, on the move.',
+    arcIds: ['arc-mentor'],
+    background: 'Vito’s chapter, alone. Only he goes — inducted into the Hall of Fame by the world that once branded him — and the trip around the ceremony is his: surfing and climbing along the road, the deep diver on solid ground. Meanwhile Zso and Pero are training in Sicily.',
     whatHappened: '',
-    peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
+    peopleKeys: ['vito'],
     topicIds: ['top-recognition', 'top-2023'],
     threadIds: ['t9', 't2'],
     interviewIds: [],
     eventIds: ['ev-hall'],
     beats: [
-      { id: 'b-usa-1', text: 'The Hall of Fame induction — the recognition beat', done: false },
-      { id: 'b-usa-2', text: 'The road-trip: the four off the water, together', done: false },
+      { id: 'b-usa-1', text: 'The Hall of Fame induction — only Vito', done: false },
+      { id: 'b-usa-2', text: 'Surfing + climbing stops along the trip', done: false },
       { id: 'b-usa-3', text: 'Does the 2023 thread close here?', done: false },
     ],
-    notes: 'Open block — to plan. See the USA Trip module for the itinerary + costs.',
+    notes: 'Open block — to plan. See the USA Trip module for the itinerary + costs (Vito + film crew).',
     colorHint: '#c9a961',
   },
   {
-    id: 'sp-cyprus', order: 5, title: 'Cyprus · the World Championship', kicker: 'Part five · the world stage',
+    id: 'sp-sicily-training', order: 5, title: 'Sicily · the training month', kicker: 'Part five · the build-up',
+    location: 'Sicily · Italy', dateLabel: 'mid-September → October 2026', status: 'upcoming', shootId: 'shoot-sicily-training',
+    arcIds: ['arc-records'],
+    background: 'Zso and Pero settle into Sicily for a month, training for the World Cup in Cyprus. Alexey Molchanov joins for seven days — the greatest of the era training beside the one chasing him.',
+    whatHappened: '',
+    peopleKeys: ['petar', 'zsofia'],
+    topicIds: ['top-record', 'top-sport'],
+    threadIds: ['t3'],
+    interviewIds: ['int-sic2-pero-molchanov'],
+    beats: [
+      { id: 'b-st-1', text: 'The training month — the daily grind toward Cyprus', done: false },
+      { id: 'b-st-2', text: 'Molchanov at the camp — seven days', done: false },
+      { id: 'b-st-3', text: 'Pero & Molchanov — the interview + their training together', done: false },
+    ],
+    notes: 'Open block — to plan.',
+    colorHint: '#c88a5a',
+  },
+  {
+    id: 'sp-cyprus', order: 6, title: 'Cyprus · the World Championship', kicker: 'Part six · the world stage',
     location: 'Cyprus', dateLabel: 'October 2026', status: 'upcoming', shootId: 'shoot-cyprus',
-    background: 'The world stage. A world championship where the four dive against the best — the competitive climax the earlier parts have been building toward.',
+    arcIds: ['arc-unit', 'arc-records'],
+    background: 'The world stage — the competitive climax the year has been building toward. The plan here has to be careful: which topics, which people, which interviews. Film the competition if possible, and connect everything gathered so far.',
     whatHappened: '',
     peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
     topicIds: ['top-record', 'top-recognition'],
     threadIds: ['t3', 't9'],
     interviewIds: [],
     beats: [
-      { id: 'b-cyp-1', text: 'The world championship dives', done: false },
-      { id: 'b-cyp-2', text: 'The four against the world — where do they stand?', done: false },
+      { id: 'b-cyp-1', text: 'Carefully plan the topics, people and interviews', done: false },
+      { id: 'b-cyp-2', text: 'Film the competition — if possible', done: false },
+      { id: 'b-cyp-3', text: 'Connect everything gathered so far', done: false },
     ],
     notes: 'Open block — to plan.',
     colorHint: '#5b7da1',
   },
   {
-    id: 'sp-sicily2', order: 6, title: 'Sicily · the tournament, again', kicker: 'Part six · full circle',
-    location: 'Sicily · Italy', dateLabel: 'TBD', status: 'upcoming',
-    background: 'A return to Sicily for a tournament — closing the circle on the place where the film found its fire. What has changed since the record attempt and the eruption?',
+    id: 'sp-sicily-records', order: 7, title: 'Sicily · the records attack', kicker: 'Part seven · the attack',
+    location: 'Sicily · Italy', dateLabel: 'after Cyprus · late 2026', status: 'upcoming', shootId: 'shoot-sicily-records',
+    arcIds: ['arc-records', 'arc-vito-deep', 'arc-mentor'],
+    background: 'After the championship, the season turns to what it was all for: the records. Pero attacks — and Vito goes for his own deep dive.',
     whatHappened: '',
-    peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
-    topicIds: ['top-record', 'top-surface'],
-    threadIds: ['t3'],
+    peopleKeys: ['petar', 'vito'],
+    topicIds: ['top-record', 'top-longdeep'],
+    threadIds: ['t3', 't10'],
     interviewIds: [],
     beats: [
-      { id: 'b-sic2-1', text: 'Return to Sicily · the tournament', done: false },
-      { id: 'b-sic2-2', text: 'Full circle from the eruption — what has changed?', done: false },
+      { id: 'b-sr-1', text: 'The record attacks', done: false },
+      { id: 'b-sr-2', text: "Vito's deep dive — the teacher's own attempt", done: false },
     ],
-    notes: 'Open block — to plan. A new return trip, not the July shoot.',
+    notes: 'Open block — to plan.',
     colorHint: '#b54f26',
+  },
+  {
+    id: 'sp-philippines', order: 8, title: 'The Philippines · deeper still', kicker: 'Part eight · the far water',
+    location: 'Philippines', dateLabel: 'March–April 2027', status: 'upcoming', shootId: 'shoot-philippines',
+    arcIds: ['arc-records', 'arc-vito-deep'],
+    background: 'Spring 2027, world-class water: attacking more records, the most beautiful sessions of the film, and the deepest interviews — asked with a year of shared story behind them.',
+    whatHappened: '',
+    peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
+    topicIds: ['top-record', 'top-deep'],
+    threadIds: ['t3', 't4'],
+    interviewIds: [],
+    beats: [
+      { id: 'b-ph-1', text: 'Attacking more records', done: false },
+      { id: 'b-ph-2', text: 'The cool sessions — the film at its most beautiful', done: false },
+      { id: 'b-ph-3', text: 'The deep interviews — a year of story behind them', done: false },
+    ],
+    notes: 'Open block — to plan.',
+    colorHint: '#3d7a94',
+  },
+  {
+    id: 'sp-2023', order: 9, title: 'The 2023 sessions · studio', kicker: 'The chapter apart',
+    location: 'Rijeka — studio · pool · gym', dateLabel: 'TBD', status: 'idea', shootId: 'shoot-rijeka-zagreb',
+    arcIds: ['arc-unit'],
+    background: 'The storm gets its own room. Controlled studio sessions in Rijeka — or on the pool, or in the gym — where the 2023 chapter is told properly: framed, lit, unhurried. Opened at Lastovo; finished here.',
+    whatHappened: '',
+    peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
+    topicIds: ['top-2023', 'top-recognition'],
+    threadIds: ['t2', 't9'],
+    interviewIds: [],
+    beats: [
+      { id: 'b-23-1', text: 'Studio sittings — the four, framed and lit', done: false },
+      { id: 'b-23-2', text: 'Pool / gym setups as alternative rooms', done: false },
+      { id: 'b-23-3', text: 'Assemble the chapter with the evidence library', done: false },
+    ],
+    notes: 'Open block — venue and timing to decide.',
+    colorHint: '#2f4b6e',
   },
 ];
 
@@ -1725,6 +1879,8 @@ export function makeInitialState(): AppState {
     pitchCards: SEED_PITCH_CARDS,
     pitchDecks: SEED_PITCH_DECKS,
     scenarioParts: SEED_SCENARIO_PARTS,
+    scenarioArcs: SEED_SCENARIO_ARCS,
+    scenarioSeedVersion: SCENARIO_SEED_VERSION,
     tasks: [],
     notes: [],
     assets: [],
