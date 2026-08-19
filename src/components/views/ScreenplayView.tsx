@@ -282,6 +282,11 @@ function PartCard({ part, isFirst, isLast, onArcClick }: { part: ScenarioPart; i
               <EditableText value={part.location} placeholder="location…" editing={editing} onSave={(v) => patch({ location: v })} className="prose-body italic text-[12px] text-[color:var(--color-on-paper-muted)]" />
               <span className="text-[color:var(--color-on-paper-faint)]">·</span>
               <EditableText value={part.dateLabel} placeholder="when…" editing={editing} onSave={(v) => patch({ dateLabel: v })} className="prose-body italic text-[12px] text-[color:var(--color-on-paper-muted)]" />
+              {(part.episodeHint || editing) && (
+                <span className="inline-flex items-center rounded-full border-[0.5px] border-[color:var(--color-border-paper-strong)] px-2 py-[1px]">
+                  <EditableText value={part.episodeHint ?? ''} placeholder="Ep · …" editing={editing} onSave={(v) => patch({ episodeHint: v })} className="font-sans text-[11px] tracking-[0.06em] text-[color:var(--color-on-paper-muted)]" />
+                </span>
+              )}
             </div>
           </div>
           <button

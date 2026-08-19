@@ -33,7 +33,7 @@ const CONTENT: Record<Audience, PitchContent> = {
       'Athlete-level partnerships — each of the four carries their own audience and record headlines.',
     ],
     proof: [
-      'Two of seven shoots complete (Krk, Sicily) — footage exists, not promises.',
+      'Three of ten shoots complete (Krk, Sicily, Lastovo) — footage exists, not promises.',
       'All four leads locked, exclusive access, releases in progress.',
       'Record headlines from our cast covered by France24, Guinness, DeeperBlue, Divernet within the last 14 months.',
     ],
@@ -50,7 +50,7 @@ const CONTENT: Record<Audience, PitchContent> = {
       'Development already self-financed — HAVC enters a moving train.',
     ],
     proof: [
-      'Two shoots complete on schedule and self-funded.',
+      'Three shoots complete on schedule and self-funded — two on Croatian locations (Krk, Lastovo).',
       'University of Rijeka scientific collaboration attached (Vito on teaching staff).',
       'Clear festival strategy: world premiere international, home premiere ZagrebDox.',
     ],

@@ -231,6 +231,7 @@ export type ShootKey =
   | 'sicily-training'
   | 'sicily-records'
   | 'philippines'
+  | '2023-studio'
   | 'coda';
 
 export type ShootStatus =
@@ -1175,8 +1176,8 @@ export interface ScenarioBeat {
 export interface ScenarioPart {
   id: string;
   order: number;
-  title: string;            // "Krk · the Croatian Championship"
-  kicker?: string;          // "Part one · the before"
+  title: string;            // "Krk · the Adriatic Championship"
+  kicker?: string;          // "Part one · the way in"
   location: string;
   dateLabel: string;        // "1–7 April 2026" · free text
   status: ScenarioPartStatus;
@@ -1192,6 +1193,7 @@ export interface ScenarioPart {
   eventIds?: string[];      // story events this part touches
   beats: ScenarioBeat[];    // scene beats / bullets (or a shot-list for upcoming)
   quotes?: string[];        // standout lines
+  episodeHint?: string;     // where this part lands in the format — "Ep 1 · The Bond" / "Feature spine"
   colorHint?: string;
   notes?: string;           // editor's notes
 }

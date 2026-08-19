@@ -180,29 +180,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
-  /* Temporary diagnostic — window.__ddDebug() compares the cloud doc, the local
-     doc, and the sync marker for the Sicily-again beats, so we can see exactly
-     where an edit lands (or fails to). Remove once sync is confirmed. */
-  useEffect(() => {
-    if (!cloudEnabled) return;
-    const pick = (doc: unknown) => {
-      const parts = (doc as { scenarioParts?: Array<{ id: string; beats?: Array<{ text: string; done?: boolean }> }> })?.scenarioParts;
-      const p = parts?.find((x) => x.id === 'sp-sicily2');
-      return p?.beats?.map((b) => ({ t: b.text.slice(0, 18), done: !!b.done }));
-    };
-    (window as unknown as { __ddDebug: () => Promise<unknown> }).__ddDebug = async () => {
-      const res = await loadSharedDoc();
-      let local: unknown = {};
-      try { local = JSON.parse(localStorage.getItem('deep-dive-dashboard-v16') || '{}'); } catch { /* ignore */ }
-      return {
-        cloudUpdatedAt: res?.updatedAt ?? 'NO CLOUD DOC',
-        cloudBeats: res ? pick(res.doc) : 'NO CLOUD DOC',
-        localMarker: getCloudSyncedAt(),
-        localBeats: pick(local),
-      };
-    };
-  }, []);
-
   const signOut = useCallback(async () => {
     await signOutCloud();
     cloudReadyRef.current = false;

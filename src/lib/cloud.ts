@@ -113,36 +113,8 @@ export async function saveSharedDoc(state: AppState): Promise<{ error?: string; 
     .select('updated_at')
     .maybeSingle();
   if (error) { console.error('[cloud] save failed:', error.message); return { error: error.message }; }
-  if (!data) { console.error('[cloud] save wrote 0 rows — RLS filtered it'); return { error: 'write did not persist (0 rows) — check table policies' }; }
+  if (!data) { console.error('[cloud] save wrote 0 rows'); return { error: 'write did not persist — refresh this tab (it may be running an old build)' }; }
   return { updatedAt: (data.updated_at as string) ?? updatedAt };
-}
-
-/* Diagnostic: is this tab's auth actually alive at the server? An expired or
-   broken token makes writes silently act as anon (filtered to nothing). */
-export async function authInfo(): Promise<string> {
-  if (!cloud) return 'cloud off';
-  const { data } = await cloud.auth.getSession();
-  const exp = data.session?.expires_at ? new Date(data.session.expires_at * 1000) : null;
-  const expIn = exp ? Math.round((exp.getTime() - Date.now()) / 60000) : null;
-  const { data: u, error } = await cloud.auth.getUser();
-  const server = error ? `server says: ${error.message}` : u.user ? `server confirms ${u.user.email}` : 'server sees NO user';
-  return `token ${exp ? (expIn !== null && expIn >= 0 ? `expires in ${expIn} min` : 'EXPIRED') : 'MISSING'} · ${server}`;
-}
-
-/* Diagnostic round-trip: write a nonce to the shared row's updated_by and read
-   it back. Proves (or disproves) that this session's UPDATEs actually persist
-   under RLS — a write can report success while a policy filters it to 0 rows. */
-export async function probeWrite(): Promise<{ ok: boolean; detail: string }> {
-  if (!cloud) return { ok: false, detail: 'cloud off' };
-  const nonce = `probe:${clientId}:${Math.random().toString(36).slice(2, 7)}`;
-  const { error: upErr } = await cloud.from(TABLE).update({ updated_by: nonce }).eq('project', PROJECT);
-  if (upErr) return { ok: false, detail: `update rejected: ${upErr.message}` };
-  const { data, error: selErr } = await cloud.from(TABLE).select('updated_by').eq('project', PROJECT).maybeSingle();
-  if (selErr) return { ok: false, detail: `read failed: ${selErr.message}` };
-  const got = (data?.updated_by as string | null) ?? '(null)';
-  return got === nonce
-    ? { ok: true, detail: 'write persisted and read back' }
-    : { ok: false, detail: `WRITE DID NOT PERSIST — read back "${got}"` };
 }
 
 /* ---------- Cloud snapshots ----------------------------------------------

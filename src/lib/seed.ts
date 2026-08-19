@@ -74,6 +74,11 @@ export const COST_CATEGORIES: CostCategoryMeta[] = [
   { key: 'safety',label: 'Insurance' },
   { key: 'mkt',   label: 'Marketing + festivals' },
   { key: 'other', label: 'Other' },
+  /* 2026-08-20 — the raise exceeded the bare spend, so the budget carries the
+     difference as named, honest lines instead of an unexplained surplus. */
+  { key: 'contingency', label: 'Contingency' },
+  { key: 'finishing',   label: 'Finishing + delivery' },
+  { key: 'reserve',     label: 'Production reserve' },
 ];
 
 const emptyCashflow: CashflowQuarter[] = [
@@ -90,9 +95,9 @@ export const SCENARIOS: Record<ScenarioKey, ScenarioData> = {
      €160k. Lean/ambitious are placeholder scalings of the same line items —
      editable in The Money view, so tune them there. HAVC stays €30k in every
      plan: a state grant is one committed number. G&A removed by request. */
-  lean:       { episodes: 3, funding: { havc: 30, hrt: 30, eu: 60,  sponsors: 30, sports: 20, rebate: 20 }, costs: { dev: 10, prod: 30, post: 35, legal: 10, safety: 10, mkt: 20, other: 5 },  cashflow: emptyCashflow, qualifyingSpendPct: 55, blendedRebateRate: 25 },
-  realistic:  { episodes: 3, funding: { havc: 30, hrt: 50, eu: 100, sponsors: 50, sports: 30, rebate: 30 }, costs: { dev: 10, prod: 40, post: 50, legal: 10, safety: 10, mkt: 30, other: 10 }, cashflow: emptyCashflow, qualifyingSpendPct: 60, blendedRebateRate: 25 },
-  ambitious:  { episodes: 3, funding: { havc: 30, hrt: 70, eu: 140, sponsors: 90, sports: 50, rebate: 50 }, costs: { dev: 15, prod: 70, post: 75, legal: 15, safety: 15, mkt: 45, other: 15 }, cashflow: emptyCashflow, qualifyingSpendPct: 65, blendedRebateRate: 25 },
+  lean:       { episodes: 3, funding: { havc: 30, hrt: 30, eu: 60,  sponsors: 30, sports: 20, rebate: 20 }, costs: { dev: 10, prod: 30, post: 35, legal: 10, safety: 10, mkt: 20, other: 5,  contingency: 30, finishing: 20, reserve: 20 }, cashflow: emptyCashflow, qualifyingSpendPct: 55, blendedRebateRate: 25 },
+  realistic:  { episodes: 3, funding: { havc: 30, hrt: 50, eu: 100, sponsors: 50, sports: 30, rebate: 30 }, costs: { dev: 10, prod: 40, post: 50, legal: 10, safety: 10, mkt: 30, other: 10, contingency: 50, finishing: 40, reserve: 40 }, cashflow: emptyCashflow, qualifyingSpendPct: 60, blendedRebateRate: 25 },
+  ambitious:  { episodes: 3, funding: { havc: 30, hrt: 70, eu: 140, sponsors: 90, sports: 50, rebate: 50 }, costs: { dev: 15, prod: 70, post: 75, legal: 15, safety: 15, mkt: 45, other: 15, contingency: 70, finishing: 55, reserve: 55 }, cashflow: emptyCashflow, qualifyingSpendPct: 65, blendedRebateRate: 25 },
 };
 
 /* ---------- The Four ---------- */
@@ -200,7 +205,7 @@ export const SEED_STORY_EVENTS: StoryEvent[] = [
   { id: 'ev-etna',       title: 'Etna erupts during the shoot',                kind: 'shoot-moment',  year: 2026, date: '2026-07-04', summary: "The mountain lights up during Petar's monofin window. 'Fire breathes in, water breathes out' stops being a storyboard.", personKeys: ['petar', 'vito', 'sanda', 'zsofia'], shootId: 'shoot-sicily', topicIds: ['top-fear'] },
   { id: 'ev-zso-wr-lastovo', title: "Zsófia's record at the camp",                    kind: 'record',        year: 2026, date: '2026-08-18', summary: 'Mid-camp, on the Lastovo line — a world record with the camera on her before and after. The film was already there.', personKeys: ['zsofia'], shootId: 'shoot-lastovo', topicIds: ['top-record'] },
   { id: 'ev-pero-blackout', title: "Pero's blackout, Sicily",                 kind: 'crisis',        year: 2026, date: '2026-07-03', summary: "A severe blackout on a deep dive — the safety team on him at the surface, and the camera running. The thing everyone in the sport lives beside, seen. The watchers' faces are the scene.", personKeys: ['petar', 'vito', 'sanda', 'zsofia'], shootId: 'shoot-sicily', topicIds: ['top-blackout', 'top-safety', 'top-fear'] },
-  { id: 'ev-hall',       title: 'Hall of Fame induction',                      kind: 'ceremony',      year: 2027,                    summary: 'The same world that branded him stands to applaud. The 2023 thread closes in America.', personKeys: ['vito'], shootId: 'shoot-usa', topicIds: ['top-recognition', 'top-2023'] },
+  { id: 'ev-hall',       title: 'Hall of Fame induction',                      kind: 'ceremony',      year: 2026, date: '2026-09-26', summary: 'The same world that branded him stands to applaud. The PUBLIC half of how 2023 resolves — the personal half is told in the Rijeka studio.', personKeys: ['vito'], shootId: 'shoot-usa', topicIds: ['top-recognition', 'top-2023'] },
 ];
 
 /* ---------- Idea Hub (v0.8) — the team's open inbox ---------- */
@@ -400,9 +405,9 @@ export const SEED_SHOOTS: Shoot[] = [
     lat: 34.70,
     lng: 33.02,
     status: 'planned',
-    startDate: '2026-10-01',
-    endDate: '2026-10-08',
-    spirit: 'The competitive proving ground · the world stage.',
+    startDate: '2026-09-27',
+    endDate: '2026-10-07',
+    spirit: 'The competitive proving ground · the world stage. Vito lands from the USA on day one — straight from the Hall of Fame to the World Cup.',
     captures: ['the competition · the world level', 'watcher moments at scale', 'the international dive community around the four', 'more spine + thread answers, transformed by the world stage'],
     presentFour: ['petar','vito','sanda','zsofia'],
     bible: '# Cyprus · autumn\n\nThe world stage. Where the sport meets the world. Coverage template: C1/C2/C3 as Sicily. Watcher moments prioritized.',
@@ -434,7 +439,7 @@ export const SEED_SHOOTS: Shoot[] = [
     status: 'planned',
     startDate: '2026-09-01',
     endDate: '2026-09-27',
-    spirit: "Vito's chapter. Only Vito attends the Hall of Fame — vindication made real — woven into a road-trip with surfing and climbing along the way. The others are training in Sicily.",
+    spirit: "Vito's chapter. Only Vito attends the Hall of Fame (26 September) — vindication made real — woven into a road-trip with surfing and climbing along the way. Pero and Zso are training in Sicily.",
     captures: [
       'the ceremony · the applause · the standing',
       "Vito's face during the induction",
@@ -444,7 +449,7 @@ export const SEED_SHOOTS: Shoot[] = [
     presentFour: ['vito'],
     bible: `# USA · the Hall of Fame
 
-Vito is being inducted into a sports Hall of Fame in the USA — the perfect close to the 2023 thread: the same world that branded him coming, in the end, to honour him.
+Vito is inducted into a sports Hall of Fame in the USA on 26 September — the PUBLIC half of how the 2023 thread resolves: the same world that branded him coming, in the end, to honour him. (The personal half — the four telling it in their own words — belongs to the Rijeka studio sessions.)
 
 Only Vito goes (Pero and Zso are training in Sicily for Cyprus). The trip around the ceremony is his chapter: surfing and climbing along the route — the deep diver on solid ground, above water for once.
 
@@ -461,14 +466,15 @@ The USA footage is the "long breath" of the film — after the underwater chapte
   {
     id: 'shoot-sicily-training',
     key: 'sicily-training',
-    title: 'Sicily · the training month',
+    title: 'Sicily · the training camp',
     location: 'Sicily · Italy',
     country: 'Italy',
-    lat: 37.51,
-    lng: 15.09,
+    lat: 37.62,
+    lng: 15.19,
     status: 'planned',
     startDate: '2026-09-15',
-    spirit: 'A month of training for the Cyprus World Cup — Zso and Pero back in the water where the film found its fire. Alexey Molchanov joins for seven days.',
+    endDate: '2026-09-26',
+    spirit: 'The build-up camp for the Cyprus World Cup — Zso and Pero back in the water where the film found its fire. Alexey Molchanov joins from day one for seven days.',
     captures: [
       'the training month · the daily grind toward Cyprus',
       'Molchanov and Pero training together',
@@ -485,10 +491,11 @@ The USA footage is the "long breath" of the film — after the underwater chapte
     title: 'Sicily · the records attack',
     location: 'Sicily · Italy',
     country: 'Italy',
-    lat: 37.51,
-    lng: 15.09,
+    lat: 37.38,
+    lng: 14.99,
     status: 'planned',
-    spirit: 'After Cyprus — back to Sicily to attack the records. What the whole year of training was for.',
+    startDate: '2026-10-09',
+    spirit: 'After Cyprus — back to Sicily to attack the records. What the whole year of training was for. (Start date provisional.)',
     captures: [
       'the record attempts',
       'the surface · the watchers · the cards',
@@ -508,6 +515,7 @@ The USA footage is the "long breath" of the film — after the underwater chapte
     lng: 121.77,
     status: 'planned',
     startDate: '2027-03-15',
+    endDate: '2027-04-30',
     spirit: 'March–April 2027. Warmer, clearer, deeper — more records, the best sessions of the film, and the deepest interviews.',
     captures: [
       'record attacks in world-class water',
@@ -517,6 +525,21 @@ The USA footage is the "long breath" of the film — after the underwater chapte
     presentFour: ['petar','vito','sanda','zsofia'],
     bible: '# The Philippines · deeper still\n\nSpring 2027. The season the film has earned: more records, sessions in the clearest water of the shoot, and the deepest interviews — asked with a year of shared story behind them.',
     colorHint: '#3d7a94',            // clear-water teal
+  },
+  {
+    id: 'shoot-2023-studio',
+    key: '2023-studio',
+    title: 'The 2023 sessions · studio',
+    location: 'Rijeka — studio · pool · gym',
+    country: 'Croatia',
+    lat: 45.36,
+    lng: 14.36,
+    status: 'planned',
+    spirit: 'The storm gets its own room. Controlled sittings where the four tell 2023 in their own words — the PERSONAL half of the resolution (the public half is the Hall of Fame).',
+    captures: ['studio sittings — the four, framed and lit', 'pool / gym setups as alternative rooms', 'the chapter assembled with the evidence library'],
+    presentFour: ['petar','vito','sanda','zsofia'],
+    bible: '# The 2023 sessions\n\nStudio in Rijeka — or the pool, or the gym. Never pushed, fully controlled: the four telling the storm in their own words, with the evidence library behind it. Venue and timing to decide.',
+    colorHint: '#2f4b6e',
   },
   {
     id: 'shoot-coda',
@@ -536,9 +559,17 @@ The USA footage is the "long breath" of the film — after the underwater chapte
 /* ---------- Shoot days for Sicily (from the Shooting Bible) ---------- */
 
 export const SEED_SHOOT_DAYS: ShootDay[] = [
+  /* Krk · minimal record so the completed shoot stops contradicting itself in
+     Gap Radar — expand from memory / the footage log. */
+  { id: 'sd-krk-1', shootId: 'shoot-krk', dayNum: 1, date: '2026-04-02', plan: 'The Adriatic Championship — competition coverage, first dives filmed.', mood: 'roll', done: true },
+  { id: 'sd-krk-2', shootId: 'shoot-krk', dayNum: 2, date: '2026-04-05', plan: 'Interviews — the four solo blocks + Andre & Toma + voices at the event.', mood: 'roll', done: true },
   { id: 'sd-sicily-1', shootId: 'shoot-sicily', dayNum: 1, date: '2026-07-01', plan: 'Landed in Catania. Settled in. Met with everybody.',                                                                             mood: 'setup', done: true },
   { id: 'sd-sicily-2', shootId: 'shoot-sicily', dayNum: 2, date: '2026-07-02', plan: 'Training day.',                                                                                                                     mood: 'roll',  done: true },
-  /* Day 3+ intentionally open — user fills in as memory returns / edits inline */
+  /* Sicily day 3+ intentionally open — fill in as memory returns / edit inline */
+  /* Lastovo · minimal record, same reason. */
+  { id: 'sd-las-1', shootId: 'shoot-lastovo', dayNum: 1, date: '2026-08-16', plan: 'Camp — training sessions, masterclasses, small pickups around camp and boat.', mood: 'roll', done: true },
+  { id: 'sd-las-2', shootId: 'shoot-lastovo', dayNum: 2, date: '2026-08-18', plan: "Zso's record day — interviewed before and after the dive.", mood: 'roll', done: true },
+  { id: 'sd-las-3', shootId: 'shoot-lastovo', dayNum: 3, date: '2026-08-20', plan: 'The 2023 conversation — the four together, at last.', mood: 'roll', done: true },
 ];
 
 /* ---------- Camera coverage plan (Sicily) ---------- */
@@ -885,15 +916,23 @@ export const SEED_SCHEDULE_PHASES: SchedulePhase[] = [
   { id: 'ph-krk',  label: 'Krk shoot',         start: '2026-04-01', end: '2026-04-07', lane: 1, color: '#4C7A8A' },
   { id: 'ph-sic',  label: 'Sicily shoot',      start: '2026-07-01', end: '2026-07-06', lane: 1, color: '#C88A5A' },
   { id: 'ph-las',  label: 'Lastovo shoot',     start: '2026-08-15', end: '2026-08-22', lane: 1, color: '#8FA57E' },
-  { id: 'ph-cyp',  label: 'Cyprus shoot',      start: '2026-10-01', end: '2026-10-08', lane: 1, color: '#9E7A63' },
-  { id: 'ph-post', label: 'Post-production',   start: '2026-11-01', end: '2027-06-30', lane: 2, color: '#4C6478' },
+  { id: 'ph-usa',  label: 'USA · Hall of Fame', start: '2026-09-01', end: '2026-09-27', lane: 1, color: '#A05133' },
+  { id: 'ph-sictr',label: 'Sicily training camp', start: '2026-09-15', end: '2026-09-26', lane: 0, color: '#C88A5A' },
+  { id: 'ph-cyp',  label: 'Cyprus · World Cup', start: '2026-09-27', end: '2026-10-07', lane: 1, color: '#9E7A63' },
+  { id: 'ph-sicre',label: 'Sicily records attack', start: '2026-10-09', end: '2026-11-15', lane: 1, color: '#B54F26' },
+  { id: 'ph-phil', label: 'Philippines',        start: '2027-03-15', end: '2027-04-30', lane: 1, color: '#3D7A94' },
+  { id: 'ph-post', label: 'Post-production',   start: '2027-05-01', end: '2027-09-01', lane: 2, color: '#4C6478' },
 ];
 
 export const SEED_MILESTONES: Milestone[] = [
   { id: 'ms-krk',    label: 'Krk shoot complete', date: '2026-04-07', category: 'shoot-wrap',  status: 'done' },
   { id: 'ms-sicily', label: 'Sicily shoot complete', date: '2026-07-06', category: 'shoot-wrap', status: 'done' },
-  { id: 'ms-lastovo',label: 'Lastovo shoot',      date: '2026-08-15', category: 'shoot-start' },
-  { id: 'ms-cyprus', label: 'Cyprus shoot',       date: '2026-10-01', category: 'shoot-start' },
+  { id: 'ms-lastovo',label: 'Lastovo shoot complete', date: '2026-08-22', category: 'shoot-wrap', status: 'done' },
+  { id: 'ms-sictr',  label: 'Sicily training camp — Molchanov joins', date: '2026-09-15', category: 'shoot-start' },
+  { id: 'ms-hof',    label: 'Hall of Fame ceremony · Vito', date: '2026-09-26', category: 'internal' },
+  { id: 'ms-cyprus', label: 'Cyprus World Cup',    date: '2026-09-27', category: 'shoot-start' },
+  { id: 'ms-sicre',  label: 'Sicily records attack', date: '2026-10-09', category: 'shoot-start' },
+  { id: 'ms-phil',   label: 'Philippines shoot',   date: '2027-03-15', category: 'shoot-start' },
   { id: 'ms-sundance', label: 'Sundance deadline (target)', date: '2027-09-24', category: 'festival-deadline' },
 ];
 
@@ -1098,6 +1137,8 @@ export const SEED_CALENDAR_EVENTS: CalendarEvent[] = [
 
   /* Travel legs */
   { id: 'ce-lastovo-tr', title: 'Travel to Lastovo',             startDate: '2026-08-14',                        kind: 'travel' },
+  { id: 'ce-molchanov',  title: 'Alexey Molchanov at the Sicily camp', startDate: '2026-09-15', endDate: '2026-09-22', kind: 'shoot', shootId: 'shoot-sicily-training', personKeys: ['petar'], colorHint: '#c88a5a', notes: 'Seven days — training beside Pero, plus the joint interview.' },
+  { id: 'ce-phil-travel', title: 'Travel to the Philippines',    startDate: '2027-03-13', endDate: '2027-03-14', kind: 'travel', personKeys: ['petar','vito','sanda','zsofia'] },
   { id: 'ce-usa-trip',   title: 'USA road-trip (RV) — Vito',     startDate: '2026-09-01', endDate: '2026-09-27', kind: 'travel', personKeys: ['vito'], shootId: 'shoot-usa', notes: 'Vito + film crew. SF → Black Rock (Burning Man) → Sierra → Death Valley → Vegas → fly Cyprus. Surf + climb stops on the way; the Hall of Fame at the centre.' },
   { id: 'ce-fly-cyprus', title: 'Fly USA → Cyprus',              startDate: '2026-09-27', endDate: '2026-09-28', kind: 'travel', notes: 'Main unit straight from Las Vegas to the Cyprus shoot.' },
 
@@ -1106,9 +1147,9 @@ export const SEED_CALENDAR_EVENTS: CalendarEvent[] = [
   { id: 'ce-sicily-sep', title: 'Sicily · second-unit pickups',  startDate: '2026-09-10', endDate: '2026-09-14', kind: 'shoot', personKeys: ['sanda'], shootId: 'shoot-sicily', colorHint: '#d96c3d', notes: 'Parallel 5-day unit — Mediterranean pickups + interviews running while the main unit is in the USA.' },
 
   /* Post-production */
-  { id: 'ce-assembly',   title: 'Assembly → rough cut',           startDate: '2026-11-02', endDate: '2027-02-26', kind: 'other',    notes: 'First assembly through rough cut.' },
-  { id: 'ce-sound-color',title: 'Sound design + colour',          startDate: '2027-03-01', endDate: '2027-05-14', kind: 'other',    notes: 'The score built from real physiology; grade.' },
-  { id: 'ce-lock',       title: 'Picture lock',                   startDate: '2027-05-15',                        kind: 'milestone' },
+  { id: 'ce-assembly',   title: 'Rolling assembly (edit alongside shoots)', startDate: '2026-11-02', endDate: '2027-04-30', kind: 'other', notes: 'Assembly runs as a rolling edit through the records attack and the Philippines — rough cut after the last shoot wraps.' },
+  { id: 'ce-sound-color',title: 'Sound design + colour',          startDate: '2027-05-01', endDate: '2027-08-15', kind: 'other',    notes: 'The score built from real physiology; grade.' },
+  { id: 'ce-lock',       title: 'Picture lock',                   startDate: '2027-08-31',                        kind: 'milestone', notes: 'Ahead of the Sundance deadline (24 Sep).' },
 
   /* Festival deadlines */
   { id: 'ce-visions',    title: 'Visions du Réel — deadline',     startDate: '2026-12-01',                        kind: 'milestone' },
@@ -1218,7 +1259,7 @@ export const SEED_LIFE_EVENTS: LifeEvent[] = [
   { id: 'le-v-9',  subjectKey: 'vito',   year: 2022,            title: 'heads AIDA Croatia',                                   category: 'breakthrough', significance: 3, note: 'year approximate' },
   { id: 'le-v-10', subjectKey: 'vito',   year: 2023, month: 7,  title: 'the storm · branded by the sport he serves',           category: 'crisis',       significance: 5 },
   { id: 'le-v-11', subjectKey: 'vito',   year: 2025, month: 6,  title: 'Guinness · 29:03 static on O₂ · Opatija',              category: 'record',       significance: 5, note: '14 June · Bristol Hotel pool · five judges, one hundred spectators' },
-  { id: 'le-v-12', subjectKey: 'vito',   year: 2027,            title: 'Hall of Fame induction · USA',                         category: 'joy',          significance: 5, note: 'recognition — the world correcting itself' },
+  { id: 'le-v-12', subjectKey: 'vito',   year: 2026, month: 9,  title: 'Hall of Fame induction · USA',                         category: 'joy',          significance: 5, note: '26 September — recognition, the world correcting itself' },
 
   /* SANDA — the first */
   { id: 'le-s-1',  subjectKey: 'sanda',  year: 1989,            title: 'born · Split',                                         category: 'birth',        significance: 5 },
@@ -1325,11 +1366,11 @@ export const SEED_USA_TRIP: UsaTrip = {
         { id: 'poi-sf-1', name: 'Golden Gate Bridge', kind: 'sight',  detail: 'Sunrise from Battery Spencer', note: 'The opening frame of the American act.' },
         { id: 'poi-sf-2', name: 'Aquatic Park cold swim', kind: 'dive', detail: 'Protected bay cove, ~14°C', note: 'Open-water cold swim — the discipline, before the land takes over.' },
         { id: 'poi-sf-3', name: 'Muir Woods redwoods', kind: 'hike', detail: '~30 min north', note: 'Scale + silence. Vertical like the sea is deep.' },
-        { id: 'poi-sf-4', name: 'Pick up the RV', kind: 'drive', detail: '6-berth Class C', note: 'The vehicle that becomes the fifth character.' },
+        { id: 'poi-sf-4', name: 'Pick up the RV', kind: 'drive', detail: 'Class C', note: "The RV — the co-star of Vito's chapter." },
       ],
     },
     {
-      id: 'stop-blackrock', name: 'Black Rock Desert', role: 'stop', nights: 3, driveMiles: 330, driveHours: 5,
+      id: 'stop-blackrock', name: 'Black Rock Desert', role: 'stop', nights: 4, driveMiles: 330, driveHours: 5,
       note: 'The last three days of Burning Man. A white playa with no water at all — the anti-sea — and fire again: the Man and the Temple burn.',
       colorHint: '#c94a3a', mapX: 40, mapY: 15,
       pois: [
@@ -1355,7 +1396,7 @@ export const SEED_USA_TRIP: UsaTrip = {
       ],
     },
     {
-      id: 'stop-mammoth', name: 'Mammoth Lakes', role: 'stop', nights: 4, driveMiles: 150, driveHours: 3.5,
+      id: 'stop-mammoth', name: 'Mammoth Lakes', role: 'stop', nights: 5, driveMiles: 150, driveHours: 3.5,
       note: 'High alpine, thin air — altitude hypoxia connects straight to Vito’s science. Cold, clear lakes deeper than they look, at 2,500m.',
       colorHint: '#5b7da1', mapX: 51, mapY: 52,
       pois: [
@@ -1368,7 +1409,7 @@ export const SEED_USA_TRIP: UsaTrip = {
       ],
     },
     {
-      id: 'stop-death', name: 'Death Valley NP', role: 'stop', nights: 2, driveMiles: 200, driveHours: 4,
+      id: 'stop-death', name: 'Death Valley NP', role: 'stop', nights: 3, driveMiles: 200, driveHours: 4,
       note: 'The anti-Adriatic — zero water, geological time, the lowest ground in North America. The deep diver standing on the driest floor there is.',
       colorHint: '#c9a961', mapX: 64, mapY: 63,
       pois: [
@@ -1381,7 +1422,7 @@ export const SEED_USA_TRIP: UsaTrip = {
       ],
     },
     {
-      id: 'stop-vegas', name: 'Las Vegas', role: 'end', nights: 2, driveMiles: 120, driveHours: 2,
+      id: 'stop-vegas', name: 'Las Vegas', role: 'end', nights: 6, driveMiles: 120, driveHours: 2,
       note: 'Drop the RV, then fly directly to Cyprus for the next shoot. One last wall on the way in for Vito.',
       colorHint: '#d96c3d', mapX: 82, mapY: 72,
       pois: [
@@ -1418,7 +1459,7 @@ export const SEED_USA_TRIP: UsaTrip = {
     { id: 'day-23', dayNum: 23, date: '2026-09-23', stopId: 'stop-vegas',     title: 'Buffer / footage dump',            plan: 'Back up cards, rest, regroup.' },
     { id: 'day-24', dayNum: 24, date: '2026-09-24', stopId: 'stop-vegas',     title: 'Pickups + interviews',             plan: 'Road-trip interviews, reflection pieces.' },
     { id: 'day-25', dayNum: 25, date: '2026-09-25', stopId: 'stop-vegas',     title: 'Drop the RV',                      plan: 'Return the RV, into a hotel.' },
-    { id: 'day-26', dayNum: 26, date: '2026-09-26', stopId: 'stop-vegas',     title: 'Vegas — pack',                     plan: 'Final pickups, pack the gear for the flight.' },
+    { id: 'day-26', dayNum: 26, date: '2026-09-26', stopId: 'stop-vegas',     title: 'THE HALL OF FAME CEREMONY',        plan: 'Induction day — the reason for the whole trip. Ceremony coverage + Vito interviewed before and after. Pack for the flight after.' },
     { id: 'day-27', dayNum: 27, date: '2026-09-27', stopId: 'stop-vegas',     title: 'Fly Las Vegas → Cyprus',           plan: 'Straight from desert to the Mediterranean and the next shoot.' },
   ],
   costs: [
@@ -1467,8 +1508,14 @@ export const SEED_INTERVIEWS: Interview[] = [
   { id: 'int-las-students', shootId: 'shoot-lastovo', personKey: 'other', subjectLabel: 'Camp students', setting: 'poolside', date: '2026-08-21', status: 'captured', threadIds: [], topicIds: ['top-sport', 'top-outsider'], notes: 'Students of the camps — the sport through fresh eyes.' },
   { id: 'int-las-together', shootId: 'shoot-lastovo', personKey: 'together', setting: 'boat', date: '2026-08-20', status: 'captured', threadIds: ['t2', 't7'], topicIds: ['top-2023', 'top-sport', 'top-blackout'], eventIds: ['ev-storm', 'ev-pero-blackout'], notes: 'The four together. The 2023 conversation happened here at last — and the sport, laid bare.' },
 
-  /* Sicily · the training month · planned */
-  { id: 'int-sic2-pero-molchanov', shootId: 'shoot-sicily-training', personKey: 'other', subjectLabel: 'Pero & Alexey Molchanov', setting: 'shore', date: '2026-09-25', status: 'planned', threadIds: ['t3'], topicIds: ['top-record', 'top-sport'], notes: 'Their training together — Molchanov joins the camp for seven days.' },
+  /* Sicily · the training camp · planned */
+  { id: 'int-sic2-pero-molchanov', shootId: 'shoot-sicily-training', personKey: 'other', subjectLabel: 'Pero & Alexey Molchanov', setting: 'shore', date: '2026-09-20', status: 'planned', threadIds: ['t3'], topicIds: ['top-record', 'top-sport'], notes: 'Their training together — Molchanov at the camp 15–22 September.' },
+
+  /* USA · the ceremony · planned */
+  { id: 'int-usa-vito', shootId: 'shoot-usa', personKey: 'vito', setting: 'stage', date: '2026-09-26', status: 'planned', threadIds: ['t9', 't2'], topicIds: ['top-recognition', 'top-2023'], notes: 'Before and after the Hall of Fame induction — the public half of the 2023 resolution.' },
+
+  /* Cyprus · the World Cup · planned */
+  { id: 'int-cyp-pero-zso', shootId: 'shoot-cyprus', personKey: 'other', subjectLabel: 'Pero & Zso', setting: 'shore', date: '2026-10-07', status: 'planned', threadIds: ['t3', 't1'], topicIds: ['top-record', 'top-bond'], notes: 'After the World Cup — the couple who trained for it together, on how it went.' },
 ];
 
 /* ---------- Pitch Deck (v0.14) — the card library + starter decks ----------
@@ -1555,7 +1602,7 @@ export const SEED_PITCH_CARDS: PitchCard[] = [
   {
     id: 'pc-budget', kind: 'budget', kicker: 'the number',
     title: 'A moving train, not a pitch on paper.',
-    body: 'Development self-financed. Two of seven shoots already shot. What we are raising, and against what — at a glance.',
+    body: 'The budget and the financing plan that covers it — including named contingency and reserve. Three of ten shoots already shot; development self-financed to date.',
     accent: '#c9a961', audiences: ['sponsor', 'coproducer', 'fund'],
   },
   {
@@ -1567,7 +1614,7 @@ export const SEED_PITCH_CARDS: PitchCard[] = [
   {
     id: 'pc-schedule', kind: 'schedule', kicker: 'status',
     title: 'Footage exists, not promises.',
-    body: 'Two of seven shoots complete — Krk and Sicily, with the Etna opening captured. The rest are scheduled and cast-locked.',
+    body: 'Three of ten shoots complete — Krk, Sicily and Lastovo, with the Etna opening and a world record already captured. The rest are scheduled and cast-locked.',
     accent: '#4c7a8a', audiences: ['sponsor', 'coproducer', 'fund', 'broadcaster'],
   },
   {
@@ -1628,9 +1675,12 @@ export const SEED_PITCH_DECKS: PitchDeck[] = [
    on load — parts, arcs, shoots, interviews, records, story events, topics,
    the USA trip and calendar. Bump it whenever the seeded story is rewritten
    wholesale. (v3: the four-stories rebuild + only-Vito USA. v4: Tomo's real
-   money — scenarios join the upgrade set this once.) */
+   money — scenarios join the upgrade set this once. v5: the truth batch —
+   real dates (Cyprus 27.9–7.10, HoF 26.9, Molchanov 15–22.9), Part 10 coda,
+   two-beat 2023 resolution, contingency/finishing/reserve budget lines,
+   shootDays + milestones + schedulePhases join the upgrade set.) */
 
-export const SCENARIO_SEED_VERSION = 4;
+export const SCENARIO_SEED_VERSION = 5;
 
 export const SEED_SCENARIO_ARCS: ScenarioArc[] = [
   {
@@ -1666,6 +1716,13 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
     topicIds: ['top-bond', 'top-record', 'top-sport', 'top-outsider'],
     threadIds: ['t1', 't3', 't4', 't6'],
     interviewIds: ['int-krk-petar', 'int-krk-vito', 'int-krk-sanda', 'int-krk-zsofia', 'int-krk-andre-toma', 'int-krk-voices'],
+    quotes: [
+      'Who holds you in the world? That is the whole sport.',
+      'The record is a door. What is behind it is the interesting part.',
+      'Down there nothing is missing. That is the problem with up here.',
+      'They were already deep when I arrived. They let me in anyway.',
+    ],
+    episodeHint: 'Ep 1 · The Bond',
     beats: [
       { id: 'b-krk-1', text: 'Intro of the four' },
       { id: 'b-krk-2', text: 'The Adriatic Championship — first competitive dives filmed' },
@@ -1679,7 +1736,8 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
   {
     id: 'sp-sicily', order: 2, title: 'Sicily · the record attempt', kicker: 'Part two · fire and water',
     location: 'Catania, next to Etna · Italy', dateLabel: '1–6 July 2026 · 5 days', status: 'shot', shootId: 'shoot-sicily',
-    arcIds: ['arc-records', 'arc-mentor', 'arc-unit'],
+    arcIds: ['arc-records', 'arc-mentor', 'arc-unit', 'arc-vito-deep'],
+    episodeHint: 'Ep 1 · The Bond → Ep 2 · The Wound',
     background: 'Five days in Sicily for Pero’s world-record attempt — the camera inside a real attempt, where the dive comes first and the film shoots around it.',
     whatHappened: 'The attempt ended in a severe blackout — the safety team on him, the boat pickup, and the interview after, all filmed. The scare the whole sport lives beside, seen honestly. Around it: preparation days and a stack of boat pickups about the dives, the first solo interviews, and the first duos — Pero with Vito, Zso with Sanda. One day the sea shut us out and became an interview day. And Etna erupted in the middle of it all — footage no script could buy.',
     peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
@@ -1693,6 +1751,7 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
       { id: 'b-sic-3', text: 'First solo interviews' },
       { id: 'b-sic-4', text: 'First duos — Pero & Vito · Zso & Sanda' },
       { id: 'b-sic-5', text: 'Etna erupts mid-shoot · the volcano interview at golden hour' },
+      { id: 'b-sic-6', text: 'The plant: on the volcano, Vito first speaks about a deep dive of his own' },
     ],
     quotes: ["The mountain wouldn't stop breathing. So I did."],
     colorHint: '#d96c3d',
@@ -1701,6 +1760,7 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
     id: 'sp-lastovo', order: 3, title: 'Lastovo · the training camp', kicker: 'Part three · the engine room',
     location: 'Lastovo island, Croatia', dateLabel: '15–22 August 2026', status: 'shot', shootId: 'shoot-lastovo',
     arcIds: ['arc-unit', 'arc-mentor'],
+    episodeHint: 'Ep 2 · The Wound',
     background: 'The training camp — where the film went deeper. The sport presented from inside, the themes opened, and a world record nobody scripted.',
     whatHappened: 'Zso set a world record mid-camp — interviewed before and after the dive; the film was already there. Around it: the presentation of freediving itself — training sessions, dives, masterclasses, short pickups — and a constant stream of small talks around the camp and the boat. The interview block ran deep: all four solo, the first time 2023 was spoken about, Denis, Mikey and Michael, the Pero & Zso duo, Andre and Mariano, and students of the camps.',
     peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
@@ -1722,26 +1782,28 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
     id: 'sp-usa', order: 4, title: 'The USA · the Hall of Fame', kicker: 'Part four · recognition',
     location: 'San Francisco → Las Vegas · USA', dateLabel: 'September 2026', status: 'upcoming', shootId: 'shoot-usa',
     arcIds: ['arc-mentor'],
-    background: 'Vito’s chapter, alone. Only he goes — inducted into the Hall of Fame by the world that once branded him — and the trip around the ceremony is his: surfing and climbing along the road, the deep diver on solid ground. Meanwhile Zso and Pero are training in Sicily.',
+    episodeHint: 'Ep 3 · The Rise',
+    background: 'Vito’s chapter, alone. Only he goes — inducted into the Hall of Fame by the world that once branded him — and the trip around the ceremony is his: surfing and climbing along the road, the deep diver on solid ground. Meanwhile Zso and Pero are training in Sicily. He flies straight from Vegas to the Cyprus World Cup.',
     whatHappened: '',
     peopleKeys: ['vito'],
     topicIds: ['top-recognition', 'top-2023'],
     threadIds: ['t9', 't2'],
-    interviewIds: [],
+    interviewIds: ['int-usa-vito'],
     eventIds: ['ev-hall'],
     beats: [
       { id: 'b-usa-1', text: 'The Hall of Fame induction — only Vito', done: false },
       { id: 'b-usa-2', text: 'Surfing + climbing stops along the trip', done: false },
-      { id: 'b-usa-3', text: 'Does the 2023 thread close here?', done: false },
+      { id: 'b-usa-3', text: 'The PUBLIC half of the 2023 resolution — the world honours him (the personal half is the studio)', done: false },
     ],
     notes: 'Open block — to plan. See the USA Trip module for the itinerary + costs (Vito + film crew).',
     colorHint: '#c9a961',
   },
   {
-    id: 'sp-sicily-training', order: 5, title: 'Sicily · the training month', kicker: 'Part five · the build-up',
-    location: 'Sicily · Italy', dateLabel: 'mid-September → October 2026', status: 'upcoming', shootId: 'shoot-sicily-training',
+    id: 'sp-sicily-training', order: 5, title: 'Sicily · the training camp', kicker: 'Part five · the build-up',
+    location: 'Sicily · Italy', dateLabel: '15–26 September 2026', status: 'upcoming', shootId: 'shoot-sicily-training',
     arcIds: ['arc-records'],
-    background: 'Zso and Pero settle into Sicily for a month, training for the World Cup in Cyprus. Alexey Molchanov joins for seven days — the greatest of the era training beside the one chasing him.',
+    episodeHint: 'Ep 3 · The Rise',
+    background: 'Zso and Pero settle into Sicily to train for the Cyprus World Cup. Alexey Molchanov joins from day one for seven days (15–22 September) — the greatest of the era training beside the one chasing him.',
     whatHappened: '',
     peopleKeys: ['petar', 'zsofia'],
     topicIds: ['top-record', 'top-sport'],
@@ -1749,34 +1811,37 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
     interviewIds: ['int-sic2-pero-molchanov'],
     beats: [
       { id: 'b-st-1', text: 'The training month — the daily grind toward Cyprus', done: false },
-      { id: 'b-st-2', text: 'Molchanov at the camp — seven days', done: false },
+      { id: 'b-st-2', text: 'Molchanov at the camp — 15–22 September', done: false },
       { id: 'b-st-3', text: 'Pero & Molchanov — the interview + their training together', done: false },
     ],
     notes: 'Open block — to plan.',
     colorHint: '#c88a5a',
   },
   {
-    id: 'sp-cyprus', order: 6, title: 'Cyprus · the World Championship', kicker: 'Part six · the world stage',
-    location: 'Cyprus', dateLabel: 'October 2026', status: 'upcoming', shootId: 'shoot-cyprus',
+    id: 'sp-cyprus', order: 6, title: 'Cyprus · the World Cup', kicker: 'Part six · the world stage',
+    location: 'Cyprus', dateLabel: '27 September – 7 October 2026', status: 'upcoming', shootId: 'shoot-cyprus',
     arcIds: ['arc-unit', 'arc-records'],
-    background: 'The world stage — the competitive climax the year has been building toward. The plan here has to be careful: which topics, which people, which interviews. Film the competition if possible, and connect everything gathered so far.',
+    episodeHint: 'Ep 3 · The Rise',
+    background: 'The competitive climax the whole year builds toward. Zso and Pero arrive straight from the Sicily camp; Vito lands on day one, straight from the Hall of Fame — vindicated in America, back in the water with his students. The plan must be careful: which topics, which people, which interviews. Film the competition if the organisers allow it.',
     whatHappened: '',
     peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
-    topicIds: ['top-record', 'top-recognition'],
-    threadIds: ['t3', 't9'],
-    interviewIds: [],
+    topicIds: ['top-record', 'top-recognition', 'top-bond'],
+    threadIds: ['t3', 't9', 't1'],
+    interviewIds: ['int-cyp-pero-zso'],
     beats: [
-      { id: 'b-cyp-1', text: 'Carefully plan the topics, people and interviews', done: false },
-      { id: 'b-cyp-2', text: 'Film the competition — if possible', done: false },
-      { id: 'b-cyp-3', text: 'Connect everything gathered so far', done: false },
+      { id: 'b-cyp-1', text: "Pero's and Zso's competition dives — the year of training, tested", done: false },
+      { id: 'b-cyp-2', text: 'The watchers at world scale — three faces at the surface, every dive', done: false },
+      { id: 'b-cyp-3', text: 'Vito arrives vindicated — the mentor at the world level with his students', done: false },
+      { id: 'b-cyp-4', text: 'The dive community around the four — the film meets the sport at scale', done: false },
     ],
-    notes: 'Open block — to plan.',
+    notes: 'Competition filming permission to confirm with organisers.',
     colorHint: '#5b7da1',
   },
   {
     id: 'sp-sicily-records', order: 7, title: 'Sicily · the records attack', kicker: 'Part seven · the attack',
-    location: 'Sicily · Italy', dateLabel: 'after Cyprus · late 2026', status: 'upcoming', shootId: 'shoot-sicily-records',
+    location: 'Sicily · Italy', dateLabel: 'from 9 October 2026 · after Cyprus', status: 'upcoming', shootId: 'shoot-sicily-records',
     arcIds: ['arc-records', 'arc-vito-deep', 'arc-mentor'],
+    episodeHint: 'Ep 3 · The Rise',
     background: 'After the championship, the season turns to what it was all for: the records. Pero attacks — and Vito goes for his own deep dive.',
     whatHappened: '',
     peopleKeys: ['petar', 'vito'],
@@ -1794,6 +1859,7 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
     id: 'sp-philippines', order: 8, title: 'The Philippines · deeper still', kicker: 'Part eight · the far water',
     location: 'Philippines', dateLabel: 'March–April 2027', status: 'upcoming', shootId: 'shoot-philippines',
     arcIds: ['arc-records', 'arc-vito-deep'],
+    episodeHint: 'Ep 3 · The Rise → Feature finale',
     background: 'Spring 2027, world-class water: attacking more records, the most beautiful sessions of the film, and the deepest interviews — asked with a year of shared story behind them.',
     whatHappened: '',
     peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
@@ -1809,10 +1875,30 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
     colorHint: '#3d7a94',
   },
   {
+    id: 'sp-coda', order: 10, title: 'The coda · something together, free', kicker: 'Part ten · the ending',
+    location: 'TBD · bioluminescent water', dateLabel: 'TBD', status: 'idea', shootId: 'shoot-coda',
+    arcIds: ['arc-unit', 'arc-mentor'],
+    episodeHint: 'Feature ending',
+    background: 'The film\u2019s closing image. A night dive in bioluminescent water \u2014 no records, no judges, no card. The four weightless in total black, lit only by the glow they stir with their hands. Then silent credits: only breathing, slowly returning to normal, as the audience surfaces with them.',
+    whatHappened: '',
+    peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
+    topicIds: ['top-bond', 'top-surface'],
+    threadIds: ['t1'],
+    interviewIds: [],
+    beats: [
+      { id: 'b-coda-1', text: 'Find the water \u2014 bioluminescence, season, permits', done: false },
+      { id: 'b-coda-2', text: 'The four together, free \u2014 the thesis as the final image', done: false },
+      { id: 'b-coda-3', text: 'Silent credits \u2014 only breathing returning to normal', done: false },
+    ],
+    notes: 'The ending of Story 2 (the four as one unit). Location and season to decide.',
+    colorHint: '#0b1b2e',
+  },
+  {
     id: 'sp-2023', order: 9, title: 'The 2023 sessions · studio', kicker: 'The chapter apart',
-    location: 'Rijeka — studio · pool · gym', dateLabel: 'TBD', status: 'idea', shootId: 'shoot-rijeka-zagreb',
+    location: 'Rijeka — studio · pool · gym', dateLabel: 'TBD', status: 'idea', shootId: 'shoot-2023-studio',
     arcIds: ['arc-unit'],
-    background: 'The storm gets its own room. Controlled studio sessions in Rijeka — or on the pool, or in the gym — where the 2023 chapter is told properly: framed, lit, unhurried. Opened at Lastovo; finished here.',
+    episodeHint: 'Ep 2 · The Wound',
+    background: 'The storm gets its own room. Controlled studio sessions in Rijeka — or on the pool, or in the gym — where the 2023 chapter is told properly: framed, lit, unhurried. Opened at Lastovo; the PERSONAL half of the resolution told here, in their own words — the public half is the Hall of Fame.',
     whatHappened: '',
     peopleKeys: ['petar', 'vito', 'sanda', 'zsofia'],
     topicIds: ['top-2023', 'top-recognition'],

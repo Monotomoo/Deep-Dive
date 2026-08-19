@@ -40,8 +40,6 @@ import {
 import { useState, type ComponentType } from 'react';
 import { BackupPanel } from '../backup/BackupPanel';
 import { SIMPLE_VIEW_SET } from '../../lib/shortcuts';
-import { authInfo, loadSharedDoc, probeWrite } from '../../lib/cloud';
-import { getCloudSyncedAt, getCloudDirty, STORAGE_KEY } from '../../lib/storage';
 import { useApp } from '../../state/AppContext';
 import type { ViewKey } from '../../types';
 import { useT } from '../../i18n';
@@ -132,49 +130,13 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
     ? GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => SIMPLE_VIEW_SET.has(i.key)) })).filter((g) => g.items.length > 0)
     : GROUPS;
 
-  /* TEMP diagnostic — compares generation + one money value across screen /
-     localStorage / cloud, and runs a live write round-trip. Remove once sync
-     is confirmed. */
-  async function runSyncCheck() {
-    type Doc = { scenarioSeedVersion?: number; scenarios?: { realistic?: { funding?: Record<string, number> } } };
-    const probe = (d: Doc | undefined) =>
-      d ? `gen ${d.scenarioSeedVersion ?? '?'} · sponsors €${d.scenarios?.realistic?.funding?.sponsors ?? '?'}k` : '(missing)';
-    let ls: Doc | undefined;
-    try { ls = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null') as Doc; } catch { /* ignore */ }
-    let cloudLine = '(load failed)';
-    let cloudAt: string | null = null;
-    try {
-      const res = await loadSharedDoc();
-      if (res) { cloudLine = probe(res.doc as unknown as Doc); cloudAt = res.updatedAt; }
-      else cloudLine = 'NO CLOUD DOC';
-    } catch (e) { cloudLine = 'ERROR: ' + String(e); }
-    const rt = await probeWrite();
-    const auth = await authInfo();
-    window.alert(
-      `SYNC CHECK · ${location.host} · build ${__BUILD_TS__}\n\n` +
-      `on screen:   ${probe(state as unknown as Doc)}\n` +
-      `this browser: ${probe(ls)}\n` +
-      `the cloud:   ${cloudLine}\n\n` +
-      `cloud updated_at: ${cloudAt}\n` +
-      `local marker:     ${getCloudSyncedAt()}\n` +
-      `dirty (unpushed edit): ${getCloudDirty() ? 'YES' : 'no'}\n` +
-      `auth: ${auth}\n\n` +
-      `WRITE ROUND-TRIP: ${rt.ok ? 'OK' : 'FAILED'} — ${rt.detail}`,
-    );
-  }
-
   function setView(view: ViewKey) {
     dispatch({ type: 'SET_VIEW', view });
-    /* Close drawer after navigation on phone — desktop ignores this. */
     onCloseDrawer?.();
   }
 
   function handleReset() {
-    if (
-      window.confirm(
-        'Reset to seed?\n\nThis discards all your edits and restores the original seed data.'
-      )
-    ) {
+    if (window.confirm('Reset to seed?\n\nThis discards all your edits and restores the original seed data.')) {
       dispatch({ type: 'RESET_TO_SEED' });
     }
   }
@@ -355,14 +317,7 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
             >
               ↑ publish my copy to crew
             </button>
-            <button
-              type="button"
-              onClick={runSyncCheck}
-              className="block mt-1.5 text-[11px] tracking-[0.1em] uppercase text-[color:var(--color-warn)]/80 hover:text-[color:var(--color-warn)] transition-colors"
-            >
-              ⚑ run sync check
-            </button>
-          </div>
+                      </div>
         )}
 
         {/* Build stamp — if this doesn't match the latest deploy, the browser

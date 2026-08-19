@@ -49,7 +49,9 @@ function recordValue(r: DivingRecord): string {
 }
 
 function budgetOf(state: AppState) {
-  const sc = state.scenarios[state.activeScenario];
+  /* Funder-facing cards always show the REALISTIC plan — lean/ambitious are
+     working sketches and must never silently reach an exported deck. */
+  const sc = state.scenarios.realistic;
   const cost = Object.values(sc.costs).reduce((a, b) => a + b, 0);
   const fund = Object.values(sc.funding).reduce((a, b) => a + b, 0);
   return { sc, cost, fund, episodes: sc.episodes };
@@ -71,7 +73,7 @@ function cardDataText(card: PitchCard, state: AppState, eur: (thousands: number)
       break;
     case 'budget': {
       const b = budgetOf(state);
-      out.push(`- Budget (${state.activeScenario}): ${eur(b.cost)} · secured/targeted ${eur(b.fund)} · feature + ${b.episodes}-part series`);
+      out.push(`- Budget: ${eur(b.cost)} · financing plan: ${eur(b.fund)} (incl. contingency + reserve) · feature + ${b.episodes}-part series`);
       break;
     }
     case 'festivals':
@@ -223,8 +225,8 @@ function CardContent({ card, big }: { card: PitchCard; big: boolean }) {
       return (
         <div className="space-y-3">
           <div className="flex flex-wrap items-baseline gap-x-6 gap-y-1">
-            <Stat label={`total · ${state.activeScenario}`} value={eur(b.cost)} big={big} />
-            <Stat label="secured / targeted" value={eur(b.fund)} big={big} />
+            <Stat label="budget" value={eur(b.cost)} big={big} />
+            <Stat label="financing plan" value={eur(b.fund)} big={big} />
             <Stat label="format" value={`feature + ${b.episodes}×`} big={big} />
           </div>
           {body}

@@ -14,9 +14,9 @@ import type { ScenarioKey } from '../../types';
 const ORDER: ScenarioKey[] = ['lean', 'realistic', 'ambitious'];
 const LABEL: Record<ScenarioKey, string> = { lean: 'Lean', realistic: 'Realistic', ambitious: 'Ambitious' };
 const BLURB: Record<ScenarioKey, string> = {
-  lean: 'the film gets made, tightly',
+  lean: 'placeholder — tune in edit mode',
   realistic: 'the plan we pitch',
-  ambitious: 'everything the film could be',
+  ambitious: 'placeholder — everything the film could be',
 };
 
 function eur(thousands: number): string {
