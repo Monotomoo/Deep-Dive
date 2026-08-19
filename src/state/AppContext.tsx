@@ -100,21 +100,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     loadSharedDoc().then((res) => {
       if (!active) return;
       if (res) {
-        /* If the cloud hasn't advanced past the point we last synced to, our
-           local copy is the source of truth — it may hold edits the debounced
-           push never got to send (e.g. an edit followed by a fast refresh).
-           Keep local and push it up rather than overwriting it with a stale
-           cloud pull. Otherwise the cloud moved (another device / crew member),
-           so take it. */
-        const syncedAt = getCloudSyncedAt();
-        const cloudMoved = !syncedAt || !res.updatedAt || res.updatedAt > syncedAt;
-        if (cloudMoved) {
-          try { window.localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(history.present)); } catch { /* ignore */ }
-          internalDispatch({ type: 'HYDRATE', state: res.doc });
-          if (res.updatedAt) setCloudSyncedAt(res.updatedAt);
-        } else {
-          saveSharedDoc(history.present).then((r) => { if (r.updatedAt) setCloudSyncedAt(r.updatedAt); });
-        }
+        /* The cloud is the source of truth: load it. (Pushes are reliable now,
+           so whatever you last synced is up there.) We stash the pre-hydrate
+           local copy under a backup key first, so a machine's work is never lost
+           to a surprising cloud state. The only thing this can't preserve is an
+           edit made in the ~0.7s before its push fired and then refreshed over —
+           acceptable, and far safer than the keep-local logic that was dropping
+           edits the cloud actually had. */
+        try { window.localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(history.present)); } catch { /* ignore */ }
+        internalDispatch({ type: 'HYDRATE', state: res.doc });
+        if (res.updatedAt) setCloudSyncedAt(res.updatedAt);
       } else {
         // First crew member in — seed the shared project from local data.
         saveSharedDoc(history.present).then((r) => { if (r.updatedAt) setCloudSyncedAt(r.updatedAt); });
