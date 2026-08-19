@@ -301,14 +301,14 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
         {cloudEnabled && session && (
           <div className="pt-1 border-t-[0.5px] border-[color:var(--color-border-chrome)]/60">
             <div className="flex items-center gap-2 text-[11px] text-[color:var(--color-on-chrome-faint)]">
-              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: cloudStatus === 'synced' ? 'var(--color-success)' : 'var(--color-brass)' }} />
+              <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: cloudStatus === 'error' ? 'var(--color-danger)' : cloudStatus === 'synced' ? 'var(--color-success)' : 'var(--color-brass)' }} />
               <span className="italic truncate flex-1">{session.user.email}</span>
               <button type="button" onClick={signOut} title="sign out" className="flex items-center gap-1 hover:text-[color:var(--color-on-chrome)]">
                 <LogOut size={10} /> out
               </button>
             </div>
             <div className="text-[11px] tracking-[0.12em] uppercase text-[color:var(--color-on-chrome-faint)]/70 mt-1">
-              {cloudStatus === 'synced' ? 'shared crew project · synced' : 'shared crew project · syncing…'}
+              {cloudStatus === 'error' ? 'shared crew project · SYNC ERROR — not saved' : cloudStatus === 'synced' ? 'shared crew project · synced' : 'shared crew project · syncing…'}
             </div>
             <button
               type="button"

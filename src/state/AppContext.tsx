@@ -31,7 +31,7 @@ interface ContextShape {
   /* Cloud (inert unless a Supabase project is configured). */
   cloudEnabled: boolean;
   session: Session | null;
-  cloudStatus: 'off' | 'syncing' | 'synced';
+  cloudStatus: 'off' | 'syncing' | 'synced' | 'error';
   signOut: () => Promise<void>;
   /* Simple vs Full sidebar. Per-device (own localStorage key), deliberately NOT
      part of the synced doc — a crew member switching to Full mustn't flip
@@ -69,7 +69,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /* ---------- Cloud (Stage A) — only active when configured ---------- */
   // undefined = still checking, null = signed out, Session = signed in
   const [session, setSession] = useState<Session | null | undefined>(cloudEnabled ? undefined : null);
-  const [cloudStatus, setCloudStatus] = useState<'off' | 'syncing' | 'synced'>(cloudEnabled ? 'syncing' : 'off');
+  const [cloudStatus, setCloudStatus] = useState<'off' | 'syncing' | 'synced' | 'error'>(cloudEnabled ? 'syncing' : 'off');
   const cloudReadyRef = useRef(false); // have we pulled the cloud doc for this session yet?
 
   useEffect(() => {
@@ -138,7 +138,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
       saveTimer.current = undefined;
       saveSharedDoc(history.present).then((r) => {
         if (r.updatedAt) setCloudSyncedAt(r.updatedAt);
-        setCloudStatus('synced');
+        /* Surface write failures instead of lying 'synced'. If the push was
+           rejected (e.g. RLS), the footer says so and we know the edit didn't
+           reach the cloud. */
+        if (r.error) { console.error('[cloud] push rejected:', r.error); setCloudStatus('error'); }
+        else setCloudStatus('synced');
       });
     }, 700);
     return () => window.clearTimeout(saveTimer.current);
@@ -157,6 +161,29 @@ export function AppProvider({ children }: { children: ReactNode }) {
     return unsub;
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
+
+  /* Temporary diagnostic — window.__ddDebug() compares the cloud doc, the local
+     doc, and the sync marker for the Sicily-again beats, so we can see exactly
+     where an edit lands (or fails to). Remove once sync is confirmed. */
+  useEffect(() => {
+    if (!cloudEnabled) return;
+    const pick = (doc: unknown) => {
+      const parts = (doc as { scenarioParts?: Array<{ id: string; beats?: Array<{ text: string; done?: boolean }> }> })?.scenarioParts;
+      const p = parts?.find((x) => x.id === 'sp-sicily2');
+      return p?.beats?.map((b) => ({ t: b.text.slice(0, 18), done: !!b.done }));
+    };
+    (window as unknown as { __ddDebug: () => Promise<unknown> }).__ddDebug = async () => {
+      const res = await loadSharedDoc();
+      let local: unknown = {};
+      try { local = JSON.parse(localStorage.getItem('deep-dive-dashboard-v16') || '{}'); } catch { /* ignore */ }
+      return {
+        cloudUpdatedAt: res?.updatedAt ?? 'NO CLOUD DOC',
+        cloudBeats: res ? pick(res.doc) : 'NO CLOUD DOC',
+        localMarker: getCloudSyncedAt(),
+        localBeats: pick(local),
+      };
+    };
+  }, []);
 
   const signOut = useCallback(async () => {
     await signOutCloud();
