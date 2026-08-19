@@ -65,6 +65,28 @@ create policy "crew makes snapshots"   on public.deep_dive_snapshots
   for insert to authenticated with check (true);
 create policy "crew deletes snapshots" on public.deep_dive_snapshots
   for delete to authenticated using (true);
+
+-- Stale-client guard. A tab still running an older build of the app can push
+-- a doc from an older content generation, which would make the next load's
+-- migration wipe newer work. Reject any update that would LOWER the doc's
+-- scenarioSeedVersion — old tabs' writes are ignored instead of poisoning
+-- the shared project. (New builds verify writes and will show a sync error;
+-- the fix there is simply to refresh that tab.)
+create or replace function public.deep_dive_guard()
+returns trigger language plpgsql as $$
+declare
+  old_gen int := coalesce((old.doc->>'scenarioSeedVersion')::int, 0);
+  new_gen int := coalesce((new.doc->>'scenarioSeedVersion')::int, 0);
+begin
+  if new_gen < old_gen then
+    return null; -- silently drop the stale write
+  end if;
+  return new;
+end $$;
+
+drop trigger if exists deep_dive_guard on public.deep_dive_shared;
+create trigger deep_dive_guard before update on public.deep_dive_shared
+for each row execute function public.deep_dive_guard();
 ```
 
 `to authenticated` means only signed-in users get in at all; RLS + invite-only
