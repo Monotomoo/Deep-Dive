@@ -151,7 +151,7 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
     const rt = await probeWrite();
     const auth = await authInfo();
     window.alert(
-      `SYNC CHECK · ${location.host}\n\n` +
+      `SYNC CHECK · ${location.host} · build ${__BUILD_TS__}\n\n` +
       `on screen:   ${probe(state as unknown as Doc)}\n` +
       `this browser: ${probe(ls)}\n` +
       `the cloud:   ${cloudLine}\n\n` +
@@ -364,6 +364,12 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
             </button>
           </div>
         )}
+
+        {/* Build stamp — if this doesn't match the latest deploy, the browser
+           is running a stale cached bundle (hard-refresh fixes it). */}
+        <div className="font-sans text-[11px] text-[color:var(--color-on-chrome-faint)]/60">
+          build {__BUILD_TS__}
+        </div>
 
         <div className="font-sans text-[11px] tracking-[0.14em] uppercase text-[color:var(--color-on-chrome-faint)] flex items-center gap-2">
           <span className="border-[0.5px] border-[color:var(--color-border-chrome-strong)] rounded px-1.5 py-[1px]">

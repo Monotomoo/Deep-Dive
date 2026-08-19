@@ -4,6 +4,12 @@ import tailwindcss from '@tailwindcss/vite';
 
 export default defineConfig({
   plugins: [react(), tailwindcss()],
+  /* Build stamp — baked in at build time, shown in the sidebar footer. One
+     glance tells anyone whether their browser is running the current deploy
+     or a stale cached bundle. */
+  define: {
+    __BUILD_TS__: JSON.stringify(new Date().toISOString().slice(0, 16).replace('T', ' ') + ' UTC'),
+  },
   server: {
     /* Honor the preview harness's assigned port (PORT env); else 5173 + auto-fallback. */
     port: Number(process.env.PORT) || 5173,
