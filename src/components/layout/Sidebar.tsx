@@ -40,6 +40,8 @@ import {
 import { useState, type ComponentType } from 'react';
 import { BackupPanel } from '../backup/BackupPanel';
 import { SIMPLE_VIEW_SET } from '../../lib/shortcuts';
+import { loadSharedDoc } from '../../lib/cloud';
+import { getCloudSyncedAt } from '../../lib/storage';
 import { useApp } from '../../state/AppContext';
 import type { ViewKey } from '../../types';
 import { useT } from '../../i18n';
@@ -129,6 +131,33 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
   const groups = uiMode === 'simple'
     ? GROUPS.map((g) => ({ ...g, items: g.items.filter((i) => SIMPLE_VIEW_SET.has(i.key)) })).filter((g) => g.items.length > 0)
     : GROUPS;
+
+  /* TEMP diagnostic — shows the Sicily-again checklist as it stands on screen,
+     in this browser's storage, and in the cloud, so we can see exactly where an
+     edit is (or isn't) landing. Remove once sync is confirmed. */
+  async function runSyncCheck() {
+    type Beat = { text: string; done?: boolean };
+    type Doc = { scenarioParts?: Array<{ id: string; beats?: Beat[] }> };
+    const show = (doc: Doc | undefined) => {
+      const p = doc?.scenarioParts?.find((x) => x.id === 'sp-sicily2');
+      if (!p) return '  (part not found)';
+      return (p.beats ?? []).map((b) => `  ${b.done ? '[x]' : '[ ]'} ${b.text.slice(0, 22)}`).join('\n') || '  (no beats)';
+    };
+    let ls: Doc = {};
+    try { ls = JSON.parse(localStorage.getItem('deep-dive-dashboard-v16') || '{}') as Doc; } catch { /* ignore */ }
+    let cloudBlock = '  (loading failed)';
+    try {
+      const res = await loadSharedDoc();
+      cloudBlock = res ? `  updated_at: ${res.updatedAt}\n${show(res.doc as unknown as Doc)}` : '  NO CLOUD DOC';
+    } catch (e) { cloudBlock = '  ERROR: ' + String(e); }
+    window.alert(
+      `SYNC CHECK  ·  ${location.host}\n\n` +
+      `ON SCREEN (React):\n${show(state as unknown as Doc)}\n\n` +
+      `THIS BROWSER (localStorage):\n${show(ls)}\n\n` +
+      `THE CLOUD (Supabase):\n${cloudBlock}\n\n` +
+      `marker: ${getCloudSyncedAt()}`,
+    );
+  }
 
   function setView(view: ViewKey) {
     dispatch({ type: 'SET_VIEW', view });
@@ -321,6 +350,13 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
               className="mt-1.5 text-[11px] tracking-[0.1em] uppercase text-[color:var(--color-on-chrome-faint)]/60 hover:text-[color:var(--color-brass)] transition-colors"
             >
               ↑ publish my copy to crew
+            </button>
+            <button
+              type="button"
+              onClick={runSyncCheck}
+              className="block mt-1.5 text-[11px] tracking-[0.1em] uppercase text-[color:var(--color-warn)]/80 hover:text-[color:var(--color-warn)] transition-colors"
+            >
+              ⚑ run sync check
             </button>
           </div>
         )}
