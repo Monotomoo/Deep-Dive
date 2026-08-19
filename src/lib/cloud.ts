@@ -65,7 +65,11 @@ export async function signInWithEmail(email: string): Promise<{ error?: string }
 }
 
 export async function signOutCloud(): Promise<void> {
-  if (cloud) await cloud.auth.signOut();
+  /* scope 'local' — sign out THIS device only. The supabase-js default is
+     'global', which revokes every session the user has (phone, laptop, a
+     second browser) — one crew member logging out of one machine must never
+     silently kill their other devices. */
+  if (cloud) await cloud.auth.signOut({ scope: 'local' });
 }
 
 export interface SharedLoad {
