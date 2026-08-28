@@ -1684,9 +1684,10 @@ export const SEED_PITCH_DECKS: PitchDeck[] = [
    shootDays + milestones + schedulePhases join the upgrade set. v6: Vito's-
    dive arc corrected per Tomo — mentioned at Lastovo, reveal in USA/Cyprus,
    to be decided WITH Vito; the invented Sicily volcano plant removed.
-   v7: The Map — Tomo and Vito's drawn plan transcribed into the app.) */
+   v7: The Map — Tomo and Vito's drawn plan transcribed into the app.
+   v8: The Plan — Vegas under Vito, stage 6 (The 4), unsorted brackets.) */
 
-export const SCENARIO_SEED_VERSION = 7;
+export const SCENARIO_SEED_VERSION = 8;
 
 export const SEED_SCENARIO_ARCS: ScenarioArc[] = [
   {
@@ -1946,6 +1947,7 @@ export const SEED_MAP_LANES: MapLane[] = [
   { id: 'ml-sport', order: 3, title: 'Sport',               short: 'SPORT',               colorHint: '#4f7d5e' },
   { id: 'ml-ls',    order: 4, title: 'Lung squeeze',        short: 'LS',                  colorHint: '#8a5f9e' },
   { id: 'ml-comp',  order: 5, title: 'Competition · support', short: 'COMPETITION-SUPPORT', colorHint: '#b8963f' },
+  { id: 'ml-the4',  order: 6, title: 'The 4',                 short: 'THE 4',               colorHint: '#3d7a94' },
 ];
 
 export const SEED_MAP_NODES: MapNode[] = [
@@ -1956,8 +1958,7 @@ export const SEED_MAP_NODES: MapNode[] = [
   { id: 'mn-4x',    laneId: 'ml-bo', order: 4, label: '4x',    kind: 'note',  parentId: 'mn-pero',
     note: 'Written as “4x” beside Pero — four times?' },
   { id: 'mn-vito',  laneId: 'ml-bo', order: 5, label: 'Vito',  kind: 'person', personKey: 'vito' },
-  { id: 'mn-vito-q', laneId: 'ml-bo', order: 6, label: '?',    kind: 'unknown', parentId: 'mn-vito',
-    note: 'A bubble under Vito on the page — couldn’t read it from the photo.' },
+  { id: 'mn-vito-q', laneId: 'ml-bo', order: 6, label: 'Vegas', kind: 'place', parentId: 'mn-vito' },
   { id: 'mn-137',   laneId: 'ml-bo', order: 7, label: '137',   kind: 'depth' },
   { id: 'mn-103a',  laneId: 'ml-bo', order: 8, label: '103',   kind: 'depth' },
   { id: 'mn-bo-q',  laneId: 'ml-bo', order: 9, label: '?',     kind: 'unknown',
@@ -1969,23 +1970,24 @@ export const SEED_MAP_NODES: MapNode[] = [
   /* --- Sport --- */
   { id: 'mn-aida',  laneId: 'ml-sport', order: 1, label: 'AIDA · CMAS', kind: 'org' },
   { id: 'mn-women', laneId: 'ml-sport', order: 2, label: 'Women',       kind: 'note' },
-  { id: 'mn-led',   laneId: 'ml-sport', order: 3, label: 'LED',         kind: 'note',
-    note: 'Left as written, per Tomo.' },
+  { id: 'mn-led',   laneId: 'ml-sport', order: 3, label: 'LED',         kind: 'note' },
 
   /* --- Lung squeeze --- */
   { id: 'mn-vb',    laneId: 'ml-ls', order: 1, label: 'VB medical', kind: 'org',
     note: 'Reading uncertain — “VB medical”? Vertical Blue?' },
 
   /* --- Competition · support: the long arrow back to 2023 --- */
-  { id: 'mn-103b',  laneId: 'ml-comp', order: 1, label: '103', kind: 'depth', links: ['ml-2023'],
-    note: 'The long curved arrow on the page runs from here back to 2023.' },
+  { id: 'mn-103b',  laneId: 'ml-comp', order: 1, label: '103', kind: 'depth', links: ['ml-2023'] },
+
+  /* --- The 4 --- */
+  { id: 'mn-o2',       laneId: 'ml-the4', order: 1, label: 'O2',            kind: 'note' },
+  { id: 'mn-vwt',      laneId: 'ml-the4', order: 2, label: 'VWT',           kind: 'note' },
+  { id: 'mn-positive', laneId: 'ml-the4', order: 3, label: 'Positive feel', kind: 'note' },
 ];
 
 export const SEED_MAP_ASIDES: MapAside[] = [
-  { id: 'ma-the4',   order: 1, title: 'The 4', lines: ['O2', 'VWT', 'Positive'],
-    note: 'Boxed on the page, sitting off the chain.' },
-  { id: 'ma-people', order: 2, title: 'People', lines: ['?'],
-    note: 'Written down the margin of the page, with a name beneath it we couldn’t read.' },
+  { id: 'ma-unsorted', order: 1, title: 'Unsorted', lines: ['Raul', 'DCI', 'CMAS'] },
+  { id: 'ma-people',   order: 2, title: 'People',   lines: ['?'] },
 ];
 
 /* ---------- Initial state factory ---------- */
