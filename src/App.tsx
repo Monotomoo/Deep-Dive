@@ -48,6 +48,7 @@ const UsaTripView = lazy(() => import('./components/views/UsaTripView').then((m)
 const PitchDeckView = lazy(() => import('./components/views/PitchDeckView').then((m) => ({ default: m.PitchDeckView })));
 const GapRadarView = lazy(() => import('./components/views/GapRadarView').then((m) => ({ default: m.GapRadarView })));
 const ScreenplayView = lazy(() => import('./components/views/ScreenplayView').then((m) => ({ default: m.ScreenplayView })));
+const StoryMapView = lazy(() => import('./components/views/StoryMapView').then((m) => ({ default: m.StoryMapView })));
 
 function ViewLoading() {
   return (
@@ -80,6 +81,7 @@ function renderView(view: ViewKey) {
     case 'overview':      return <OverviewView />;
     case 'gap-radar':     return <GapRadarView />;
     case 'screenplay':    return <ScreenplayView />;
+    case 'story-map':     return <StoryMapView />;
     case 'vision':        return <VisionView />;
     case 'idea-hub':      return <IdeaHubView />;
     case 'neuron':        return <NeuronView />;

@@ -1198,6 +1198,63 @@ export interface ScenarioPart {
   notes?: string;           // editor's notes
 }
 
+/* ---------- The Map · the drawn plan (v0.24) ------------------------------
+   Tomo and Vito drew the film's thematic spine on paper: a chain of long bars
+   (the stages, read left to right) with bubbles hanging off each one — people,
+   record depths, institutions, places — plus a few curved arrows linking things
+   across the whole page, and a boxed aside sitting apart from the chain.
+
+   This models exactly that, and nothing more. It is deliberately NOT the Neuron
+   graph: that one auto-lays-out, and auto-layout would destroy the one thing
+   that makes the drawing worth keeping — that the two of them chose where
+   everything goes. Order and attachment are data here, edited by hand. */
+
+export type MapNodeKind =
+  | 'person'    // a box on the page — Pero, Vito
+  | 'depth'     // a record depth in metres — 100, 132, 137, 103
+  | 'org'       // a federation / body — AIDA, CMAS
+  | 'place'     // Cipar (Cyprus)
+  | 'note'      // a written aside — "4x", "LED", the Croatian line
+  | 'unknown';  // a bubble on the paper we couldn't read — Tomo to fill in
+
+export interface MapLane {
+  id: string;
+  order: number;
+  title: string;        // "BLACKOUT"
+  short?: string;       // what's actually written on the paper — "BO"
+  note?: string;        // the handwriting beside the bar
+  colorHint?: string;
+}
+
+export interface MapNode {
+  id: string;
+  laneId: string;
+  order: number;
+  label: string;        // "PERO" · "132" · "AIDA / CMAS"
+  kind: MapNodeKind;
+  /* A bubble hanging off another bubble rather than off the bar itself —
+     the depths clustered around Pero's box. */
+  parentId?: string;
+  note?: string;
+  /* The curved arrows: ids of other nodes OR of lanes this one reaches across
+     the page to. Rendered as real curves over the board. */
+  links?: string[];
+  /* Optional bridges into the rest of the app, so a bubble can open the thing
+     it stands for instead of being a dead label. */
+  personKey?: FourKey;
+  shootId?: string;
+  recordId?: string;
+}
+
+/* The boxed aside that sits off the chain — "THE 4 / O2 / VWT / POSITIVE". */
+export interface MapAside {
+  id: string;
+  order: number;
+  title: string;
+  lines: string[];
+  note?: string;
+}
+
 /* ---------- Cross-cutting primitives ---------- */
 
 export type TaskStatus = 'todo' | 'in-progress' | 'blocked' | 'done';
@@ -1275,6 +1332,7 @@ export type ViewKey =
   | 'overview'
   | 'gap-radar'
   | 'screenplay'
+  | 'story-map'
   | 'vision'
   | 'idea-hub'
   | 'neuron'
@@ -1373,6 +1431,10 @@ export interface AppState {
   scenarioParts: ScenarioPart[];
   /* v0.22 — the four connected stories (the scenario's spine) */
   scenarioArcs: ScenarioArc[];
+  /* v0.24 — the drawn plan: stages left to right, bubbles hanging off them */
+  mapLanes: MapLane[];
+  mapNodes: MapNode[];
+  mapAsides: MapAside[];
   /* Which generation of the seeded screenplay this doc carries. When the seed's
      narrative is rewritten (a content upgrade, not a schema change), docs below
      the current generation get the new parts+arcs on load. */

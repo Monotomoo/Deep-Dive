@@ -10,6 +10,7 @@ const VIEW_NAMES: Record<ViewKey, string> = {
   overview:      'Overview',
   'gap-radar':   'Gap Radar',
   screenplay:    'The Scenario',
+  'story-map':   'The Plan',
   vision:        'Vision',
   'idea-hub':    'Idea Hub',
   neuron:        'Neuron',

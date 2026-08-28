@@ -21,6 +21,7 @@ export const SIMPLE_VIEWS: readonly ViewKey[] = [
   'overview',
   'gap-radar',
   'screenplay',
+  'story-map',
   'four',
   'cast',
   'shoots',

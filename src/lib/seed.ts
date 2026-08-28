@@ -27,6 +27,9 @@ import type {
   Lens,
   LifeEvent,
   Light,
+  MapAside,
+  MapLane,
+  MapNode,
   Microphone,
   Milestone,
   MotifChain,
@@ -1680,9 +1683,10 @@ export const SEED_PITCH_DECKS: PitchDeck[] = [
    two-beat 2023 resolution, contingency/finishing/reserve budget lines,
    shootDays + milestones + schedulePhases join the upgrade set. v6: Vito's-
    dive arc corrected per Tomo — mentioned at Lastovo, reveal in USA/Cyprus,
-   to be decided WITH Vito; the invented Sicily volcano plant removed.) */
+   to be decided WITH Vito; the invented Sicily volcano plant removed.
+   v7: The Map — Tomo and Vito's drawn plan transcribed into the app.) */
 
-export const SCENARIO_SEED_VERSION = 6;
+export const SCENARIO_SEED_VERSION = 7;
 
 export const SEED_SCENARIO_ARCS: ScenarioArc[] = [
   {
@@ -1919,6 +1923,71 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
   },
 ];
 
+/* ---------- The Map · transcribed from the drawing --------------------------
+   Tomo and Vito's paper plan, read off the photo and typed up as-is. Two rules
+   held while transcribing it:
+
+   1. Nothing here is invented. Every lane, bubble and arrow below is on the
+      page. Where the handwriting couldn't be read it is seeded as an 'unknown'
+      bubble rather than guessed at — a visible blank for Tomo to fill, not a
+      plausible-looking lie.
+   2. The order is the drawing's order, start left to end right, as Tomo
+      confirmed. If a stage sits wrong it moves with the arrows in the view;
+      the reading isn't baked in.
+
+   Confirmed by Tomo: BO = blackout · LS = lung squeeze · the numbers are record
+   depths · LED stays as written for now · Raul / DCI / CMAS is on the paper but
+   deliberately left out until it's decided. */
+
+export const SEED_MAP_LANES: MapLane[] = [
+  { id: 'ml-bo',    order: 1, title: 'Blackout',            short: 'BO',                  colorHint: '#3d7a94' },
+  { id: 'ml-2023',  order: 2, title: '2023',                short: '2023',
+    note: 'kako je jako on support i community',            colorHint: '#d96c3d' },
+  { id: 'ml-sport', order: 3, title: 'Sport',               short: 'SPORT',               colorHint: '#4f7d5e' },
+  { id: 'ml-ls',    order: 4, title: 'Lung squeeze',        short: 'LS',                  colorHint: '#8a5f9e' },
+  { id: 'ml-comp',  order: 5, title: 'Competition · support', short: 'COMPETITION-SUPPORT', colorHint: '#b8963f' },
+];
+
+export const SEED_MAP_NODES: MapNode[] = [
+  /* --- Blackout: the two men, and the depths written around them --- */
+  { id: 'mn-pero',  laneId: 'ml-bo', order: 1, label: 'Pero',  kind: 'person', personKey: 'petar' },
+  { id: 'mn-100',   laneId: 'ml-bo', order: 2, label: '100',   kind: 'depth', parentId: 'mn-pero' },
+  { id: 'mn-132',   laneId: 'ml-bo', order: 3, label: '132',   kind: 'depth', parentId: 'mn-pero' },
+  { id: 'mn-4x',    laneId: 'ml-bo', order: 4, label: '4x',    kind: 'note',  parentId: 'mn-pero',
+    note: 'Written as “4x” beside Pero — four times?' },
+  { id: 'mn-vito',  laneId: 'ml-bo', order: 5, label: 'Vito',  kind: 'person', personKey: 'vito' },
+  { id: 'mn-vito-q', laneId: 'ml-bo', order: 6, label: '?',    kind: 'unknown', parentId: 'mn-vito',
+    note: 'A bubble under Vito on the page — couldn’t read it from the photo.' },
+  { id: 'mn-137',   laneId: 'ml-bo', order: 7, label: '137',   kind: 'depth' },
+  { id: 'mn-103a',  laneId: 'ml-bo', order: 8, label: '103',   kind: 'depth' },
+  { id: 'mn-bo-q',  laneId: 'ml-bo', order: 9, label: '?',     kind: 'unknown',
+    note: 'The bubble on the far left of the blackout bar — couldn’t read it.' },
+
+  /* --- 2023 --- */
+  { id: 'mn-cipar', laneId: 'ml-2023', order: 1, label: 'Cipar', kind: 'place', shootId: 'shoot-cyprus' },
+
+  /* --- Sport --- */
+  { id: 'mn-aida',  laneId: 'ml-sport', order: 1, label: 'AIDA · CMAS', kind: 'org' },
+  { id: 'mn-women', laneId: 'ml-sport', order: 2, label: 'Women',       kind: 'note' },
+  { id: 'mn-led',   laneId: 'ml-sport', order: 3, label: 'LED',         kind: 'note',
+    note: 'Left as written, per Tomo.' },
+
+  /* --- Lung squeeze --- */
+  { id: 'mn-vb',    laneId: 'ml-ls', order: 1, label: 'VB medical', kind: 'org',
+    note: 'Reading uncertain — “VB medical”? Vertical Blue?' },
+
+  /* --- Competition · support: the long arrow back to 2023 --- */
+  { id: 'mn-103b',  laneId: 'ml-comp', order: 1, label: '103', kind: 'depth', links: ['ml-2023'],
+    note: 'The long curved arrow on the page runs from here back to 2023.' },
+];
+
+export const SEED_MAP_ASIDES: MapAside[] = [
+  { id: 'ma-the4',   order: 1, title: 'The 4', lines: ['O2', 'VWT', 'Positive'],
+    note: 'Boxed on the page, sitting off the chain.' },
+  { id: 'ma-people', order: 2, title: 'People', lines: ['?'],
+    note: 'Written down the margin of the page, with a name beneath it we couldn’t read.' },
+];
+
 /* ---------- Initial state factory ---------- */
 
 export function makeInitialState(): AppState {
@@ -1972,6 +2041,9 @@ export function makeInitialState(): AppState {
     pitchDecks: SEED_PITCH_DECKS,
     scenarioParts: SEED_SCENARIO_PARTS,
     scenarioArcs: SEED_SCENARIO_ARCS,
+    mapLanes: SEED_MAP_LANES,
+    mapNodes: SEED_MAP_NODES,
+    mapAsides: SEED_MAP_ASIDES,
     scenarioSeedVersion: SCENARIO_SEED_VERSION,
     tasks: [],
     notes: [],

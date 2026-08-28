@@ -116,6 +116,12 @@ function migrateState(loaded: Partial<AppState>): AppState {
        already on the current generation keep their own edits. */
     scenarioParts: contentUpgrade ? defaults.scenarioParts : (loaded.scenarioParts ?? defaults.scenarioParts),
     scenarioArcs: contentUpgrade ? defaults.scenarioArcs : (loaded.scenarioArcs ?? defaults.scenarioArcs),
+    /* The Map arrived in generation 7. A doc written before that has no lanes
+       at all, so `?? defaults` seeds it; once a doc carries its own map, only a
+       later content generation replaces it. */
+    mapLanes: contentUpgrade ? defaults.mapLanes : (loaded.mapLanes ?? defaults.mapLanes),
+    mapNodes: contentUpgrade ? defaults.mapNodes : (loaded.mapNodes ?? defaults.mapNodes),
+    mapAsides: contentUpgrade ? defaults.mapAsides : (loaded.mapAsides ?? defaults.mapAsides),
     scenarioSeedVersion: Math.max(loaded.scenarioSeedVersion ?? 1, defaults.scenarioSeedVersion),
     tasks: loaded.tasks ?? defaults.tasks,
     notes: loaded.notes ?? defaults.notes,

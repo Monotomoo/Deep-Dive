@@ -9,6 +9,7 @@ export const en = {
   'nav.overview':     'Overview',
   'nav.gap-radar':    'Gap Radar',
   'nav.screenplay':   'The Scenario',
+  'nav.story-map':    'The Plan',
   'nav.scenario':     'The Money',
   'nav.vision':       'Vision',
   'nav.schedule':     'Schedule',

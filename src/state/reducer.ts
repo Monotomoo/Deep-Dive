@@ -37,6 +37,9 @@ import type {
   SalesAgent,
   SchedulePhase,
   ScenarioKey,
+  MapAside,
+  MapLane,
+  MapNode,
   ScenarioArc,
   ScenarioPart,
   Shoot,
@@ -252,6 +255,17 @@ export type Action =
   | { type: 'ADD_SCENARIO_ARC'; arc: ScenarioArc }
   | { type: 'UPDATE_SCENARIO_ARC'; id: string; patch: Partial<ScenarioArc> }
   | { type: 'DELETE_SCENARIO_ARC'; id: string }
+  /* The Map — the drawn plan */
+  | { type: 'ADD_MAP_LANE'; lane: MapLane }
+  | { type: 'UPDATE_MAP_LANE'; id: string; patch: Partial<MapLane> }
+  | { type: 'DELETE_MAP_LANE'; id: string }
+  | { type: 'MOVE_MAP_LANE'; id: string; dir: -1 | 1 }
+  | { type: 'ADD_MAP_NODE'; node: MapNode }
+  | { type: 'UPDATE_MAP_NODE'; id: string; patch: Partial<MapNode> }
+  | { type: 'DELETE_MAP_NODE'; id: string }
+  | { type: 'ADD_MAP_ASIDE'; aside: MapAside }
+  | { type: 'UPDATE_MAP_ASIDE'; id: string; patch: Partial<MapAside> }
+  | { type: 'DELETE_MAP_ASIDE'; id: string }
   /* The Money — edit a funding/cost line on one budget scenario (values in €k).
      SET with a new key adds the line; DELETE removes it. */
   | { type: 'SET_MONEY_LINE'; scenario: ScenarioKey; kind: 'funding' | 'costs'; key: string; value: number }
@@ -565,6 +579,45 @@ export function reducer(state: AppState, action: Action): AppState {
         p.arcIds?.includes(action.id) ? { ...p, arcIds: p.arcIds.filter((a) => a !== action.id) } : p,
       ),
     };
+    /* ---- The Map ---- */
+    case 'ADD_MAP_LANE':    return { ...state, mapLanes: [...state.mapLanes, action.lane] };
+    case 'UPDATE_MAP_LANE': return { ...state, mapLanes: upd(state.mapLanes, action.id, action.patch) };
+    case 'DELETE_MAP_LANE': return {
+      ...state,
+      mapLanes: del(state.mapLanes, action.id),
+      /* A stage takes its own bubbles with it, and any arrow pointing at it
+         goes too — a link to something that no longer exists would draw a
+         curve into empty space. */
+      mapNodes: state.mapNodes
+        .filter((n) => n.laneId !== action.id)
+        .map((n) => (n.links?.includes(action.id) ? { ...n, links: n.links.filter((l) => l !== action.id) } : n)),
+    };
+    case 'MOVE_MAP_LANE': {
+      const sorted = [...state.mapLanes].sort((a, b) => a.order - b.order);
+      const i = sorted.findIndex((l) => l.id === action.id);
+      const j = i + action.dir;
+      if (i < 0 || j < 0 || j >= sorted.length) return state;
+      const oi = sorted[i].order, oj = sorted[j].order;
+      return {
+        ...state,
+        mapLanes: state.mapLanes.map((l) =>
+          l.id === sorted[i].id ? { ...l, order: oj } : l.id === sorted[j].id ? { ...l, order: oi } : l,
+        ),
+      };
+    }
+    case 'ADD_MAP_NODE':    return { ...state, mapNodes: [...state.mapNodes, action.node] };
+    case 'UPDATE_MAP_NODE': return { ...state, mapNodes: upd(state.mapNodes, action.id, action.patch) };
+    case 'DELETE_MAP_NODE': return {
+      ...state,
+      /* Drop the bubble, anything hanging off it, and every arrow aimed at it. */
+      mapNodes: state.mapNodes
+        .filter((n) => n.id !== action.id && n.parentId !== action.id)
+        .map((n) => (n.links?.includes(action.id) ? { ...n, links: n.links.filter((l) => l !== action.id) } : n)),
+    };
+    case 'ADD_MAP_ASIDE':    return { ...state, mapAsides: [...state.mapAsides, action.aside] };
+    case 'UPDATE_MAP_ASIDE': return { ...state, mapAsides: upd(state.mapAsides, action.id, action.patch) };
+    case 'DELETE_MAP_ASIDE': return { ...state, mapAsides: del(state.mapAsides, action.id) };
+
     case 'MOVE_SCENARIO_PART': {
       const sorted = [...state.scenarioParts].sort((a, b) => a.order - b.order);
       const i = sorted.findIndex((p) => p.id === action.id);
