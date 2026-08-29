@@ -1,589 +1,755 @@
 import {
-  useCallback, useLayoutEffect, useRef, useState, type CSSProperties, type ReactNode,
+  useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState,
+  type CSSProperties, type DragEvent, type ReactNode,
 } from 'react';
-import { ArrowLeft, ArrowRight, Check, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { ChevronDown, ChevronUp, MapPin, Plus, Trash2 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
-import type { MapAside, MapLane, MapNode, MapNodeKind } from '../../types';
+import type { FourKey, MapAside, MapLane, MapNode, MapNodeKind } from '../../types';
+import { classifyLabel, depthValue, markForm } from '../../lib/mapKinds';
 
-/* The Plan — the map Tomo and Vito drew, made into a board.
+/* The Plan — the map Tomo and Vito drew, as a printed plate.
 
-   Stages run left to right along a rail, bubbles hang off each stage on stems,
-   long curved arrows reach back across the board, and anything not yet placed
-   sits in a bracket underneath. The arrangement is the data: it is edited by
-   hand, never auto-laid-out, because the arrangement is the thinking. */
+   It reads as one sheet: a head strip, six numbered bands, and the tray of
+   things with no stage yet, all on the same four-column grid so every rule
+   lines up from the top of the plate to the bottom.
 
-const KIND_ORDER: MapNodeKind[] = ['person', 'depth', 'place', 'org', 'note', 'unknown'];
-const KIND_LABEL: Record<MapNodeKind, string> = {
-  person: 'person', depth: 'depth', place: 'place', org: 'body', note: 'note', unknown: 'unread',
-};
+   Two decisions carry the whole design.
 
-const BAR_H = 82;   // every stage bar is the same height so the rail runs true
-const RAIL_Y = BAR_H / 2;
+   ONE INK. The stages are told apart by a 30px numeral and their name, not by
+   six pastel fills. Colour is spent only where it means something: a diver's
+   signature hue, the one line that crosses the sheet, and the deepest number
+   on the board. Everything else is navy on cream.
+
+   NO EDIT MODE. There is no toggle. Click any word to rewrite it, type in the
+   line under a band to add a mark, drag a mark to move it. A board you have to
+   unlock before you can think on it is a board you stop using. */
+
+const GRID = 'grid grid-cols-[52px_196px_1fr_92px]';
+const GRID_SM = 'max-lg:grid-cols-[40px_1fr]';
+
+/* ---------- helpers ------------------------------------------------------ */
+
+const NUMBER_WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine', 'ten'];
+const word = (n: number) => NUMBER_WORDS[n] ?? String(n);
+const norm = (s: string) => s.replace(/[^a-z0-9]/gi, '').toLowerCase();
+
+/* A depth is sized from its own value, so reading down a band tells you how
+   deep these people go before you have read a single word. */
+function depthSize(v: number, nested: boolean): number {
+  const base = v >= 130 ? 30 : v >= 100 ? 22 : 17;
+  return nested ? (base === 30 ? 22 : base === 22 ? 17 : 15) : base;
+}
+
+interface DragPayload {
+  kind: 'node' | 'tray';
+  id?: string;               // node
+  asideId?: string;          // tray
+  index?: number;            // tray
+  label?: string;            // tray
+}
+
+/* ---------- the view ----------------------------------------------------- */
 
 export function StoryMapView() {
   const { state, dispatch } = useApp();
-  const [editing, setEditing] = useState(false);
+  const lanes = useMemo(() => [...state.mapLanes].sort((a, b) => a.order - b.order), [state.mapLanes]);
+  const trays = useMemo(() => [...state.mapAsides].sort((a, b) => a.order - b.order), [state.mapAsides]);
 
-  const lanes = [...state.mapLanes].sort((a, b) => a.order - b.order);
-  const brackets = [...state.mapAsides].sort((a, b) => a.order - b.order);
+  const [drag, setDrag] = useState<DragPayload | null>(null);
+  const [dropLane, setDropLane] = useState<string | null>(null);
+  const [dropTray, setDropTray] = useState<string | null>(null);
 
-  /* ---- Measure, so the long arrows are real curves between real elements ---- */
-  const boardRef = useRef<HTMLDivElement | null>(null);
-  const elsRef = useRef(new Map<string, HTMLElement>());
-  const [boxes, setBoxes] = useState<Record<string, { x: number; y: number; w: number; h: number }>>({});
-  const [size, setSize] = useState({ w: 0, h: 0 });
+  /* The deepest number anywhere on the board gets the coral and the label. */
+  const deepest = useMemo(() => {
+    let best = 0;
+    for (const n of state.mapNodes) {
+      const v = depthValue(n.label);
+      if (v && v > best) best = v;
+    }
+    return best;
+  }, [state.mapNodes]);
 
-  const register = useCallback((id: string) => (el: HTMLElement | null) => {
-    if (el) elsRef.current.set(id, el); else elsRef.current.delete(id);
+  /* ---- measurement, for the one line that crosses the sheet ---- */
+  const plateRef = useRef<HTMLElement | null>(null);
+  const bandRefs = useRef(new Map<string, HTMLElement>());
+  const [geom, setGeom] = useState<{ h: number; y: Record<string, number> }>({ h: 0, y: {} });
+
+  const registerBand = useCallback((id: string) => (el: HTMLElement | null) => {
+    if (el) bandRefs.current.set(id, el); else bandRefs.current.delete(id);
   }, []);
 
   const measure = useCallback(() => {
-    const board = boardRef.current;
-    if (!board) return;
-    const b = board.getBoundingClientRect();
-    const next: Record<string, { x: number; y: number; w: number; h: number }> = {};
-    elsRef.current.forEach((el, id) => {
+    const plate = plateRef.current;
+    if (!plate) return;
+    const p = plate.getBoundingClientRect();
+    const y: Record<string, number> = {};
+    bandRefs.current.forEach((el, id) => {
       const r = el.getBoundingClientRect();
-      next[id] = { x: r.left - b.left, y: r.top - b.top, w: r.width, h: r.height };
+      y[id] = r.top - p.top + r.height / 2;
     });
-    setBoxes(next);
-    setSize({ w: board.scrollWidth, h: board.scrollHeight });
+    setGeom({ h: plate.offsetHeight, y });
   }, []);
 
   useLayoutEffect(() => {
     measure();
-    const board = boardRef.current;
-    if (!board || typeof ResizeObserver === 'undefined') return;
+    const plate = plateRef.current;
+    if (!plate || typeof ResizeObserver === 'undefined') return;
     const ro = new ResizeObserver(() => measure());
-    ro.observe(board);
+    ro.observe(plate);
     window.addEventListener('resize', measure);
     return () => { ro.disconnect(); window.removeEventListener('resize', measure); };
-  }, [measure, state.mapLanes, state.mapNodes, editing]);
+  }, [measure, state.mapLanes, state.mapNodes, state.mapAsides]);
 
-  const arrows = state.mapNodes.flatMap((n) => (n.links ?? []).map((to) => ({ from: n.id, to })));
+  /* Which band does a mark live in — so a link between two marks can be drawn
+     between the bands that hold them. */
+  const laneOfNode = useMemo(() => {
+    const m = new Map<string, string>();
+    for (const n of state.mapNodes) m.set(n.id, n.laneId);
+    return m;
+  }, [state.mapNodes]);
+
+  const links = useMemo(() => (
+    state.mapNodes.flatMap((n) => (n.links ?? []).map((target) => {
+      const fromLane = n.laneId;
+      const toLane = state.mapLanes.some((l) => l.id === target) ? target : laneOfNode.get(target);
+      if (!toLane || toLane === fromLane) return null;
+      return { id: `${n.id}->${target}`, fromLane, toLane, label: n.label };
+    })).filter(Boolean) as { id: string; fromLane: string; toLane: string; label: string }[]
+  ), [state.mapNodes, state.mapLanes, laneOfNode]);
+
+  const linkedLanes = useMemo(() => {
+    const s = new Set<string>();
+    links.forEach((l) => { s.add(l.fromLane); s.add(l.toLane); });
+    return s;
+  }, [links]);
+
+  /* ---- drop handling ---- */
+  function onDropInLane(e: DragEvent, laneId: string) {
+    e.preventDefault();
+    setDropLane(null);
+    let p: DragPayload | null = drag;
+    try { p = JSON.parse(e.dataTransfer.getData('text/plain')) as DragPayload; } catch { /* keep state copy */ }
+    if (!p) return;
+    if (p.kind === 'node' && p.id) dispatch({ type: 'MOVE_MAP_NODE', id: p.id, laneId });
+    else if (p.kind === 'tray' && p.asideId && p.label !== undefined && p.index !== undefined) {
+      dispatch({ type: 'PROMOTE_MAP_ASIDE_LINE', asideId: p.asideId, index: p.index, label: p.label, laneId });
+    }
+    setDrag(null);
+  }
+
+  function onDropInTray(e: DragEvent, asideId: string) {
+    e.preventDefault();
+    setDropTray(null);
+    let p: DragPayload | null = drag;
+    try { p = JSON.parse(e.dataTransfer.getData('text/plain')) as DragPayload; } catch { /* keep state copy */ }
+    if (p?.kind === 'node' && p.id) dispatch({ type: 'DEMOTE_MAP_NODE', id: p.id, asideId });
+    setDrag(null);
+  }
+
+  const markCount = state.mapNodes.length;
+  const looseCount = trays.reduce((n, t) => n + t.lines.length, 0);
 
   function addLane() {
     const max = state.mapLanes.reduce((m, l) => Math.max(m, l.order), 0);
-    dispatch({
-      type: 'ADD_MAP_LANE',
-      lane: { id: `ml-${Date.now().toString(36)}`, order: max + 1, title: 'New stage', colorHint: '#4c6b93' },
-    });
-  }
-
-  function addBracket() {
-    const max = state.mapAsides.reduce((m, a) => Math.max(m, a.order), 0);
-    dispatch({
-      type: 'ADD_MAP_ASIDE',
-      aside: { id: `ma-${Date.now().toString(36)}`, order: max + 1, title: 'Unsorted', lines: [] },
-    });
+    dispatch({ type: 'ADD_MAP_LANE', lane: { id: `ml-${Date.now().toString(36)}`, order: max + 1, title: 'New stage' } });
   }
 
   return (
-    <div className="space-y-8">
-      <header className="flex items-center justify-between gap-4">
-        <h2 className="display-italic text-[36px] text-[color:var(--color-on-paper)] leading-tight">The Plan</h2>
-        <button
-          type="button"
-          onClick={() => setEditing((v) => !v)}
-          className={`inline-flex items-center gap-1.5 text-[12px] px-3 py-1.5 rounded-full border-[0.5px] transition-all ${
-            editing
-              ? 'border-[color:var(--color-brass)] text-[color:var(--color-brass)] bg-[color:var(--color-paper-card)]'
-              : 'border-[color:var(--color-border-paper)] text-[color:var(--color-on-paper-muted)] hover:border-[color:var(--color-brass)] hover:text-[color:var(--color-brass)]'
-          }`}
-        >
-          {editing ? <Check size={12} /> : <Pencil size={11} />} {editing ? 'done' : 'edit'}
-        </button>
-      </header>
-
-      {/* ---- The board ---- */}
-      <div className="relative">
-        <div className="overflow-x-auto pb-3 -mx-6 px-6">
-          <div ref={boardRef} className="relative inline-block min-w-full">
-            {/* the rail every stage sits on */}
-            <div
-              className="absolute left-0 right-0 h-px pointer-events-none"
-              style={{ top: RAIL_Y, background: 'var(--color-border-paper-strong)' }}
-            />
-
-            {/* the long arrows, drawn beneath the bubbles */}
-            <svg
-              className="absolute left-0 top-0 pointer-events-none overflow-visible"
-              width={size.w || '100%'}
-              height={size.h || '100%'}
-              aria-hidden
-            >
-              <defs>
-                <marker id="plan-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
-                  <path d="M 0 0 L 8 4 L 0 8 z" fill="var(--color-brass)" />
-                </marker>
-              </defs>
-              {arrows.map(({ from, to }) => {
-                const a = boxes[from], b = boxes[to];
-                if (!a || !b) return null;
-                const sx = a.x + a.w / 2, sy = a.y + a.h;
-                const tx = b.x + b.w / 2, ty = b.y + b.h;
-                const drop = Math.max(56, Math.abs(tx - sx) / 3.4);
-                return (
-                  <path
-                    key={`${from}->${to}`}
-                    d={`M ${sx} ${sy} C ${sx} ${sy + drop}, ${tx} ${ty + drop}, ${tx} ${ty}`}
-                    fill="none" stroke="var(--color-brass)" strokeWidth="1.1"
-                    strokeDasharray="3 4" strokeLinecap="round" opacity="0.6"
-                    markerEnd="url(#plan-arrow)"
-                  />
-                );
-              })}
-            </svg>
-
-            <div className="relative flex items-start gap-4">
-              {lanes.map((lane, i) => (
-                <Stage
-                  key={lane.id}
-                  lane={lane}
-                  n={i + 1}
-                  isFirst={i === 0}
-                  isLast={i === lanes.length - 1}
-                  editing={editing}
-                  register={register}
-                />
-              ))}
-              {editing && (
-                <button
-                  type="button"
-                  onClick={addLane}
-                  className="shrink-0 w-[130px] rounded-[6px] border border-dashed border-[color:var(--color-border-paper-strong)] text-[11px] text-[color:var(--color-on-paper-faint)] hover:border-[color:var(--color-brass)] hover:text-[color:var(--color-brass)] inline-flex items-center justify-center gap-1 transition-colors"
-                  style={{ height: BAR_H }}
-                >
-                  <Plus size={12} /> stage
-                </button>
-              )}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* ---- Brackets · anything not placed on the board yet ---- */}
-      <section className="pt-2 border-t border-[color:var(--color-border-paper)]">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="label-caps text-[color:var(--color-on-paper-faint)]">not sorted yet</h3>
-          {editing && (
-            <button
-              type="button"
-              onClick={addBracket}
-              className="text-[11px] text-[color:var(--color-on-paper-faint)] hover:text-[color:var(--color-brass)] inline-flex items-center gap-1 transition-colors"
-            >
-              <Plus size={11} /> bracket
-            </button>
-          )}
-        </div>
-        <div className="flex flex-wrap gap-x-6 gap-y-5">
-          {brackets.map((b) => <Bracket key={b.id} bracket={b} editing={editing} />)}
-        </div>
-      </section>
-    </div>
-  );
-}
-
-/* ---------- One stage on the rail ---------- */
-
-function Stage({
-  lane, n, isFirst, isLast, editing, register,
-}: {
-  lane: MapLane; n: number; isFirst: boolean; isLast: boolean; editing: boolean;
-  register: (id: string) => (el: HTMLElement | null) => void;
-}) {
-  const { state, dispatch } = useApp();
-  const color = lane.colorHint ?? 'var(--color-steel)';
-  const nodes = state.mapNodes.filter((x) => x.laneId === lane.id).sort((a, b) => a.order - b.order);
-  const roots = nodes.filter((x) => !x.parentId);
-
-  function addNode() {
-    const max = nodes.reduce((m, x) => Math.max(m, x.order), 0);
-    dispatch({
-      type: 'ADD_MAP_NODE',
-      node: { id: `mn-${Date.now().toString(36)}`, laneId: lane.id, order: max + 1, label: 'new', kind: 'note' },
-    });
-  }
-
-  return (
-    <div className="relative shrink-0 grow basis-[186px] min-w-[186px] max-w-[250px]">
-      {/* the bar */}
-      <div
-        ref={register(lane.id)}
-        className="relative rounded-[6px] border-[0.5px] px-3.5 pt-3 pb-2.5 flex flex-col justify-center"
-        style={{
-          height: BAR_H,
-          borderColor: `color-mix(in srgb, ${color} 55%, transparent)`,
-          background: `linear-gradient(180deg, color-mix(in srgb, ${color} 13%, var(--color-paper-card)), var(--color-paper-card))`,
-          boxShadow: '0 1px 0 rgba(10,43,79,0.04)',
-        }}
-      >
-        <span
-          className="absolute -top-2 left-3 w-[18px] h-[18px] rounded-full flex items-center justify-center mono-num text-[10px]"
-          style={{ background: color, color: 'var(--color-paper-light)' }}
-        >
-          {n}
+    <div className="space-y-6 max-w-[1200px]">
+      {/* No title here — the shell's PageHeader already sets it, in 52px. */}
+      <div className="flex items-baseline justify-between gap-4 flex-wrap">
+        <h3 className="label-caps text-[color:var(--color-brass)]">the map</h3>
+        <span className="prose-body italic text-[11px] text-[color:var(--color-on-paper-faint)]">
+          click any word to rewrite it · drag a mark between stages
         </span>
-        <MapText
-          value={lane.title}
-          editing={editing}
-          onSave={(v) => dispatch({ type: 'UPDATE_MAP_LANE', id: lane.id, patch: { title: v } })}
-          className="display-italic text-[20px] leading-[1.1] text-[color:var(--color-on-paper)]"
-        />
-        <MapText
-          value={lane.short ?? ''}
-          placeholder="as written"
-          editing={editing}
-          onSave={(v) => dispatch({ type: 'UPDATE_MAP_LANE', id: lane.id, patch: { short: v } })}
-          className="label-caps text-[9.5px] mt-1 tracking-[0.14em]"
-          style={{ color }}
-        />
       </div>
 
-      {/* the chevron onward */}
-      {!isLast && (
-        <span
-          className="absolute text-[color:var(--color-on-paper-faint)] text-[12px] leading-none select-none"
-          style={{ top: RAIL_Y - 6, right: -12 }}
+      {/* ---------------- the plate ---------------- */}
+      <figure
+        ref={plateRef}
+        className="relative m-0 bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-border-paper)] rounded-[4px] overflow-hidden"
+      >
+        {/* the one line that crosses the sheet, in its own reserved margin */}
+        <svg
+          className="absolute top-0 right-0 w-[92px] pointer-events-none max-lg:hidden"
+          height={geom.h || 0}
+          width={92}
           aria-hidden
         >
-          &#9656;
-        </span>
-      )}
+          {links.map((l, i) => {
+            const y1 = geom.y[l.fromLane], y2 = geom.y[l.toLane];
+            if (y1 === undefined || y2 === undefined) return null;
+            const x = 20 + i * 14;              // stacked, so a second link never tangles
+            const up = y2 < y1;
+            const r = 6;
+            return (
+              <g key={l.id} opacity="0.85">
+                <path
+                  d={`M 2 ${y1} H ${x - r} Q ${x} ${y1} ${x} ${up ? y1 - r : y1 + r} V ${up ? y2 + r : y2 - r} Q ${x} ${y2} ${x - r} ${y2} H 6`}
+                  fill="none" stroke="var(--color-brass)" strokeWidth="1"
+                  strokeLinecap="round" strokeLinejoin="round"
+                />
+                <circle cx="2" cy={y1} r="2.5" fill="var(--color-brass)" />
+                <path d={`M 6 ${y2} l 4 -3 M 6 ${y2} l 4 3`} stroke="var(--color-brass)" strokeWidth="1" fill="none" strokeLinecap="round" />
+              </g>
+            );
+          })}
+        </svg>
+        {links.map((l, i) => {
+          const y1 = geom.y[l.fromLane], y2 = geom.y[l.toLane];
+          if (y1 === undefined || y2 === undefined) return null;
+          return (
+            <span
+              key={`cap-${l.id}`}
+              className="absolute -translate-y-1/2 px-1.5 py-0.5 rounded-full bg-[color:var(--color-paper-light)] label-caps !text-[8px] !tracking-[0.1em] text-[color:var(--color-brass)] whitespace-nowrap pointer-events-none max-lg:hidden"
+              style={{ right: 92 - (20 + i * 14) - 26, top: (y1 + y2) / 2 }}
+            >
+              {l.label} &rarr;
+            </span>
+          );
+        })}
 
-      {lane.note !== undefined && (lane.note || editing) && (
-        <MapText
-          value={lane.note ?? ''}
-          placeholder="the handwriting beside the bar"
-          editing={editing}
-          multiline
-          onSave={(v) => dispatch({ type: 'UPDATE_MAP_LANE', id: lane.id, patch: { note: v } })}
-          className="prose-body italic text-[11.5px] text-[color:var(--color-on-paper-muted)] leading-snug mt-2"
-        />
-      )}
-
-      {editing && (
-        <div className="flex items-center gap-0.5 mt-2">
-          <Mini title="move earlier" disabled={isFirst} onClick={() => dispatch({ type: 'MOVE_MAP_LANE', id: lane.id, dir: -1 })}><ArrowLeft size={11} /></Mini>
-          <Mini title="move later" disabled={isLast} onClick={() => dispatch({ type: 'MOVE_MAP_LANE', id: lane.id, dir: 1 })}><ArrowRight size={11} /></Mini>
-          <Mini title="add a bubble" onClick={addNode}><Plus size={11} /></Mini>
-          <Mini title="remove this stage and its bubbles" onClick={() => dispatch({ type: 'DELETE_MAP_LANE', id: lane.id })}><Trash2 size={11} /></Mini>
+        {/* head strip — what turns a diagram into a printed table */}
+        <div className={`${GRID} ${GRID_SM} bg-[color:var(--color-paper-card)] border-b-[0.5px] border-[color:var(--color-border-paper-strong)] py-2`}>
+          <div className="pr-3 text-right label-caps !text-[9px] text-[color:var(--color-brass-deep)]">&#8470;</div>
+          <div className="px-5 label-caps !text-[9px] text-[color:var(--color-brass-deep)] border-r-[0.5px] border-[color:var(--color-border-paper)] max-lg:border-r-0">stage</div>
+          <div className="px-5 label-caps !text-[9px] text-[color:var(--color-brass-deep)] max-lg:hidden">what sits on it</div>
+          <div className="px-2 label-caps !text-[9px] text-[color:var(--color-brass-deep)] max-lg:hidden">links</div>
         </div>
-      )}
 
-      {/* the stems, and everything hanging off them */}
-      {roots.length > 0 && (
-        <div className="relative mt-4 pl-5">
-          <span
-            className="absolute left-2 w-px"
-            style={{ top: -14, bottom: 12, background: 'var(--color-border-paper-strong)' }}
+        {lanes.map((lane, i) => (
+          <Band
+            key={lane.id}
+            lane={lane}
+            n={i + 1}
+            isFirst={i === 0}
+            isLast={i === lanes.length - 1}
+            deepest={deepest}
+            linked={linkedLanes.has(lane.id)}
+            dropping={dropLane === lane.id}
+            registerBand={registerBand}
+            onDragStartNode={(node, e) => {
+              const p: DragPayload = { kind: 'node', id: node.id };
+              e.dataTransfer.effectAllowed = 'move';
+              e.dataTransfer.setData('text/plain', JSON.stringify(p));
+              setDrag(p);
+            }}
+            onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDropLane(lane.id); }}
+            onDragLeave={() => setDropLane((cur) => (cur === lane.id ? null : cur))}
+            onDrop={(e) => onDropInLane(e, lane.id)}
           />
-          <div className="space-y-2.5">
-            {roots.map((node) => (
-              <Bubble key={node.id} node={node} nodes={nodes} editing={editing} register={register} color={color} />
+        ))}
+
+        {/* the tray closes the plate */}
+        <section className="border-t-[0.5px] border-[color:var(--color-border-brass)] bg-[color:var(--color-paper-card)] px-5 py-3.5">
+          <div className="flex items-baseline justify-between gap-3 mb-2.5">
+            <h3 className="label-caps text-[color:var(--color-brass)]">
+              not sorted yet{' '}
+              <span className="mono-num !text-[10px] opacity-60">{looseCount}</span>
+            </h3>
+            <span className="prose-body italic text-[11px] text-[color:var(--color-on-paper-faint)]">
+              drag onto a stage to file it &middot; drag back here to unfile it
+            </span>
+          </div>
+          <div className="flex flex-wrap items-start gap-x-5 gap-y-3">
+            {trays.map((tray) => (
+              <Tray
+                key={tray.id}
+                tray={tray}
+                dropping={dropTray === tray.id}
+                onDragStartLine={(index, label, e) => {
+                  const p: DragPayload = { kind: 'tray', asideId: tray.id, index, label };
+                  e.dataTransfer.effectAllowed = 'move';
+                  e.dataTransfer.setData('text/plain', JSON.stringify(p));
+                  setDrag(p);
+                }}
+                onDragOver={(e) => { e.preventDefault(); e.dataTransfer.dropEffect = 'move'; setDropTray(tray.id); }}
+                onDragLeave={() => setDropTray((cur) => (cur === tray.id ? null : cur))}
+                onDrop={(e) => onDropInTray(e, tray.id)}
+              />
             ))}
           </div>
-        </div>
-      )}
+        </section>
+      </figure>
+
+      <figcaption className="flex items-baseline justify-between gap-4 flex-wrap prose-body italic text-[11px] text-[color:var(--color-on-paper-faint)]">
+        <span>
+          After the paper map drawn by Tomo and Vito &middot; {word(lanes.length)} stages &middot;{' '}
+          <span className="mono-num">{markCount}</span> marks &middot;{' '}
+          <span className="mono-num">{looseCount}</span> still loose
+        </span>
+        <button
+          type="button"
+          onClick={addLane}
+          className="not-italic label-caps !text-[9px] text-[color:var(--color-on-paper-faint)] hover:text-[color:var(--color-brass)] inline-flex items-center gap-1 transition-colors"
+        >
+          <Plus size={10} /> add a stage
+        </button>
+      </figcaption>
     </div>
   );
 }
 
-/* ---------- A bubble on a stem ---------- */
+/* ---------- one band ----------------------------------------------------- */
 
-function Bubble({
-  node, nodes, editing, register, color,
+function Band({
+  lane, n, isFirst, isLast, deepest, linked, dropping,
+  registerBand, onDragStartNode, onDragOver, onDragLeave, onDrop,
 }: {
-  node: MapNode; nodes: MapNode[]; editing: boolean;
-  register: (id: string) => (el: HTMLElement | null) => void; color: string;
+  lane: MapLane; n: number; isFirst: boolean; isLast: boolean;
+  deepest: number; linked: boolean; dropping: boolean;
+  registerBand: (id: string) => (el: HTMLElement | null) => void;
+  onDragStartNode: (node: MapNode, e: DragEvent) => void;
+  onDragOver: (e: DragEvent) => void;
+  onDragLeave: () => void;
+  onDrop: (e: DragEvent) => void;
 }) {
   const { state, dispatch } = useApp();
+  const nodes = useMemo(
+    () => state.mapNodes.filter((x) => x.laneId === lane.id).sort((a, b) => a.order - b.order),
+    [state.mapNodes, lane.id],
+  );
+  const roots = nodes.filter((x) => !x.parentId);
+
+  /* The short code only earns its place when it isn't just the title again —
+     which is how "2023 / 2023" and "The 4 / THE 4" happened. */
+  const code = lane.short && norm(lane.short) !== norm(lane.title) ? lane.short.toUpperCase() : null;
+
+  /* One line of type that says what is actually on this stage. Counted, not
+     typed, so it can never drift from the marks. */
+  const gloss = useMemo(() => {
+    const c: Record<string, number> = {};
+    nodes.forEach((x) => { const f = markForm(x); c[f] = (c[f] ?? 0) + 1; });
+    const bits = [
+      c.person && `${word(c.person)} ${c.person === 1 ? 'diver' : 'divers'}`,
+      c.depth && `${word(c.depth)} ${c.depth === 1 ? 'record' : 'records'}`,
+      c.place && `${word(c.place)} ${c.place === 1 ? 'place' : 'places'}`,
+      c.org && `${word(c.org)} ${c.org === 1 ? 'body' : 'bodies'}`,
+      c.topic && `${word(c.topic)} ${c.topic === 1 ? 'thread' : 'threads'}`,
+      c.count && 'a count',
+      c.note && 'a note',
+      c.unknown && `${word(c.unknown)} unread`,
+    ].filter(Boolean);
+    return bits.length ? bits.join(' · ') : 'nothing on this stage yet';
+  }, [nodes]);
+
+  return (
+    <section
+      ref={registerBand(lane.id)}
+      className={`group relative ${GRID} ${GRID_SM} min-h-[92px] border-t-[0.5px] border-[color:var(--color-border-paper)] transition-colors ${
+        dropping ? 'bg-[color:var(--color-brass)]/[0.07]' : 'hover:bg-[color:var(--color-paper-card)]/60'
+      }`}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
+      {/* № */}
+      <div className="pt-4 pr-3 text-right select-none">
+        <span className="display-italic text-[30px] mono-num leading-none text-[color:var(--color-on-paper-faint)] group-hover:text-[color:var(--color-brass)] transition-colors">
+          {n}
+        </span>
+      </div>
+
+      {/* the stage rail */}
+      <div className="px-5 py-4 border-r-[0.5px] border-[color:var(--color-border-paper)] max-lg:border-r-0">
+        <div className="flex items-baseline gap-1.5 flex-wrap">
+          <EditableText
+            value={lane.title}
+            onSave={(v) => dispatch({ type: 'UPDATE_MAP_LANE', id: lane.id, patch: { title: v } })}
+            className="display-italic text-[19px] text-[color:var(--color-on-paper)]"
+          />
+          {code && (
+            <EditableText
+              value={code}
+              onSave={(v) => dispatch({ type: 'UPDATE_MAP_LANE', id: lane.id, patch: { short: v } })}
+              className="label-caps !text-[9px] text-[color:var(--color-brass-deep)]"
+            />
+          )}
+        </div>
+        <p className="prose-body italic text-[11px] text-[color:var(--color-on-paper-muted)] leading-snug mt-1">
+          {gloss}
+          {linked && <span className="text-[color:var(--color-brass)]"> &middot; linked</span>}
+        </p>
+        <div className="flex items-center gap-0.5 mt-1.5 opacity-0 group-hover:opacity-100 focus-within:opacity-100 transition-opacity">
+          <Tool title="move up" disabled={isFirst} onClick={() => dispatch({ type: 'MOVE_MAP_LANE', id: lane.id, dir: -1 })}><ChevronUp size={13} /></Tool>
+          <Tool title="move down" disabled={isLast} onClick={() => dispatch({ type: 'MOVE_MAP_LANE', id: lane.id, dir: 1 })}><ChevronDown size={13} /></Tool>
+          <Tool title="remove this stage and everything on it" onClick={() => dispatch({ type: 'DELETE_MAP_LANE', id: lane.id })}><Trash2 size={12} /></Tool>
+        </div>
+      </div>
+
+      {/* the field */}
+      <div className="px-5 py-4 flex flex-wrap items-start content-start gap-x-3 gap-y-2.5">
+        {roots.map((node) => (
+          <Mark
+            key={node.id}
+            node={node}
+            nodes={nodes}
+            deepest={deepest}
+            onDragStart={onDragStartNode}
+          />
+        ))}
+        {lane.note && (
+          <blockquote className="basis-full m-0 mt-1 pl-3 border-l-2 border-[color:var(--color-border-brass)]">
+            <EditableText
+              value={lane.note}
+              multiline
+              onSave={(v) => dispatch({ type: 'UPDATE_MAP_LANE', id: lane.id, patch: { note: v } })}
+              className="prose-body italic text-[13px] text-[color:var(--color-on-paper-muted)] leading-snug max-w-[560px]"
+            />
+          </blockquote>
+        )}
+        <AddMark laneId={lane.id} laneTitle={lane.title} hasMarks={roots.length > 0} />
+      </div>
+
+      <div className="px-2 max-lg:hidden" />
+    </section>
+  );
+}
+
+/* ---------- a mark ------------------------------------------------------- */
+
+function Mark({
+  node, nodes, deepest, nested = false, onDragStart,
+}: {
+  node: MapNode; nodes: MapNode[]; deepest: number; nested?: boolean;
+  onDragStart: (node: MapNode, e: DragEvent) => void;
+}) {
+  const { state, dispatch } = useApp();
+  const [editing, setEditing] = useState(false);
+  const form = markForm(node);
   const kids = nodes.filter((x) => x.parentId === node.id).sort((a, b) => a.order - b.order);
-  const isPerson = node.kind === 'person';
-  const isDepth = node.kind === 'depth';
-  const isUnknown = node.kind === 'unknown';
 
   function patch(p: Partial<MapNode>) { dispatch({ type: 'UPDATE_MAP_NODE', id: node.id, patch: p }); }
 
-  function addChild() {
-    const max = nodes.reduce((m, x) => Math.max(m, x.order), 0);
-    dispatch({
-      type: 'ADD_MAP_NODE',
-      node: { id: `mn-${Date.now().toString(36)}`, laneId: node.laneId, order: max + 1, label: 'new', kind: 'note', parentId: node.id },
-    });
+  /* One click walks the mark to the next kind. Faster than a dropdown and it
+     shows you the result instead of a list of words. */
+  const KINDS: MapNodeKind[] = ['note', 'depth', 'person', 'place', 'org', 'unknown'];
+  function cycleKind() {
+    const i = KINDS.indexOf(node.kind);
+    patch({ kind: KINDS[(i + 1) % KINDS.length] });
   }
 
-  const targets = [
-    ...state.mapLanes.map((l) => ({ id: l.id, label: `stage · ${l.title}` })),
-    ...state.mapNodes.filter((x) => x.id !== node.id).map((x) => ({ id: x.id, label: x.label })),
-  ];
+  /* Floated clear of the flow. An opacity-0 toolbar still occupies layout, and
+     one reserved per mark blew ~60px of air between every bubble on the board. */
+  const tools = (
+    <span className="absolute -top-3 right-0 z-20 hidden group-hover/mark:flex focus-within:flex items-center rounded-[3px] border-[0.5px] border-[color:var(--color-border-paper)] bg-[color:var(--color-paper-light)]">
+      <Tool title={`this is a ${form} — click to change`} onClick={cycleKind}>
+        <span className="label-caps !text-[8px] !tracking-[0.1em]">{form}</span>
+      </Tool>
+      <Tool title="remove" onClick={() => dispatch({ type: 'DELETE_MAP_NODE', id: node.id })}>
+        <Trash2 size={11} />
+      </Tool>
+    </span>
+  );
 
-  return (
-    <div className="relative">
-      {/* the tick joining this bubble to the stem */}
-      <span className="absolute h-px w-3" style={{ left: -12, top: 13, background: 'var(--color-border-paper-strong)' }} aria-hidden />
-
-      <span
-        ref={register(node.id)}
-        title={node.note || undefined}
-        className={`inline-flex items-baseline gap-1 border-[0.5px] max-w-full align-top ${
-          isPerson ? 'rounded-[4px] px-2.5 py-1' : isDepth ? 'rounded-full px-2 py-0.5' : 'rounded-full px-2.5 py-0.5'
-        } ${isUnknown ? 'border-dashed' : ''} ${node.note ? 'cursor-help' : ''}`}
-        style={{
-          borderColor: isUnknown
-            ? 'var(--color-border-paper-strong)'
-            : isDepth ? 'color-mix(in srgb, var(--color-dock) 60%, transparent)'
-            : `color-mix(in srgb, ${color} 45%, transparent)`,
-          background: isPerson
-            ? `color-mix(in srgb, ${color} 18%, var(--color-paper-card))`
-            : 'var(--color-paper-card)',
-        }}
-      >
-        <MapText
-          value={node.label}
-          editing={editing}
-          onSave={(v) => patch({ label: v })}
-          className={
-            isPerson ? 'label-caps text-[11px] tracking-[0.1em] text-[color:var(--color-on-paper)]'
-            : isDepth ? 'mono-num text-[13px] text-[color:var(--color-on-paper)]'
-            : `text-[12px] ${isUnknown ? 'text-[color:var(--color-on-paper-faint)]' : 'text-[color:var(--color-on-paper-muted)]'}`
-          }
-        />
-        {isDepth && <span className="text-[9px] text-[color:var(--color-on-paper-faint)]">m</span>}
-      </span>
-
-      {editing && (
-        <div className="mt-1.5 space-y-1">
-          <MapText
-            value={node.note ?? ''}
-            placeholder="note"
-            editing
-            multiline
-            onSave={(v) => patch({ note: v })}
-            className="prose-body italic text-[11px] text-[color:var(--color-on-paper-muted)] leading-snug"
-          />
-          <div className="flex flex-wrap items-center gap-1">
-            <select
-              value={node.kind}
-              onChange={(e) => patch({ kind: e.target.value as MapNodeKind })}
-              className="text-[10px] bg-transparent border-[0.5px] border-[color:var(--color-border-paper)] rounded-[3px] px-1 py-0.5 text-[color:var(--color-on-paper-muted)]"
-            >
-              {KIND_ORDER.map((k) => <option key={k} value={k}>{KIND_LABEL[k]}</option>)}
-            </select>
-            <Mini title="hang a bubble off this one" onClick={addChild}><Plus size={11} /></Mini>
-            <Mini title="remove this bubble" onClick={() => dispatch({ type: 'DELETE_MAP_NODE', id: node.id })}><Trash2 size={11} /></Mini>
-          </div>
-          <select
-            value=""
-            onChange={(e) => { if (e.target.value) patch({ links: [...(node.links ?? []), e.target.value] }); }}
-            className="text-[10px] w-full bg-transparent border-[0.5px] border-[color:var(--color-border-paper)] rounded-[3px] px-1 py-0.5 text-[color:var(--color-on-paper-faint)]"
+  const body = (() => {
+    switch (form) {
+      case 'person': {
+        const hue = state.four.find((f) => f.key === (node.personKey as FourKey))?.colorHint;
+        return (
+          <div
+            className="inline-flex flex-col rounded-[3px] border-[0.5px] border-[color:var(--color-border-paper)] bg-[color:var(--color-paper-card)] px-2.5 py-2 hover:border-[color:var(--color-brass)] transition-colors"
+            style={{ borderTopWidth: 3, borderTopColor: hue ?? 'var(--color-on-paper)' }}
           >
-            <option value="">draw an arrow to…</option>
-            {targets.map((t) => <option key={t.id} value={t.id}>{t.label}</option>)}
-          </select>
-          {!!node.links?.length && (
-            <div className="flex flex-wrap gap-1">
-              {node.links.map((l) => {
-                const label = state.mapLanes.find((x) => x.id === l)?.title
-                  ?? state.mapNodes.find((x) => x.id === l)?.label ?? l;
-                return (
-                  <button
-                    key={l}
-                    type="button"
-                    title="remove this arrow"
-                    onClick={() => patch({ links: (node.links ?? []).filter((x) => x !== l) })}
-                    className="inline-flex items-center gap-1 text-[10px] text-[color:var(--color-brass)] border-[0.5px] border-[color:var(--color-border-brass)] rounded-full px-1.5 py-px hover:bg-[color:var(--color-paper-deep)]"
-                  >
-                    &rarr; {label} <X size={8} />
-                  </button>
-                );
-              })}
+            <div className="flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full shrink-0" style={{ background: hue ?? 'var(--color-on-paper)' }} />
+              <EditableText
+                value={node.label}
+                onSave={(v) => patch({ label: v })}
+                onOpenChange={setEditing}
+                className="display-italic text-[15px] text-[color:var(--color-on-paper)]"
+              />
             </div>
-          )}
-        </div>
-      )}
-
-      {kids.length > 0 && (
-        <div className="relative mt-2 ml-3 pl-4">
-          <span className="absolute left-1 top-0 bottom-3 w-px" style={{ background: 'var(--color-border-paper)' }} aria-hidden />
-          <div className="space-y-2">
-            {kids.map((k) => (
-              <div key={k.id} className="relative">
-                <span className="absolute h-px w-3" style={{ left: -12, top: 11, background: 'var(--color-border-paper)' }} aria-hidden />
-                <Bubble node={k} nodes={nodes} editing={editing} register={register} color={color} />
+            {kids.length > 0 && (
+              <div className="flex flex-wrap items-baseline gap-x-3 gap-y-1 mt-1.5 pt-1.5 border-t-[0.5px] border-[color:var(--color-border-paper)]">
+                {kids.map((k) => (
+                  <Mark key={k.id} node={k} nodes={nodes} deepest={deepest} nested onDragStart={onDragStart} />
+                ))}
               </div>
-            ))}
+            )}
           </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ---------- A bracket · things with no place on the board yet ---------- */
-
-function Bracket({ bracket, editing }: { bracket: MapAside; editing: boolean }) {
-  const { dispatch } = useApp();
-  function patch(p: Partial<MapAside>) { dispatch({ type: 'UPDATE_MAP_ASIDE', id: bracket.id, patch: p }); }
+        );
+      }
+      case 'depth': {
+        const v = depthValue(node.label) ?? 0;
+        const isMax = v > 0 && v === deepest;
+        return (
+          <span className="inline-flex flex-col">
+            {isMax && !nested && (
+              <span className="label-caps !text-[8px] !tracking-[0.14em] text-[color:var(--color-brass-deep)] mb-0.5">deepest</span>
+            )}
+            <span className="inline-flex items-baseline">
+              <EditableText
+                value={node.label}
+                onSave={(v2) => patch({ label: v2 })}
+                onOpenChange={setEditing}
+                className="display-italic mono-num leading-none border-b-[0.5px] border-[color:var(--color-border-brass)] pb-[2px]"
+                style={{ fontSize: depthSize(v, nested), color: isMax ? 'var(--color-brass)' : 'var(--color-on-paper)' }}
+              />
+              <span className="font-sans text-[10px] tracking-[0.16em] text-[color:var(--color-brass-deep)] ml-0.5 relative -top-[2px]">m</span>
+            </span>
+          </span>
+        );
+      }
+      case 'count':
+        return (
+          <span className="inline-flex items-baseline">
+            <EditableText
+              value={node.label}
+              onSave={(v) => patch({ label: v })}
+              onOpenChange={setEditing}
+              className="display-italic mono-num leading-none text-[color:var(--color-on-paper-muted)]"
+              style={{ fontSize: nested ? 15 : 17 }}
+            />
+          </span>
+        );
+      case 'place':
+        return (
+          <span className="inline-flex items-baseline gap-1 border-b-[0.5px] border-[color:var(--color-border-paper-strong)] hover:border-[color:var(--color-brass)] transition-colors">
+            <MapPin size={9} className="text-[color:var(--color-on-paper-faint)] self-center shrink-0" />
+            <EditableText
+              value={node.label}
+              onSave={(v) => patch({ label: v })}
+              onOpenChange={setEditing}
+              className="prose-body italic text-[14px] text-[color:var(--color-on-paper)]"
+            />
+          </span>
+        );
+      case 'org':
+        return (
+          <span
+            className="inline-flex items-center gap-1 font-sans text-[11px] tracking-[0.05em] px-2 py-1 rounded-[2px]"
+            style={{ background: 'color-mix(in srgb, var(--color-dock) 13%, transparent)', color: 'var(--color-dock-deep)' }}
+          >
+            <EditableText value={node.label} onSave={(v) => patch({ label: v })} onOpenChange={setEditing} />
+          </span>
+        );
+      case 'unknown':
+        return (
+          <span className="inline-flex items-center gap-1">
+            <span
+              title="unreadable on the original — click to name it"
+              className="inline-flex items-center justify-center min-w-6 h-6 px-1.5 rounded-[3px] border-[0.5px] border-dashed border-[color:var(--color-border-paper-strong)] hover:border-[color:var(--color-brass)] transition-colors"
+            >
+              <EditableText
+                value={node.label}
+                onSave={(v) => patch({ label: v })}
+                onOpenChange={setEditing}
+                className="display-italic text-[14px] text-[color:var(--color-on-paper-faint)]"
+              />
+            </span>
+          </span>
+        );
+      case 'note':
+        return (
+          <span className="inline-flex items-baseline">
+            <EditableText
+              value={node.label}
+              multiline
+              onSave={(v) => patch({ label: v })}
+              onOpenChange={setEditing}
+              className="prose-body italic text-[13px] text-[color:var(--color-on-paper-muted)] leading-snug max-w-[520px]"
+            />
+          </span>
+        );
+      default: // topic
+        return (
+          <span className="inline-flex items-center gap-1.5 text-[12px] px-2 py-0.5 rounded-[3px] border-[0.5px] border-[color:var(--color-border-paper)] text-[color:var(--color-on-paper)] hover:border-[color:var(--color-brass)] hover:bg-[color:var(--color-paper-card)] transition-all">
+            <span className="w-1.5 h-1.5 rounded-[1px] bg-[color:var(--color-on-paper-muted)] shrink-0" />
+            <EditableText value={node.label} onSave={(v) => patch({ label: v })} onOpenChange={setEditing} />
+          </span>
+        );
+    }
+  })();
 
   return (
-    <div>
-      <div className="flex items-center gap-2 mb-1.5 ml-3">
-        <MapText
-          value={bracket.title}
-          editing={editing}
-          onSave={(v) => patch({ title: v })}
-          className="label-caps text-[10px] tracking-[0.14em] text-[color:var(--color-on-paper-faint)]"
-        />
-        {editing && (
-          <Mini title="remove this bracket" onClick={() => dispatch({ type: 'DELETE_MAP_ASIDE', id: bracket.id })}>
-            <Trash2 size={10} />
-          </Mini>
-        )}
-      </div>
-
-      <div className="flex items-stretch">
-        <BracketRule side="left" />
-        <div className="flex flex-wrap items-center gap-1.5 px-2.5 py-1.5 min-h-[34px]">
-          {bracket.lines.map((line, i) => (
-            <span
-              key={i}
-              className="group inline-flex items-center gap-1 rounded-full border-[0.5px] border-[color:var(--color-border-paper)] bg-[color:var(--color-paper-card)] px-2.5 py-0.5"
-            >
-              <MapText
-                value={line}
-                editing={editing}
-                onSave={(v) => patch({ lines: bracket.lines.map((l, j) => (j === i ? v : l)) })}
-                className="text-[12px] text-[color:var(--color-on-paper-muted)]"
-              />
-              {editing && (
-                <button
-                  type="button"
-                  title="remove"
-                  onClick={() => patch({ lines: bracket.lines.filter((_, j) => j !== i) })}
-                  className="text-[color:var(--color-on-paper-faint)] hover:text-[color:var(--color-danger)] transition-colors"
-                >
-                  <X size={9} />
-                </button>
-              )}
-            </span>
-          ))}
-          {editing && <AddToBracket onAdd={(v) => patch({ lines: [...bracket.lines, v] })} />}
-          {!editing && bracket.lines.length === 0 && (
-            <span className="text-[12px] italic text-[color:var(--color-on-paper-faint)]">empty</span>
-          )}
-        </div>
-        <BracketRule side="right" />
-      </div>
-
-      {bracket.note && (
-        <p className="prose-body italic text-[11px] text-[color:var(--color-on-paper-faint)] mt-1.5 ml-3 max-w-[240px] leading-snug">
-          {bracket.note}
-        </p>
-      )}
-    </div>
+    <span
+      className={`group/mark relative inline-flex max-w-full ${form === 'note' ? 'basis-full' : ''}`}
+      /* Dragging is switched off while an input is open, or the browser steals
+         the pointer from text selection mid-word. */
+      draggable={!editing}
+      onDragStart={(e) => { e.stopPropagation(); onDragStart(node, e); }}
+      title={node.note || undefined}
+    >
+      {body}
+      {tools}
+    </span>
   );
 }
 
-/* The bracket glyph, drawn rather than typed so it scales with the contents. */
-function BracketRule({ side }: { side: 'left' | 'right' }) {
-  const edge = side === 'left'
-    ? 'border-l border-t border-b rounded-l-[3px]'
-    : 'border-r border-t border-b rounded-r-[3px]';
-  return <span className={`w-2 shrink-0 ${edge}`} style={{ borderColor: 'var(--color-border-paper-strong)' }} aria-hidden />;
-}
+/* ---------- type-to-add -------------------------------------------------- */
 
-function AddToBracket({ onAdd }: { onAdd: (v: string) => void }) {
-  const [open, setOpen] = useState(false);
+function AddMark({ laneId, laneTitle, hasMarks }: { laneId: string; laneTitle: string; hasMarks: boolean }) {
+  const { state, dispatch } = useApp();
   const [draft, setDraft] = useState('');
 
-  function commit(keepOpen: boolean) {
+  function commit() {
     const v = draft.trim();
-    if (v) onAdd(v);
+    if (!v) return;
+    const max = state.mapNodes.filter((n) => n.laneId === laneId).reduce((m, n) => Math.max(m, n.order), 0);
+    dispatch({
+      type: 'ADD_MAP_NODE',
+      node: { id: `mn-${Date.now().toString(36)}`, laneId, order: max + 1, label: v, kind: classifyLabel(v) },
+    });
     setDraft('');
-    setOpen(keepOpen);
   }
 
-  if (!open) {
-    return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="inline-flex items-center gap-1 rounded-full border border-dashed border-[color:var(--color-border-paper-strong)] px-2 py-0.5 text-[11px] text-[color:var(--color-on-paper-faint)] hover:border-[color:var(--color-brass)] hover:text-[color:var(--color-brass)] transition-colors"
-      >
-        <Plus size={10} /> add
-      </button>
-    );
-  }
   return (
-    <input
-      autoFocus
-      value={draft}
-      placeholder="name it, Enter to keep adding"
-      onChange={(e) => setDraft(e.target.value)}
-      onBlur={() => commit(false)}
-      onKeyDown={(e) => {
-        if (e.key === 'Enter') { e.preventDefault(); commit(true); }
-        if (e.key === 'Escape') { setDraft(''); setOpen(false); }
-      }}
-      className="w-[190px] rounded-full border-[0.5px] border-[color:var(--color-brass)] bg-[color:var(--color-paper-light)] px-2.5 py-0.5 text-[12px] text-[color:var(--color-on-paper)] outline-none"
-    />
+    <span className={`inline-flex items-baseline ${hasMarks ? 'basis-full mt-0.5' : ''}`}>
+      {!hasMarks && (
+        <span className="prose-body italic text-[12px] text-[color:var(--color-on-paper-faint)] mr-3">
+          Nothing here yet.
+        </span>
+      )}
+      <input
+        value={draft}
+        placeholder={`add to ${laneTitle.toLowerCase()}…`}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') { e.preventDefault(); commit(); }
+          if (e.key === 'Escape') setDraft('');
+        }}
+        className={`w-[180px] bg-transparent border-b-[0.5px] border-transparent px-0.5 py-0.5 text-[12px] text-[color:var(--color-on-paper)] placeholder:text-[color:var(--color-on-paper-faint)] placeholder:italic outline-none transition-colors focus:border-[color:var(--color-brass)] ${
+          hasMarks ? 'opacity-0 group-hover:opacity-100 focus:opacity-100' : ''
+        }`}
+      />
+    </span>
   );
 }
 
-/* ---------- Small shared bits ---------- */
+/* ---------- the tray ----------------------------------------------------- */
 
-function Mini({ children, title, onClick, disabled }: { children: ReactNode; title: string; onClick: () => void; disabled?: boolean }) {
+function Tray({
+  tray, dropping, onDragStartLine, onDragOver, onDragLeave, onDrop,
+}: {
+  tray: MapAside; dropping: boolean;
+  onDragStartLine: (index: number, label: string, e: DragEvent) => void;
+  onDragOver: (e: DragEvent) => void;
+  onDragLeave: () => void;
+  onDrop: (e: DragEvent) => void;
+}) {
+  const { dispatch } = useApp();
+  const [draft, setDraft] = useState('');
+  function patch(p: Partial<MapAside>) { dispatch({ type: 'UPDATE_MAP_ASIDE', id: tray.id, patch: p }); }
+
+  return (
+    <div
+      className={`group/tray rounded-[3px] px-2 py-1.5 -mx-2 transition-colors ${dropping ? 'bg-[color:var(--color-brass)]/[0.09]' : ''}`}
+      onDragOver={onDragOver}
+      onDragLeave={onDragLeave}
+      onDrop={onDrop}
+    >
+      <div className="flex items-center gap-1.5 mb-1.5">
+        <EditableText
+          value={tray.title}
+          onSave={(v) => patch({ title: v })}
+          className="label-caps !text-[9px] text-[color:var(--color-on-paper-faint)]"
+        />
+        <span className="opacity-0 group-hover/tray:opacity-100 transition-opacity">
+          <Tool title="remove this bracket" onClick={() => dispatch({ type: 'DELETE_MAP_ASIDE', id: tray.id })}>
+            <Trash2 size={10} />
+          </Tool>
+        </span>
+      </div>
+      <div className="flex flex-wrap items-center gap-1.5">
+        {tray.lines.map((line, i) => (
+          <span
+            key={`${line}-${i}`}
+            draggable
+            onDragStart={(e) => onDragStartLine(i, line, e)}
+            className="group/chip inline-flex items-center gap-1 rounded-[3px] border-[0.5px] border-dashed border-[color:var(--color-border-paper-strong)] bg-[color:var(--color-paper-light)] px-2 py-0.5 cursor-grab active:cursor-grabbing hover:border-[color:var(--color-brass)] transition-colors"
+          >
+            <EditableText
+              value={line}
+              onSave={(v) => patch({ lines: tray.lines.map((l, j) => (j === i ? v : l)) })}
+              className="text-[12px] text-[color:var(--color-on-paper-muted)]"
+            />
+            <button
+              type="button"
+              title="remove"
+              onClick={() => patch({ lines: tray.lines.filter((_, j) => j !== i) })}
+              className="opacity-0 group-hover/chip:opacity-100 text-[color:var(--color-on-paper-faint)] hover:text-[color:var(--color-danger)] transition-all leading-none text-[13px]"
+            >
+              &times;
+            </button>
+          </span>
+        ))}
+        <input
+          value={draft}
+          placeholder="add…"
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={() => { if (draft.trim()) { patch({ lines: [...tray.lines, draft.trim()] }); setDraft(''); } }}
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              e.preventDefault();
+              if (draft.trim()) { patch({ lines: [...tray.lines, draft.trim()] }); setDraft(''); }
+            }
+            if (e.key === 'Escape') setDraft('');
+          }}
+          className="w-[86px] bg-transparent border-b-[0.5px] border-transparent px-0.5 text-[12px] text-[color:var(--color-on-paper)] placeholder:text-[color:var(--color-on-paper-faint)] placeholder:italic outline-none focus:border-[color:var(--color-brass)] transition-colors"
+        />
+      </div>
+    </div>
+  );
+}
+
+/* ---------- shared ------------------------------------------------------- */
+
+function Tool({ children, title, onClick, disabled }: { children: ReactNode; title: string; onClick: () => void; disabled?: boolean }) {
   return (
     <button
-      type="button" title={title} onClick={onClick} disabled={disabled}
-      className="p-1 rounded-[3px] text-[color:var(--color-on-paper-faint)] hover:text-[color:var(--color-brass)] hover:bg-[color:var(--color-paper-deep)] disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-[color:var(--color-on-paper-faint)] transition-colors"
+      type="button" title={title} disabled={disabled}
+      onClick={(e) => { e.stopPropagation(); onClick(); }}
+      className="p-1.5 rounded-[3px] text-[color:var(--color-on-paper-faint)] hover:text-[color:var(--color-brass)] hover:bg-[color:var(--color-paper-deep)] disabled:opacity-20 disabled:hover:bg-transparent disabled:hover:text-[color:var(--color-on-paper-faint)] transition-colors leading-none"
     >
       {children}
     </button>
   );
 }
 
-/* Click-to-edit text: plain type until edit mode, then opens on click and
-   saves on blur or Enter. */
-function MapText({
-  value, placeholder, onSave, className = '', style, multiline = false, editing = false,
+/* Always live. Click the word, it becomes an input; Enter or blur commits,
+   Escape reverts. There is no mode to be in. */
+function EditableText({
+  value, placeholder, onSave, onOpenChange, className = '', style, multiline = false,
 }: {
   value: string; placeholder?: string; onSave: (v: string) => void;
-  className?: string; style?: CSSProperties; multiline?: boolean; editing?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  className?: string; style?: CSSProperties; multiline?: boolean;
 }) {
-  const [active, setActive] = useState(false);
+  const [open, setOpen] = useState(false);
   const [draft, setDraft] = useState(value);
 
-  function begin() { if (!editing) return; setDraft(value); setActive(true); }
-  function commit() { setActive(false); if (draft !== value) onSave(draft); }
+  useEffect(() => { onOpenChange?.(open); }, [open, onOpenChange]);
 
-  if (active) {
-    const shared = 'w-full bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-brass)] rounded-[3px] px-1.5 py-0.5 outline-none';
+  function begin() { setDraft(value); setOpen(true); }
+  function commit() { setOpen(false); if (draft !== value) onSave(draft); }
+
+  if (open) {
+    const shared = 'bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-brass)] rounded-[3px] px-1.5 py-0.5 outline-none';
     return multiline ? (
       <textarea
         autoFocus rows={2} value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={commit}
-        onKeyDown={(e) => { if (e.key === 'Escape') setActive(false); }}
-        className={`${shared} ${className} resize-y`} style={style}
+        onKeyDown={(e) => { if (e.key === 'Escape') setOpen(false); }}
+        className={`${shared} ${className} w-full resize-y`} style={style}
       />
     ) : (
       <input
         autoFocus value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={commit}
-        onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setActive(false); }}
-        className={`${shared} ${className}`} style={style}
+        onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setOpen(false); }}
+        className={`${shared} ${className} w-full min-w-[60px]`} style={style}
       />
     );
   }
 
   const empty = value.trim() === '';
-  if (empty && !editing) return null;
   return (
     <span
       onClick={begin}
-      className={`${className} ${editing ? 'cursor-text hover:bg-[color:var(--color-paper-deep)] rounded-[2px]' : ''} ${empty ? 'italic opacity-40' : ''} ${multiline ? 'block' : ''}`}
+      className={`${className} cursor-text hover:bg-[color:var(--color-paper-deep)]/50 rounded-[2px] px-0.5 -mx-0.5 transition-colors ${empty ? 'italic opacity-40' : ''}`}
       style={style}
     >
-      {empty ? (placeholder ?? 'empty') : value}
+      {empty ? (placeholder ?? '…') : value}
     </span>
   );
 }

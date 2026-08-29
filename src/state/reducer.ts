@@ -61,6 +61,7 @@ import type {
   WatcherMoment,
 } from '../types';
 import { makeInitialState } from '../lib/seed';
+import { classifyLabel } from '../lib/mapKinds';
 
 export type Action =
   | { type: 'SET_VIEW'; view: ViewKey }
@@ -266,6 +267,13 @@ export type Action =
   | { type: 'ADD_MAP_ASIDE'; aside: MapAside }
   | { type: 'UPDATE_MAP_ASIDE'; id: string; patch: Partial<MapAside> }
   | { type: 'DELETE_MAP_ASIDE'; id: string }
+  /* The three moves, atomic on purpose. Each one is a single gesture on the
+     board, so each one must be a single undo step — composing them from
+     ADD + UPDATE would cost two Ctrl+Z presses and flash the mark in two
+     places while the history settled. */
+  | { type: 'MOVE_MAP_NODE'; id: string; laneId: string }
+  | { type: 'PROMOTE_MAP_ASIDE_LINE'; asideId: string; index: number; label: string; laneId: string }
+  | { type: 'DEMOTE_MAP_NODE'; id: string; asideId: string }
   /* The Money — edit a funding/cost line on one budget scenario (values in €k).
      SET with a new key adds the line; DELETE removes it. */
   | { type: 'SET_MONEY_LINE'; scenario: ScenarioKey; kind: 'funding' | 'costs'; key: string; value: number }
@@ -617,6 +625,74 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'ADD_MAP_ASIDE':    return { ...state, mapAsides: [...state.mapAsides, action.aside] };
     case 'UPDATE_MAP_ASIDE': return { ...state, mapAsides: upd(state.mapAsides, action.id, action.patch) };
     case 'DELETE_MAP_ASIDE': return { ...state, mapAsides: del(state.mapAsides, action.id) };
+
+    case 'MOVE_MAP_NODE': {
+      const moving = state.mapNodes.find((n) => n.id === action.id);
+      if (!moving || moving.laneId === action.laneId) return state;
+      /* A mark takes its children with it. Without the cascade the children
+         keep the old laneId and are stranded — present in the doc, drawn
+         nowhere, because every field renders `laneId === lane.id`. */
+      const family = new Set<string>([action.id]);
+      let grew = true;
+      while (grew) {
+        grew = false;
+        for (const n of state.mapNodes) {
+          if (n.parentId && family.has(n.parentId) && !family.has(n.id)) { family.add(n.id); grew = true; }
+        }
+      }
+      const max = state.mapNodes
+        .filter((n) => n.laneId === action.laneId)
+        .reduce((m, n) => Math.max(m, n.order), 0);
+      return {
+        ...state,
+        mapNodes: state.mapNodes.map((n) =>
+          n.id === action.id ? { ...n, laneId: action.laneId, parentId: undefined, order: max + 1 }
+          : family.has(n.id) ? { ...n, laneId: action.laneId }
+          : n,
+        ),
+      };
+    }
+
+    case 'PROMOTE_MAP_ASIDE_LINE': {
+      const aside = state.mapAsides.find((a) => a.id === action.asideId);
+      /* The tray holds bare strings, not rows with ids, so the only handle we
+         have is the index — and it can have shifted under us between dragstart
+         and drop. Verify the label still sits where we left it; a mismatch
+         means someone else edited the tray, and the safe move is nothing. */
+      if (!aside || aside.lines[action.index] !== action.label) return state;
+      const max = state.mapNodes
+        .filter((n) => n.laneId === action.laneId)
+        .reduce((m, n) => Math.max(m, n.order), 0);
+      return {
+        ...state,
+        mapAsides: upd(state.mapAsides, action.asideId, {
+          lines: aside.lines.filter((_, i) => i !== action.index),
+        }),
+        mapNodes: [...state.mapNodes, {
+          id: `mn-${Date.now().toString(36)}${Math.floor(Math.random() * 1e4).toString(36)}`,
+          laneId: action.laneId, order: max + 1, label: action.label, kind: classifyLabel(action.label),
+        }],
+      };
+    }
+
+    case 'DEMOTE_MAP_NODE': {
+      const node = state.mapNodes.find((n) => n.id === action.id);
+      const aside = state.mapAsides.find((a) => a.id === action.asideId);
+      if (!node || !aside) return state;
+      return {
+        ...state,
+        /* Children would be orphaned by the move, so they go back to the tray
+           alongside their parent rather than vanishing with it. */
+        mapNodes: state.mapNodes.filter((n) => n.id !== action.id && n.parentId !== action.id),
+        mapAsides: upd(state.mapAsides, action.asideId, {
+          lines: [
+            ...aside.lines,
+            node.label,
+            ...state.mapNodes.filter((n) => n.parentId === action.id).map((n) => n.label),
+          ],
+        }),
+      };
+    }
 
     case 'MOVE_SCENARIO_PART': {
       const sorted = [...state.scenarioParts].sort((a, b) => a.order - b.order);
