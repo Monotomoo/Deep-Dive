@@ -59,7 +59,10 @@ export function ScenarioView() {
       const secured = Object.entries(sc.funding)
         .filter(([k]) => (sc.fundingStatus?.[k] ?? 'target') === 'confirmed')
         .reduce((a, [, v]) => a + v, 0);
-      return { key, sc, funding, cost, secured, gap: cost - secured };
+      /* Two separate truths, and the card shows both:
+         result  = what this plan does if it lands  (income - costs)
+         secured = how much of that income anybody has actually committed */
+      return { key, sc, funding, cost, secured, result: funding - cost };
     });
   }, [state.scenarios]);
 
@@ -74,7 +77,7 @@ export function ScenarioView() {
 
       {/* The three columns */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        {rows.map(({ key, sc, funding, cost, secured, gap }) => {
+        {rows.map(({ key, sc, funding, cost, secured, result }) => {
           const active = state.activeScenario === key;
           return (
             /* A div, not a button: the assumption line inside is editable, and an
@@ -106,15 +109,15 @@ export function ScenarioView() {
 
               <div className="mt-4">
                 <div className={`label-caps ${active ? 'text-[color:var(--color-on-chrome-faint)]' : 'text-[color:var(--color-on-paper-faint)]'}`}>
-                  {gap > 0 ? 'still to raise' : 'fully secured'}
+                  {result > 0 ? 'surplus' : result < 0 ? 'short' : 'breaks even'}
                 </div>
-                <div className="display-italic text-[40px] leading-none mt-1" style={{ color: gap > 0 ? 'var(--color-danger)' : 'var(--color-success)' }}>
-                  {gap > 0 ? eur(gap) : eur(0)}
+                <div className="display-italic text-[40px] leading-none mt-1" style={{ color: result < 0 ? 'var(--color-danger)' : 'var(--color-success)' }}>
+                  {result > 0 ? `+${eur(result)}` : eur(Math.abs(result))}
                 </div>
                 <div className={`prose-body italic text-[11px] mt-1 ${active ? 'text-[color:var(--color-on-chrome-faint)]' : 'text-[color:var(--color-on-paper-faint)]'}`}>
                   {secured === 0
-                    ? 'nothing committed yet — every line is still a target'
-                    : `${eur(secured)} committed of ${eur(cost)}`}
+                    ? 'none of it committed yet — every line is still a target'
+                    : `${eur(secured)} of it committed so far`}
                 </div>
               </div>
 
@@ -124,9 +127,8 @@ export function ScenarioView() {
                 title={active ? 'this is the active plan' : `make ${LABEL[key]} the active plan`}
                 className="block w-full mt-4 space-y-2 cursor-pointer"
               >
-                <Bar label="planned raise" value={funding} max={maxAmount} tone="var(--color-dock)" active={active} valueLabel={eur(funding)} />
-                <Bar label="budget" value={cost} max={maxAmount} tone="var(--color-brass)" active={active} valueLabel={eur(cost)} />
-                <Bar label="secured" value={secured} max={maxAmount} tone="var(--color-success)" active={active} valueLabel={eur(secured)} />
+                <Bar label="costs" value={cost} max={maxAmount} tone="var(--color-brass)" active={active} valueLabel={eur(cost)} />
+                <Bar label="profits" value={funding} max={maxAmount} tone="var(--color-dock)" active={active} valueLabel={eur(funding)} />
               </button>
 
               {/* What this plan is betting on. Every budget is a set of
@@ -210,12 +212,12 @@ function Breakdown({ scenarioKey }: { scenarioKey: ScenarioKey }) {
         footer={costTotal - fundTotal > 0 ? (
           <div className="flex items-center gap-2 mt-3 text-[color:var(--color-danger)]">
             <AlertTriangle size={12} />
-            <span className="prose-body text-[12px]">still to close: <span className="tabular-nums">{eur(costTotal - fundTotal)}</span></span>
+            <span className="prose-body text-[12px]">costs exceed income by: <span className="tabular-nums">{eur(costTotal - fundTotal)}</span></span>
           </div>
         ) : (
           <div className="flex items-center gap-2 mt-3 text-[color:var(--color-success)]">
             <Check size={12} />
-            <span className="prose-body text-[12px]">covered · spare: <span className="tabular-nums">{eur(fundTotal - costTotal)}</span></span>
+            <span className="prose-body text-[12px]">profit on this plan: <span className="tabular-nums">{eur(fundTotal - costTotal)}</span></span>
           </div>
         )}
       />

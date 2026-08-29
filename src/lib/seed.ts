@@ -96,64 +96,57 @@ const emptyCashflow: CashflowQuarter[] = [
 ];
 
 export const SCENARIOS: Record<ScenarioKey, ScenarioData> = {
-  /* The three plans are three buyers, and they are FAR apart on purpose
-     (2026-08-29, Tomo). A Croatian public-TV documentary and a global platform
-     original are not the same film at three sizes — they are different films,
-     and pretending their budgets are neighbours is the fastest way to lose a
-     room. The first pass at this board put them at 150/300/420, which was
-     three versions of the same Croatian budget with the label changed.
+  /* The three plans are three buyers (2026-08-29, Tomo).
 
-     HRT · 180k
-       HAVC + HRT + the rebate, essentially. Ten shoots across four countries
-       done by a very small crew. No EU MEDIA, no festival campaign, no
-       reserve, contingency at 10. The plan where nothing goes wrong, because
-       there is no room for anything to.
+     COSTS AND INCOME ARE NOT THE SAME NUMBER. The first pass made every plan
+     balance to the euro, which was a tidy fiction: a budget is what the film
+     costs, income is what the sources actually bring, and forcing them equal
+     hides the only thing the comparison is for. They differ here, and the
+     difference is the point.
 
-     NETWORKS · 620k
-       European co-production: EU MEDIA plus two or three broadcasters
-       (the ARTE / ZDF / VPRO / SVT tier). Proper crew — an underwater DOP,
-       sound, safety — a real edit, a score, and a festival run. This is the
-       normal ceiling for a European feature doc plus a three-part series.
+     HRT · costs 180, in 165 → SHORT 15
+       HAVC + HRT + the rebate, essentially. Ten shoots on a very small crew,
+       no EU MEDIA, no festival run, no reserve, contingency at 10. Even cut
+       this far it does not quite close: the obvious money runs 15k short, and
+       that gap is the argument for the sponsors.
 
-     PLATFORM · 1.65M
-       Netflix / HBO / Apple. The comparison class is The Deepest Breath,
-       Free Solo, 14 Peaks — sports documentaries with specialist underwater
-       and aerial photography, cleared archive, an original score, and a long
-       edit. Anything under a million here is not that film.
+     NETWORKS · costs 620, in 690 → +70
+       European co-production: EU MEDIA plus two or three broadcasters. The
+       surplus is the producer's fee, which is where the money is actually
+       made at this tier — not on the back end.
+
+     PLATFORM · costs 1650, in 1950 → +300
+       Netflix / HBO / Apple. A commission pays the cost plus a fee, which is
+       why this is the only plan where "profit" is a straight word rather than
+       a hope. Comparison class: The Deepest Breath, Free Solo, 14 Peaks.
 
      WHAT SCALES AND WHAT DOES NOT. The ten trips happen in every plan, because
      the records happen in every plan. What scales is who goes on them and what
-     they carry: one camera or three, a safety team or a friend, six weeks of
-     edit or twenty. HAVC stays 30 throughout — a state grant is one committed
-     number, and at 1.65M it is 2% of the raise, which is exactly the point.
-
-     The rebate is booked below the headline 25% of qualifying spend, and
-     qualifying spend falls as the film shoots more abroad. An incentive you
-     have not been paid is not money to promise a funder.
+     they carry — one camera or three, a safety team or a friend, six weeks of
+     edit or twenty. HAVC stays 30 throughout; at 1.65M that is 2% of the
+     raise, which is exactly the point of calling it one committed number.
 
      NOTHING IS MARKED CONFIRMED. Every funding line starts as a target,
-     because as of this writing not one euro is signed. The plans balance on
-     paper — that is what a plan IS — but the board now reports secured money
-     separately, so "covered" can only ever mean money somebody has actually
-     committed. Mark HAVC or HRT confirmed the day the letter arrives. */
+     because not one euro is signed. Mark HAVC or HRT confirmed the day the
+     letter arrives, and the board's secured figure moves with it. */
   lean: {
     episodes: 3,
-    assumption: 'Assumes all ten shoots happen on a two-person crew, and that nothing goes wrong: there is no reserve and no contingency worth the name.',
-    funding: { havc: 30, hrt: 50, eu: 0,   sale: 0,    sponsors: 45,  sports: 30, rebate: 25 },
+    assumption: 'Assumes all ten shoots happen on a two-person crew, and that nothing goes wrong: there is no reserve and no contingency worth the name. Even so it runs €15k short — that hole is what the sponsors are for.',
+    funding: { havc: 30, hrt: 50, eu: 0,   sale: 0,    sponsors: 35,  sports: 25, rebate: 25 },
     costs:   { dev: 10, prod: 55,  post: 45,  archive: 8,   legal: 10, safety: 12, mkt: 0,  other: 5,  contingency: 10,  finishing: 25, reserve: 0 },
     cashflow: emptyCashflow, qualifyingSpendPct: 55, blendedRebateRate: 25,
   },
   realistic: {
     episodes: 3,
-    assumption: 'Assumes EU MEDIA lands and two or three broadcasters buy at roughly €70k each. One buyer instead of three leaves a €130k hole.',
-    funding: { havc: 30, hrt: 50, eu: 150, sale: 200,  sponsors: 70,  sports: 40, rebate: 80 },
+    assumption: 'Assumes EU MEDIA lands and two or three broadcasters buy at roughly €80k each. One buyer instead of three leaves a €170k hole, and the €70k surplus is the producer fee — the only money this tier actually pays out.',
+    funding: { havc: 30, hrt: 50, eu: 150, sale: 250,  sponsors: 80,  sports: 45, rebate: 85 },
     costs:   { dev: 30, prod: 180, post: 140, archive: 45,  legal: 25, safety: 25, mkt: 40, other: 20, contingency: 55,  finishing: 40, reserve: 20 },
     cashflow: emptyCashflow, qualifyingSpendPct: 52, blendedRebateRate: 25,
   },
   ambitious: {
     episodes: 3,
-    assumption: 'Assumes a platform COMMISSIONS the film. If one acquires it finished instead, the money arrives after delivery and finances nothing — you would still have to make it on the Networks plan first.',
-    funding: { havc: 30, hrt: 50, eu: 200, sale: 1000, sponsors: 150, sports: 60, rebate: 160 },
+    assumption: 'Assumes a platform COMMISSIONS the film — cost plus a fee, which is where the €300k comes from. If one acquires it finished instead, the money arrives after delivery and finances nothing, and you would still have to make it on the Networks plan first.',
+    funding: { havc: 30, hrt: 50, eu: 200, sale: 1300, sponsors: 180, sports: 70, rebate: 120 },
     costs:   { dev: 60, prod: 480, post: 340, archive: 180, legal: 90, safety: 70, mkt: 90, other: 60, contingency: 165, finishing: 75, reserve: 40 },
     cashflow: emptyCashflow, qualifyingSpendPct: 40, blendedRebateRate: 25,
   },
@@ -1748,7 +1741,7 @@ export const SCENARIO_SEED_VERSION = 8;
 /* The money carries its own generation, separate from the story's. The two
    get rewritten on completely different days, and a doc should never lose
    one because the other moved. */
-export const MONEY_SEED_VERSION = 5;
+export const MONEY_SEED_VERSION = 6;
 
 export const SEED_SCENARIO_ARCS: ScenarioArc[] = [
   {
