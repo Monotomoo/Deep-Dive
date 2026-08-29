@@ -115,10 +115,21 @@ export const SCENARIOS: Record<ScenarioKey, ScenarioData> = {
        surplus is the producer's fee, which is where the money is actually
        made at this tier — not on the back end.
 
-     PLATFORM · costs 1650, in 1950 → +300
-       Netflix / HBO / Apple. A commission pays the cost plus a fee, which is
-       why this is the only plan where "profit" is a straight word rather than
-       a hope. Comparison class: The Deepest Breath, Free Solo, 14 Peaks.
+     PLATFORM · costs 1650, in 2950 → +1300
+       Netflix / HBO / Apple BUY IT. This was modelled as a commission first —
+       cost plus a producer fee, which caps the upside at 10-20% of budget and
+       came out at +300. That is the right answer to a question Tomo did not
+       ask: he said "we managed to SELL it", and a sale is not a fee on top of
+       costs, it is a price for the film. Comparables for a worldwide all-rights
+       doc buy of this class — Icarus, Free Solo, and the freediving film
+       already on Netflix, The Deepest Breath — sit in the €1.5-3M band for a
+       strong title, and a feature plus three episodes commands more than a
+       feature alone. €2.4M is ambitious, which is what this plan is for.
+
+       EU MEDIA drops from 200 to 100 here on purpose: Creative Europe attaches
+       European exploitation conditions that sit awkwardly against an
+       all-rights platform sale, so some of that money would not survive the
+       deal even if it were awarded.
 
      WHAT SCALES AND WHAT DOES NOT. The ten trips happen in every plan, because
      the records happen in every plan. What scales is who goes on them and what
@@ -145,8 +156,8 @@ export const SCENARIOS: Record<ScenarioKey, ScenarioData> = {
   },
   ambitious: {
     episodes: 3,
-    assumption: 'Assumes a platform COMMISSIONS the film — cost plus a fee, which is where the €300k comes from. If one acquires it finished instead, the money arrives after delivery and finances nothing, and you would still have to make it on the Networks plan first.',
-    funding: { havc: 30, hrt: 50, eu: 200, sale: 1300, sponsors: 180, sports: 70, rebate: 120 },
+    assumption: 'Assumes a major platform BUYS worldwide rights to the finished film for around €2.4M. Two things to watch: that money arrives after delivery, so it finances nothing — the film still has to be made first, on money raised elsewhere. And public funders usually recoup from a sale that size, so some of the EU and HAVC money here goes back out again.',
+    funding: { havc: 30, hrt: 50, eu: 100, sale: 2400, sponsors: 180, sports: 70, rebate: 120 },
     costs:   { dev: 60, prod: 480, post: 340, archive: 180, legal: 90, safety: 70, mkt: 90, other: 60, contingency: 165, finishing: 75, reserve: 40 },
     cashflow: emptyCashflow, qualifyingSpendPct: 40, blendedRebateRate: 25,
   },
@@ -1741,7 +1752,7 @@ export const SCENARIO_SEED_VERSION = 8;
 /* The money carries its own generation, separate from the story's. The two
    get rewritten on completely different days, and a doc should never lose
    one because the other moved. */
-export const MONEY_SEED_VERSION = 6;
+export const MONEY_SEED_VERSION = 7;
 
 export const SEED_SCENARIO_ARCS: ScenarioArc[] = [
   {
