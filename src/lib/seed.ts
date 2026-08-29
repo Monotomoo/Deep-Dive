@@ -74,6 +74,7 @@ export const COST_CATEGORIES: CostCategoryMeta[] = [
   { key: 'dev',   label: 'Development' },
   { key: 'prod',  label: 'Production (shoots)' },
   { key: 'post',  label: 'Post-production' },
+  { key: 'archive', label: 'Archive + music' },
   { key: 'legal', label: 'Legal' },
   { key: 'safety',label: 'Insurance' },
   { key: 'mkt',   label: 'Marketing + festivals' },
@@ -95,47 +96,57 @@ const emptyCashflow: CashflowQuarter[] = [
 ];
 
 export const SCENARIOS: Record<ScenarioKey, ScenarioData> = {
-  /* The three plans are three buyers, not three moods (2026-08-29, Tomo).
+  /* The three plans are three buyers, and they are FAR apart on purpose
+     (2026-08-29, Tomo). A Croatian public-TV documentary and a global platform
+     original are not the same film at three sizes — they are different films,
+     and pretending their budgets are neighbours is the fastest way to lose a
+     room. The first pass at this board put them at 150/300/420, which was
+     three versions of the same Croatian budget with the label changed.
 
-     HRT        the film gets made and airs at home. No EU MEDIA, no festival
-                campaign, no production reserve, contingency cut to 10. This is
-                the plan where nothing goes wrong, because there is no room for
-                anything to.
-     NETWORKS   sold around — mid-tier TV and smaller streamers. Tomo's real
-                numbers, plus a modest sale.
-     PLATFORM   Netflix, HBO, Apple. The sale dominates the raise, but a global
-                platform also buys you a much more expensive film: E&O
-                insurance, music and archive clearance, a proper grade and mix,
-                subtitles and versions for every territory.
+     HRT · 180k
+       HAVC + HRT + the rebate, essentially. Ten shoots across four countries
+       done by a very small crew. No EU MEDIA, no festival campaign, no
+       reserve, contingency at 10. The plan where nothing goes wrong, because
+       there is no room for anything to.
 
-     THE SHOOT IS THE SAME IN ALL THREE. Production sits at 40/40/45 — Krk,
-     Sicily twice, Lastovo, the USA, Cyprus, the Philippines happen either way,
-     because the records happen either way. What a bigger buyer actually buys
-     is a better finish, a festival run, and somewhere to fall. That is the
-     honest argument of this board and the reason the plans differ where they
-     differ.
+     NETWORKS · 620k
+       European co-production: EU MEDIA plus two or three broadcasters
+       (the ARTE / ZDF / VPRO / SVT tier). Proper crew — an underwater DOP,
+       sound, safety — a real edit, a score, and a festival run. This is the
+       normal ceiling for a European feature doc plus a three-part series.
 
-     HAVC stays 30 in every plan: a state grant is one committed number, not a
-     figure that scales with ambition. The rebate is deliberately booked below
-     the headline 25% of qualifying spend — an incentive you have not been paid
-     yet is not money you should promise a funder. */
+     PLATFORM · 1.65M
+       Netflix / HBO / Apple. The comparison class is The Deepest Breath,
+       Free Solo, 14 Peaks — sports documentaries with specialist underwater
+       and aerial photography, cleared archive, an original score, and a long
+       edit. Anything under a million here is not that film.
+
+     WHAT SCALES AND WHAT DOES NOT. The ten trips happen in every plan, because
+     the records happen in every plan. What scales is who goes on them and what
+     they carry: one camera or three, a safety team or a friend, six weeks of
+     edit or twenty. HAVC stays 30 throughout — a state grant is one committed
+     number, and at 1.65M it is 2% of the raise, which is exactly the point.
+
+     The rebate is booked below the headline 25% of qualifying spend, and
+     qualifying spend falls as the film shoots more abroad. An incentive you
+     have not been paid is not money to promise a funder. */
   lean: {
     episodes: 3,
-    funding: { havc: 30, hrt: 50, eu: 0,   sale: 0,   sponsors: 30, sports: 20, rebate: 20 },
-    costs:   { dev: 10, prod: 40, post: 40, legal: 10, safety: 10, mkt: 0,  other: 5,  contingency: 10, finishing: 25, reserve: 0 },
+    funding: { havc: 30, hrt: 50, eu: 0,   sale: 0,    sponsors: 45,  sports: 30, rebate: 25 },
+    costs:   { dev: 10, prod: 55,  post: 45,  archive: 8,   legal: 10, safety: 12, mkt: 0,  other: 5,  contingency: 10,  finishing: 25, reserve: 0 },
     cashflow: emptyCashflow, qualifyingSpendPct: 55, blendedRebateRate: 25,
   },
   realistic: {
     episodes: 3,
-    funding: { havc: 30, hrt: 50, eu: 100, sale: 30,  sponsors: 40, sports: 20, rebate: 30 },
-    costs:   { dev: 10, prod: 40, post: 55, legal: 15, safety: 12, mkt: 25, other: 8,  contingency: 50, finishing: 45, reserve: 40 },
-    cashflow: emptyCashflow, qualifyingSpendPct: 60, blendedRebateRate: 25,
+    funding: { havc: 30, hrt: 50, eu: 150, sale: 200,  sponsors: 70,  sports: 40, rebate: 80 },
+    costs:   { dev: 30, prod: 180, post: 140, archive: 45,  legal: 25, safety: 25, mkt: 40, other: 20, contingency: 55,  finishing: 40, reserve: 20 },
+    cashflow: emptyCashflow, qualifyingSpendPct: 52, blendedRebateRate: 25,
   },
   ambitious: {
     episodes: 3,
-    funding: { havc: 30, hrt: 50, eu: 100, sale: 120, sponsors: 50, sports: 30, rebate: 40 },
-    costs:   { dev: 15, prod: 45, post: 75, legal: 25, safety: 20, mkt: 45, other: 15, contingency: 70, finishing: 60, reserve: 50 },
-    cashflow: emptyCashflow, qualifyingSpendPct: 65, blendedRebateRate: 25,
+    funding: { havc: 30, hrt: 50, eu: 200, sale: 1000, sponsors: 150, sports: 60, rebate: 160 },
+    costs:   { dev: 60, prod: 480, post: 340, archive: 180, legal: 90, safety: 70, mkt: 90, other: 60, contingency: 165, finishing: 75, reserve: 40 },
+    cashflow: emptyCashflow, qualifyingSpendPct: 40, blendedRebateRate: 25,
   },
 };
 
@@ -1728,7 +1739,7 @@ export const SCENARIO_SEED_VERSION = 8;
 /* The money carries its own generation, separate from the story's. The two
    get rewritten on completely different days, and a doc should never lose
    one because the other moved. */
-export const MONEY_SEED_VERSION = 2;
+export const MONEY_SEED_VERSION = 3;
 
 export const SEED_SCENARIO_ARCS: ScenarioArc[] = [
   {
