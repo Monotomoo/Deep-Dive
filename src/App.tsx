@@ -1,4 +1,4 @@
-import { lazy, Suspense, useCallback, useEffect, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
 import { AppProvider, useApp } from './state/AppContext';
 import { AppShell } from './components/layout/AppShell';
@@ -119,7 +119,11 @@ function renderView(view: ViewKey) {
 }
 
 function GlobalShortcuts() {
-  const { dispatch, undo, redo } = useApp();
+  const { state, dispatch, undo, redo } = useApp();
+  /* Read through a ref so the listener is registered once, not re-bound on
+     every view change. */
+  const viewRef = useRef(state.activeView);
+  viewRef.current = state.activeView;
   useEffect(() => {
     function onKey(e: KeyboardEvent) {
       if (isMod(e) && e.key.toLowerCase() === 'z') {
@@ -154,7 +158,9 @@ function GlobalShortcuts() {
         return;
       }
       /* 1/2/3 → scenarios */
-      if (!isMod(e) && SCENARIO_KEYS[e.key]) {
+      /* Plans live only in The Money now, so the number keys switch them only
+         there — everywhere else 1/2/3 are just characters. */
+      if (!isMod(e) && SCENARIO_KEYS[e.key] && viewRef.current === 'scenario') {
         e.preventDefault();
         dispatch({ type: 'SET_SCENARIO', scenario: SCENARIO_KEYS[e.key] });
         return;

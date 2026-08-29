@@ -31,6 +31,10 @@ export interface CashflowQuarter {
 
 export interface ScenarioData {
   episodes: number;
+  /* What this plan is betting on. Every budget is a set of assumptions; a
+     board that shows only the numbers hides the part a funder will actually
+     interrogate. Editable, like every other line. */
+  assumption?: string;
   funding: Record<string, number>;
   costs: Record<string, number>;
   cashflow: CashflowQuarter[];

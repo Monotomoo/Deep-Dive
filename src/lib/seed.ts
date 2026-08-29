@@ -132,18 +132,21 @@ export const SCENARIOS: Record<ScenarioKey, ScenarioData> = {
      have not been paid is not money to promise a funder. */
   lean: {
     episodes: 3,
+    assumption: 'Assumes all ten shoots happen on a two-person crew, and that nothing goes wrong: there is no reserve and no contingency worth the name.',
     funding: { havc: 30, hrt: 50, eu: 0,   sale: 0,    sponsors: 45,  sports: 30, rebate: 25 },
     costs:   { dev: 10, prod: 55,  post: 45,  archive: 8,   legal: 10, safety: 12, mkt: 0,  other: 5,  contingency: 10,  finishing: 25, reserve: 0 },
     cashflow: emptyCashflow, qualifyingSpendPct: 55, blendedRebateRate: 25,
   },
   realistic: {
     episodes: 3,
+    assumption: 'Assumes EU MEDIA lands and two or three broadcasters buy at roughly €70k each. One buyer instead of three leaves a €130k hole.',
     funding: { havc: 30, hrt: 50, eu: 150, sale: 200,  sponsors: 70,  sports: 40, rebate: 80 },
     costs:   { dev: 30, prod: 180, post: 140, archive: 45,  legal: 25, safety: 25, mkt: 40, other: 20, contingency: 55,  finishing: 40, reserve: 20 },
     cashflow: emptyCashflow, qualifyingSpendPct: 52, blendedRebateRate: 25,
   },
   ambitious: {
     episodes: 3,
+    assumption: 'Assumes a platform COMMISSIONS the film. If one acquires it finished instead, the money arrives after delivery and finances nothing — you would still have to make it on the Networks plan first.',
     funding: { havc: 30, hrt: 50, eu: 200, sale: 1000, sponsors: 150, sports: 60, rebate: 160 },
     costs:   { dev: 60, prod: 480, post: 340, archive: 180, legal: 90, safety: 70, mkt: 90, other: 60, contingency: 165, finishing: 75, reserve: 40 },
     cashflow: emptyCashflow, qualifyingSpendPct: 40, blendedRebateRate: 25,
@@ -1739,7 +1742,7 @@ export const SCENARIO_SEED_VERSION = 8;
 /* The money carries its own generation, separate from the story's. The two
    get rewritten on completely different days, and a doc should never lose
    one because the other moved. */
-export const MONEY_SEED_VERSION = 3;
+export const MONEY_SEED_VERSION = 4;
 
 export const SEED_SCENARIO_ARCS: ScenarioArc[] = [
   {

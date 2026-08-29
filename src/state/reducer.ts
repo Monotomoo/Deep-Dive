@@ -78,6 +78,7 @@ export type Action =
   /* Finance */
   | { type: 'SET_FUNDING'; scenario: ScenarioKey; key: string; value: number }
   | { type: 'SET_COST'; scenario: ScenarioKey; key: string; value: number }
+  | { type: 'SET_SCENARIO_ASSUMPTION'; scenario: ScenarioKey; text: string }
   /* The Four */
   | { type: 'UPDATE_FOUR'; key: FourKey; patch: Partial<TalentFour> }
   /* Talents */
@@ -573,6 +574,13 @@ export function reducer(state: AppState, action: Action): AppState {
         },
       };
     }
+    case 'SET_SCENARIO_ASSUMPTION': return {
+      ...state,
+      scenarios: {
+        ...state.scenarios,
+        [action.scenario]: { ...state.scenarios[action.scenario], assumption: action.text },
+      },
+    };
     case 'DELETE_MONEY_LINE': {
       const sc = state.scenarios[action.scenario];
       const rest = { ...sc[action.kind] };

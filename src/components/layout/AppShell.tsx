@@ -3,7 +3,6 @@ import { Menu, Mic, X } from 'lucide-react';
 import { Sidebar, NAV_VIEW_ORDER } from './Sidebar';
 import { SIMPLE_VIEW_SET } from '../../lib/shortcuts';
 import { PageHeader } from './PageHeader';
-import { SCENARIO_LABEL } from '../../lib/shortcuts';
 import { useApp } from '../../state/AppContext';
 import type { ScenarioKey, ViewKey } from '../../types';
 
@@ -87,7 +86,6 @@ const VIEW_SUBTITLES: Partial<Record<ViewKey, string>> = {
   'chapter-2023': 'evidence library · the peer-reviewed case · the truth on our side',
 };
 
-const SCENARIOS: ScenarioKey[] = ['lean', 'realistic', 'ambitious'];
 
 interface Props {
   children: ReactNode;
@@ -172,41 +170,6 @@ export function AppShell({ children }: Props) {
             />
           </div>
 
-          <div
-            className="flex items-center pb-2 md:pb-4 border-b-[0.5px] border-transparent shrink-0"
-            role="tablist"
-            aria-label="scenario"
-          >
-            {SCENARIOS.map((s, i) => {
-              const active = state.activeScenario === s;
-              return (
-                <button
-                  key={s}
-                  type="button"
-                  role="tab"
-                  aria-selected={active}
-                  onClick={() => dispatch({ type: 'SET_SCENARIO', scenario: s })}
-                  className={`px-2.5 py-2 md:px-3.5 transition-colors duration-150 ${
-                    i > 0 ? 'border-l-[0.5px] border-[color:var(--color-border-paper)]' : ''
-                  } ${
-                    active
-                      ? 'text-[color:var(--color-on-paper)]'
-                      : 'text-[color:var(--color-on-paper-faint)] hover:text-[color:var(--color-on-paper-muted)]'
-                  }`}
-                >
-                  <span
-                    className={
-                      active
-                        ? 'display-italic text-[15px] md:text-[18px]'
-                        : 'font-sans text-[10px] md:text-[12px] tracking-[0.14em] uppercase'
-                    }
-                  >
-                    {SCENARIO_LABEL[s]}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
         </div>
 
         {/* Mobile view tabs — the grouped menu as a scrollable, clickable strip.

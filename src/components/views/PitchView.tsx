@@ -208,9 +208,9 @@ export function PitchView() {
         {tab === 'havc' && (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
             <div className="bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-border-paper)] rounded-[3px] p-4">
-              <div className="label-caps text-[9px] text-[color:var(--color-brass-deep)] mb-1">HAVC target · {state.activeScenario}</div>
+              <div className="label-caps text-[9px] text-[color:var(--color-brass-deep)] mb-1">HAVC target</div>
               <div className="display-italic text-[28px] text-[color:var(--color-on-paper)] tabular-nums">
-                {fmtCurrency((state.scenarios[state.activeScenario].funding.havc ?? 0) * 1000)}
+                {fmtCurrency((state.scenarios.realistic.funding.havc ?? 0) * 1000)}
               </div>
             </div>
             <div className="bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-border-paper)] rounded-[3px] p-4">

@@ -51,6 +51,8 @@ function recordValue(r: DivingRecord): string {
 function budgetOf(state: AppState) {
   /* Funder-facing cards always show the REALISTIC plan — lean/ambitious are
      working sketches and must never silently reach an exported deck. */
+  /* Pinned to Networks on purpose. A deck you hand a funder must not change
+     its budget because somebody clicked a different plan in The Money. */
   const sc = state.scenarios.realistic;
   const cost = Object.values(sc.costs).reduce((a, b) => a + b, 0);
   const fund = Object.values(sc.funding).reduce((a, b) => a + b, 0);

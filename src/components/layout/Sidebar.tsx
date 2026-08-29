@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 import { useState, type ComponentType } from 'react';
 import { BackupPanel } from '../backup/BackupPanel';
-import { SIMPLE_VIEW_SET, SCENARIO_LABEL } from '../../lib/shortcuts';
+import { SIMPLE_VIEW_SET } from '../../lib/shortcuts';
 import { useApp } from '../../state/AppContext';
 import type { ViewKey } from '../../types';
 import { useT } from '../../i18n';
@@ -241,16 +241,6 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
 
       {/* Footer */}
       <div className="border-t-[0.5px] border-[color:var(--color-border-chrome)] px-7 py-5 space-y-3.5">
-        {/* Scenario chip */}
-        <div className="flex items-baseline justify-between">
-          <span className="label-caps text-[color:var(--color-on-chrome-faint)]">
-            Scenario
-          </span>
-          <span className="display-italic text-[15px] text-[color:var(--color-brass)]">
-            {SCENARIO_LABEL[state.activeScenario]}
-          </span>
-        </div>
-
         {/* Undo / redo */}
         <div className="flex items-center gap-2">
           <button

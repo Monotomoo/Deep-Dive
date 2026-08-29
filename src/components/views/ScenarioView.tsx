@@ -4,6 +4,7 @@ import { useApp } from '../../state/AppContext';
 import { FUNDING_SOURCES, COST_CATEGORIES } from '../../lib/seed';
 import type { ScenarioKey } from '../../types';
 import { SCENARIO_LABEL } from '../../lib/shortcuts';
+import { EditableText } from '../primitives/EditableText';
 
 /* Scenario board — the money, on one screen.
 
@@ -70,10 +71,12 @@ export function ScenarioView() {
         {rows.map(({ key, sc, funding, cost, gap }) => {
           const active = state.activeScenario === key;
           return (
-            <button
+            /* A div, not a button: the assumption line inside is editable, and an
+               editor cannot live inside a button. Activating the plan moves onto
+               the name and the bars, the same way The Scenario's arc filter moved
+               onto explicit handles. */
+            <div
               key={key}
-              type="button"
-              onClick={() => dispatch({ type: 'SET_SCENARIO', scenario: key })}
               className={`text-left rounded-[4px] p-5 border transition-colors ${
                 active
                   ? 'bg-[color:var(--color-chrome)] border-[color:var(--color-brass)]'
@@ -81,9 +84,14 @@ export function ScenarioView() {
               }`}
             >
               <div className="flex items-baseline justify-between">
-                <span className={`label-caps ${active ? 'text-[color:var(--color-brass)]' : 'text-[color:var(--color-brass-deep)]'}`}>
+                <button
+                  type="button"
+                  onClick={() => dispatch({ type: 'SET_SCENARIO', scenario: key })}
+                  title={active ? 'this is the active plan' : `make ${LABEL[key]} the active plan`}
+                  className={`label-caps transition-colors ${active ? 'text-[color:var(--color-brass)]' : 'text-[color:var(--color-brass-deep)] hover:text-[color:var(--color-brass)]'}`}
+                >
                   {LABEL[key]}
-                </span>
+                </button>
                 {active && <span className="label-caps text-[color:var(--color-brass)]">active</span>}
               </div>
               <div className={`prose-body italic text-[12px] mt-0.5 ${active ? 'text-[color:var(--color-on-chrome-muted)]' : 'text-[color:var(--color-on-paper-muted)]'}`}>
@@ -104,11 +112,31 @@ export function ScenarioView() {
                 )}
               </div>
 
-              <div className="mt-4 space-y-2">
+              <button
+                type="button"
+                onClick={() => dispatch({ type: 'SET_SCENARIO', scenario: key })}
+                title={active ? 'this is the active plan' : `make ${LABEL[key]} the active plan`}
+                className="block w-full mt-4 space-y-2 cursor-pointer"
+              >
                 <Bar label="raise" value={funding} max={maxAmount} tone="var(--color-dock)" active={active} valueLabel={eur(funding)} />
                 <Bar label="cost" value={cost} max={maxAmount} tone="var(--color-brass)" active={active} valueLabel={eur(cost)} />
+              </button>
+
+              {/* What this plan is betting on. Every budget is a set of
+                  assumptions, and this is the half a funder interrogates. */}
+              <div className={`mt-4 pt-3 border-t-[0.5px] ${active ? 'border-[color:var(--color-border-chrome)]' : 'border-[color:var(--color-border-paper)]'}`}>
+                <div className={`label-caps !text-[9px] mb-1 ${active ? 'text-[color:var(--color-on-chrome-faint)]' : 'text-[color:var(--color-on-paper-faint)]'}`}>
+                  what it assumes
+                </div>
+                <EditableText
+                  multiline
+                  value={sc.assumption ?? ''}
+                  placeholder="what has to be true for this plan to work…"
+                  onSave={(v) => dispatch({ type: 'SET_SCENARIO_ASSUMPTION', scenario: key, text: v })}
+                  className={`prose-body italic text-[11.5px] leading-snug block ${active ? 'text-[color:var(--color-on-chrome-muted)]' : 'text-[color:var(--color-on-paper-muted)]'}`}
+                />
               </div>
-            </button>
+            </div>
           );
         })}
       </div>
