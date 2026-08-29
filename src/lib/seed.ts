@@ -64,6 +64,7 @@ export const FUNDING_SOURCES: FundingSourceMeta[] = [
   { key: 'havc',   label: 'HAVC',        color: '#4C7A8A', isStateAid: true,  tag: 'state' },
   { key: 'hrt',    label: 'HRT',         color: '#7A5C4A', isStateAid: true,  tag: 'state' },
   { key: 'eu',     label: 'EU MEDIA',    color: '#8FA57E', isStateAid: true,  tag: 'state' },
+  { key: 'sale',   label: 'International sale', color: '#8A6E9E', isStateAid: false, tag: 'private' },
   { key: 'sponsors', label: 'Sponsors',  color: '#9E7A63', isStateAid: false, tag: 'private' },
   { key: 'sports', label: 'Foundations', color: '#C88A5A', isStateAid: false, tag: 'private' },
   { key: 'rebate', label: 'Rebate',      color: '#6B8AA1', isStateAid: false, isCalculated: true, tag: 'private' },
@@ -94,13 +95,48 @@ const emptyCashflow: CashflowQuarter[] = [
 ];
 
 export const SCENARIOS: Record<ScenarioKey, ScenarioData> = {
-  /* Realistic carries Tomo's real numbers (2026-08-19): raise €290k, spend
-     €160k. Lean/ambitious are placeholder scalings of the same line items —
-     editable in The Money view, so tune them there. HAVC stays €30k in every
-     plan: a state grant is one committed number. G&A removed by request. */
-  lean:       { episodes: 3, funding: { havc: 30, hrt: 30, eu: 60,  sponsors: 30, sports: 20, rebate: 20 }, costs: { dev: 10, prod: 30, post: 35, legal: 10, safety: 10, mkt: 20, other: 5,  contingency: 30, finishing: 20, reserve: 20 }, cashflow: emptyCashflow, qualifyingSpendPct: 55, blendedRebateRate: 25 },
-  realistic:  { episodes: 3, funding: { havc: 30, hrt: 50, eu: 100, sponsors: 50, sports: 30, rebate: 30 }, costs: { dev: 10, prod: 40, post: 50, legal: 10, safety: 10, mkt: 30, other: 10, contingency: 50, finishing: 40, reserve: 40 }, cashflow: emptyCashflow, qualifyingSpendPct: 60, blendedRebateRate: 25 },
-  ambitious:  { episodes: 3, funding: { havc: 30, hrt: 70, eu: 140, sponsors: 90, sports: 50, rebate: 50 }, costs: { dev: 15, prod: 70, post: 75, legal: 15, safety: 15, mkt: 45, other: 15, contingency: 70, finishing: 55, reserve: 55 }, cashflow: emptyCashflow, qualifyingSpendPct: 65, blendedRebateRate: 25 },
+  /* The three plans are three buyers, not three moods (2026-08-29, Tomo).
+
+     HRT        the film gets made and airs at home. No EU MEDIA, no festival
+                campaign, no production reserve, contingency cut to 10. This is
+                the plan where nothing goes wrong, because there is no room for
+                anything to.
+     NETWORKS   sold around — mid-tier TV and smaller streamers. Tomo's real
+                numbers, plus a modest sale.
+     PLATFORM   Netflix, HBO, Apple. The sale dominates the raise, but a global
+                platform also buys you a much more expensive film: E&O
+                insurance, music and archive clearance, a proper grade and mix,
+                subtitles and versions for every territory.
+
+     THE SHOOT IS THE SAME IN ALL THREE. Production sits at 40/40/45 — Krk,
+     Sicily twice, Lastovo, the USA, Cyprus, the Philippines happen either way,
+     because the records happen either way. What a bigger buyer actually buys
+     is a better finish, a festival run, and somewhere to fall. That is the
+     honest argument of this board and the reason the plans differ where they
+     differ.
+
+     HAVC stays 30 in every plan: a state grant is one committed number, not a
+     figure that scales with ambition. The rebate is deliberately booked below
+     the headline 25% of qualifying spend — an incentive you have not been paid
+     yet is not money you should promise a funder. */
+  lean: {
+    episodes: 3,
+    funding: { havc: 30, hrt: 50, eu: 0,   sale: 0,   sponsors: 30, sports: 20, rebate: 20 },
+    costs:   { dev: 10, prod: 40, post: 40, legal: 10, safety: 10, mkt: 0,  other: 5,  contingency: 10, finishing: 25, reserve: 0 },
+    cashflow: emptyCashflow, qualifyingSpendPct: 55, blendedRebateRate: 25,
+  },
+  realistic: {
+    episodes: 3,
+    funding: { havc: 30, hrt: 50, eu: 100, sale: 30,  sponsors: 40, sports: 20, rebate: 30 },
+    costs:   { dev: 10, prod: 40, post: 55, legal: 15, safety: 12, mkt: 25, other: 8,  contingency: 50, finishing: 45, reserve: 40 },
+    cashflow: emptyCashflow, qualifyingSpendPct: 60, blendedRebateRate: 25,
+  },
+  ambitious: {
+    episodes: 3,
+    funding: { havc: 30, hrt: 50, eu: 100, sale: 120, sponsors: 50, sports: 30, rebate: 40 },
+    costs:   { dev: 15, prod: 45, post: 75, legal: 25, safety: 20, mkt: 45, other: 15, contingency: 70, finishing: 60, reserve: 50 },
+    cashflow: emptyCashflow, qualifyingSpendPct: 65, blendedRebateRate: 25,
+  },
 };
 
 /* ---------- The Four ---------- */
@@ -1689,6 +1725,11 @@ export const SEED_PITCH_DECKS: PitchDeck[] = [
 
 export const SCENARIO_SEED_VERSION = 8;
 
+/* The money carries its own generation, separate from the story's. The two
+   get rewritten on completely different days, and a doc should never lose
+   one because the other moved. */
+export const MONEY_SEED_VERSION = 2;
+
 export const SEED_SCENARIO_ARCS: ScenarioArc[] = [
   {
     id: 'arc-mentor', num: 1, title: 'Pero the student & Vito the teacher',
@@ -2047,6 +2088,7 @@ export function makeInitialState(): AppState {
     mapNodes: SEED_MAP_NODES,
     mapAsides: SEED_MAP_ASIDES,
     scenarioSeedVersion: SCENARIO_SEED_VERSION,
+    moneySeedVersion: MONEY_SEED_VERSION,
     tasks: [],
     notes: [],
     assets: [],

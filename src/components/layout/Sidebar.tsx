@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 import { useState, type ComponentType } from 'react';
 import { BackupPanel } from '../backup/BackupPanel';
-import { SIMPLE_VIEW_SET } from '../../lib/shortcuts';
+import { SIMPLE_VIEW_SET, SCENARIO_LABEL } from '../../lib/shortcuts';
 import { useApp } from '../../state/AppContext';
 import type { ViewKey } from '../../types';
 import { useT } from '../../i18n';
@@ -247,7 +247,7 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
             Scenario
           </span>
           <span className="display-italic text-[15px] text-[color:var(--color-brass)]">
-            {state.activeScenario}
+            {SCENARIO_LABEL[state.activeScenario]}
           </span>
         </div>
 

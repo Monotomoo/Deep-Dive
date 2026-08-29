@@ -1439,6 +1439,10 @@ export interface AppState {
      narrative is rewritten (a content upgrade, not a schema change), docs below
      the current generation get the new parts+arcs on load. */
   scenarioSeedVersion: number;
+  /* The money's own generation, separate from the story's. Budgets and
+     screenplays get rewritten on different days; neither should reset the
+     other. */
+  moneySeedVersion: number;
   /* Cross-cutting primitives */
   tasks: Task[];
   notes: Note[];

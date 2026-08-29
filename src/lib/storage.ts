@@ -51,6 +51,7 @@ function migrateState(loaded: Partial<AppState>): AppState {
      events, topics, USA trip, calendar). Everything else in the doc — notes,
      ideas, holders, journal, pitch decks, budgets — is left alone. */
   const contentUpgrade = (loaded.scenarioSeedVersion ?? 1) < defaults.scenarioSeedVersion;
+  const moneyUpgrade = (loaded.moneySeedVersion ?? 0) < defaults.moneySeedVersion;
   /* Coordinates arrived in v11. A cloud doc written before that has shoots with
      no lat/lng and would silently vanish from the map, so backfill from the
      seed by shoot key while leaving every user-edited field alone. */
@@ -66,7 +67,10 @@ function migrateState(loaded: Partial<AppState>): AppState {
     shoots,
     /* Hard guarantees on every array/object so views never crash on
        undefined access. Uses loaded-if-present-else-default merge. */
-    scenarios: contentUpgrade ? defaults.scenarios : (loaded.scenarios ?? defaults.scenarios),
+    /* The budget is gated on its OWN generation. It used to ride along with
+       the story's, which meant retuning the money reset the screenplay and
+       rewriting the screenplay reset the money. */
+    scenarios: moneyUpgrade ? defaults.scenarios : (loaded.scenarios ?? defaults.scenarios),
     four: loaded.four ?? defaults.four,
     talents: loaded.talents ?? defaults.talents,
     threads: loaded.threads ?? defaults.threads,
@@ -123,6 +127,7 @@ function migrateState(loaded: Partial<AppState>): AppState {
     mapNodes: contentUpgrade ? defaults.mapNodes : (loaded.mapNodes ?? defaults.mapNodes),
     mapAsides: contentUpgrade ? defaults.mapAsides : (loaded.mapAsides ?? defaults.mapAsides),
     scenarioSeedVersion: Math.max(loaded.scenarioSeedVersion ?? 1, defaults.scenarioSeedVersion),
+    moneySeedVersion: Math.max(loaded.moneySeedVersion ?? 0, defaults.moneySeedVersion),
     tasks: loaded.tasks ?? defaults.tasks,
     notes: loaded.notes ?? defaults.notes,
     assets: loaded.assets ?? defaults.assets,

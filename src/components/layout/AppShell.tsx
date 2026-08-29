@@ -3,6 +3,7 @@ import { Menu, Mic, X } from 'lucide-react';
 import { Sidebar, NAV_VIEW_ORDER } from './Sidebar';
 import { SIMPLE_VIEW_SET } from '../../lib/shortcuts';
 import { PageHeader } from './PageHeader';
+import { SCENARIO_LABEL } from '../../lib/shortcuts';
 import { useApp } from '../../state/AppContext';
 import type { ScenarioKey, ViewKey } from '../../types';
 
@@ -200,7 +201,7 @@ export function AppShell({ children }: Props) {
                         : 'font-sans text-[10px] md:text-[12px] tracking-[0.14em] uppercase'
                     }
                   >
-                    {s}
+                    {SCENARIO_LABEL[s]}
                   </span>
                 </button>
               );

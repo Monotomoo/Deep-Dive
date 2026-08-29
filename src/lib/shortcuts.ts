@@ -37,6 +37,15 @@ export const SIMPLE_VIEW_SET: ReadonlySet<ViewKey> = new Set(SIMPLE_VIEWS);
 export type UiMode = 'simple' | 'full';
 export const UI_MODE_KEY = 'deep-dive-ui-mode';
 
+/* What the three plans are called. The KEYS stay lean/realistic/ambitious —
+   they are wired through the whole app and the stored document — but what they
+   MEAN is who buys the film, so every surface prints the name, never the key. */
+export const SCENARIO_LABEL: Record<ScenarioKey, string> = {
+  lean: 'HRT',
+  realistic: 'Networks',
+  ambitious: 'Platform',
+};
+
 export const SCENARIO_KEYS: Record<string, ScenarioKey> = {
   '1': 'lean',
   '2': 'realistic',

@@ -3,6 +3,7 @@ import { AlertTriangle, Check, Plus, Trash2, TrendingDown } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import { FUNDING_SOURCES, COST_CATEGORIES } from '../../lib/seed';
 import type { ScenarioKey } from '../../types';
+import { SCENARIO_LABEL } from '../../lib/shortcuts';
 
 /* Scenario board — the money, on one screen.
 
@@ -15,11 +16,11 @@ import type { ScenarioKey } from '../../types';
    stored in thousands of euros. */
 
 const ORDER: ScenarioKey[] = ['lean', 'realistic', 'ambitious'];
-const LABEL: Record<ScenarioKey, string> = { lean: 'Lean', realistic: 'Realistic', ambitious: 'Ambitious' };
+const LABEL = SCENARIO_LABEL;
 const BLURB: Record<ScenarioKey, string> = {
-  lean: 'placeholder — click any number to tune it',
-  realistic: 'the plan we pitch',
-  ambitious: 'placeholder — everything the film could be',
+  lean: 'HRT alone · the film airs at home',
+  realistic: 'sold around — mid-tier TV, smaller streamers',
+  ambitious: 'Netflix, HBO, Apple',
 };
 
 function eur(thousands: number): string {
