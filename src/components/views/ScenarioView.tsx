@@ -1,20 +1,23 @@
-import { useMemo, useState } from 'react';
-import { AlertTriangle, Check, Pencil, Plus, Trash2, TrendingDown } from 'lucide-react';
+import { useMemo, useRef, useState } from 'react';
+import { AlertTriangle, Check, Plus, Trash2, TrendingDown } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import { FUNDING_SOURCES, COST_CATEGORIES } from '../../lib/seed';
 import type { ScenarioKey } from '../../types';
 
-/* Scenario board — the money, on one screen. Fully editable.
+/* Scenario board — the money, on one screen.
 
    Three plans side by side: what each raises, what each costs, and the gap (or
-   the spare) between. Click a column to make it the active scenario everywhere;
-   flip on edit to change any number, add a line, or remove one — per plan.
-   Values are stored in thousands of euros. */
+   the spare) between. Click a column to make it the active scenario everywhere.
+
+   There is no edit mode, the same as The Plan and The Scenario: click any
+   amount and it becomes a field. Removing a line and adding one appear on
+   hover, so at rest this reads as a budget rather than a form. Values are
+   stored in thousands of euros. */
 
 const ORDER: ScenarioKey[] = ['lean', 'realistic', 'ambitious'];
 const LABEL: Record<ScenarioKey, string> = { lean: 'Lean', realistic: 'Realistic', ambitious: 'Ambitious' };
 const BLURB: Record<ScenarioKey, string> = {
-  lean: 'placeholder — tune in edit mode',
+  lean: 'placeholder — click any number to tune it',
   realistic: 'the plan we pitch',
   ambitious: 'placeholder — everything the film could be',
 };
@@ -42,7 +45,6 @@ function slugify(label: string): string {
 
 export function ScenarioView() {
   const { state, dispatch } = useApp();
-  const [editing, setEditing] = useState(false);
 
   const rows = useMemo(() => {
     return ORDER.map((key) => {
@@ -57,25 +59,10 @@ export function ScenarioView() {
 
   return (
     <div className="space-y-6 max-w-[1100px]">
-      <header className="flex items-end justify-between gap-4 flex-wrap">
-        <div>
-          <h2 className="display-italic text-[36px] text-[color:var(--color-on-paper)] leading-tight">The money</h2>
-          <p className="prose-body italic text-[14px] text-[color:var(--color-on-paper-muted)] mt-0.5">
-            three plans · what each raises, what each costs · click one to make it active · numbers in €k
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setEditing((v) => !v)}
-          className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-[3px] border-[0.5px] text-[11px] tracking-[0.1em] uppercase transition-colors ${
-            editing
-              ? 'border-[color:var(--color-border-brass)] text-[color:var(--color-brass)] bg-[color:var(--color-paper-card)]'
-              : 'border-[color:var(--color-border-paper-strong)] text-[color:var(--color-on-paper-muted)] hover:text-[color:var(--color-on-paper)]'
-          }`}
-        >
-          {editing ? <><Check size={12} /> done</> : <><Pencil size={12} /> edit the money</>}
-        </button>
-      </header>
+      {/* The shell's PageHeader already prints the title and the subtitle. */}
+      <p className="prose-body italic text-[12px] text-[color:var(--color-on-paper-faint)]">
+        click a plan to make it active · click any number to change it · values in &euro;k
+      </p>
 
       {/* The three columns */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
@@ -131,13 +118,12 @@ export function ScenarioView() {
         <TrendingDown size={14} className="text-[color:var(--color-brass)] mt-0.5 shrink-0" />
         <p className="prose-body text-[13px] text-[color:var(--color-on-paper)] leading-snug max-w-[80ch]">
           HAVC is fixed at <span className="italic text-[color:var(--color-brass-deep)]">€30k</span> in every plan — a state grant is one
-          committed number, not a figure that scales with ambition. Everything on this board is editable: flip on
-          <span className="italic"> edit the money</span> and change any line of the active plan.
+          committed number, not a figure that scales with ambition. Every line below is editable — click a number and type.
         </p>
       </div>
 
       {/* Breakdown for the active scenario */}
-      <Breakdown scenarioKey={state.activeScenario} editing={editing} />
+      <Breakdown scenarioKey={state.activeScenario} />
     </div>
   );
 }
@@ -157,7 +143,7 @@ function Bar({ label, value, max, tone, active, valueLabel }: { label: string; v
   );
 }
 
-function Breakdown({ scenarioKey, editing }: { scenarioKey: ScenarioKey; editing: boolean }) {
+function Breakdown({ scenarioKey }: { scenarioKey: ScenarioKey }) {
   const { state } = useApp();
   const sc = state.scenarios[scenarioKey];
 
@@ -177,12 +163,12 @@ function Breakdown({ scenarioKey, editing }: { scenarioKey: ScenarioKey; editing
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
       <MoneySection
-        title="where the money comes from" scenarioKey={scenarioKey} kind="funding" editing={editing}
+        title="where the money comes from" scenarioKey={scenarioKey} kind="funding"
         keys={fundingKeys} values={sc.funding} total={fundTotal} totalLabel="total raise"
         renderMeta={(k) => { const m = fundingMeta(k); return { label: m.label, dot: m.color, tag: m.tag }; }}
       />
       <MoneySection
-        title="where it goes" scenarioKey={scenarioKey} kind="costs" editing={editing}
+        title="where it goes" scenarioKey={scenarioKey} kind="costs"
         keys={costKeys} values={sc.costs} total={costTotal} totalLabel="total cost"
         renderMeta={(k) => ({ label: costMeta(k).label })}
         footer={costTotal - fundTotal > 0 ? (
@@ -202,9 +188,9 @@ function Breakdown({ scenarioKey, editing }: { scenarioKey: ScenarioKey; editing
 }
 
 function MoneySection({
-  title, scenarioKey, kind, editing, keys, values, total, totalLabel, renderMeta, footer,
+  title, scenarioKey, kind, keys, values, total, totalLabel, renderMeta, footer,
 }: {
-  title: string; scenarioKey: ScenarioKey; kind: 'funding' | 'costs'; editing: boolean;
+  title: string; scenarioKey: ScenarioKey; kind: 'funding' | 'costs';
   keys: string[]; values: Record<string, number>; total: number; totalLabel: string;
   renderMeta: (key: string) => { label: string; dot?: string; tag?: string };
   footer?: React.ReactNode;
@@ -224,7 +210,7 @@ function MoneySection({
   }
 
   return (
-    <section className="bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-border-paper)] rounded-[3px] p-5">
+    <section className="group/panel bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-border-paper)] rounded-[3px] p-5">
       <div className="flex items-baseline justify-between mb-3">
         <h3 className="label-caps text-[color:var(--color-brass-deep)]">{title}</h3>
         <span className="prose-body italic text-[12px] text-[color:var(--color-on-paper-muted)]">{LABEL[scenarioKey]}</span>
@@ -237,37 +223,25 @@ function MoneySection({
             <li key={k} className="flex items-center gap-2.5 group">
               {meta.dot && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: meta.dot }} />}
               <span className="prose-body text-[13px] text-[color:var(--color-on-paper)] flex-1">{meta.label}</span>
-              {meta.tag && !editing && <span className="label-caps text-[color:var(--color-on-paper-faint)]">{meta.tag}</span>}
-              {editing ? (
-                <>
-                  <input
-                    type="number" min={0} defaultValue={v} key={`${scenarioKey}-${k}-${v}`}
-                    onBlur={(e) => {
-                      const n = Math.round(Number(e.target.value));
-                      if (Number.isFinite(n) && n >= 0 && n !== v) dispatch({ type: 'SET_MONEY_LINE', scenario: scenarioKey, kind, key: k, value: n });
-                    }}
-                    onKeyDown={(e) => { if (e.key === 'Enter') (e.target as HTMLInputElement).blur(); }}
-                    className="w-[72px] bg-[color:var(--color-paper-card)] border-[0.5px] border-[color:var(--color-border-brass)] rounded-[3px] px-2 py-0.5 text-[13px] text-right tabular-nums outline-none"
-                  />
-                  <span className="text-[11px] text-[color:var(--color-on-paper-faint)]">€k</span>
-                  <button
-                    type="button" title="remove line"
-                    onClick={() => { if (window.confirm(`Remove "${meta.label}" from ${LABEL[scenarioKey]}?`)) dispatch({ type: 'DELETE_MONEY_LINE', scenario: scenarioKey, kind, key: k }); }}
-                    className="p-0.5 text-[color:var(--color-on-paper-faint)] hover:text-[color:var(--color-danger)]"
-                  >
-                    <Trash2 size={12} />
-                  </button>
-                </>
-              ) : (
-                <span className="tabular-nums text-[13px] text-[color:var(--color-on-paper)] w-[76px] text-right">{eur(v)}</span>
-              )}
+              {meta.tag && <span className="label-caps text-[color:var(--color-on-paper-faint)] opacity-100 group-hover:opacity-0 [@media(hover:none)]:opacity-100 transition-opacity">{meta.tag}</span>}
+              <Amount
+                value={v}
+                onSave={(n) => dispatch({ type: 'SET_MONEY_LINE', scenario: scenarioKey, kind, key: k, value: n })}
+                title={`${meta.label} — click to change`}
+              />
+              <button
+                type="button" title={`remove "${meta.label}" from ${LABEL[scenarioKey]}`}
+                onClick={() => { if (window.confirm(`Remove "${meta.label}" from ${LABEL[scenarioKey]}?`)) dispatch({ type: 'DELETE_MONEY_LINE', scenario: scenarioKey, kind, key: k }); }}
+                className="p-0.5 opacity-0 group-hover:opacity-100 focus-visible:opacity-100 [@media(hover:none)]:opacity-70 text-[color:var(--color-on-paper-faint)] hover:text-[color:var(--color-danger)] transition-opacity"
+              >
+                <Trash2 size={12} />
+              </button>
             </li>
           );
         })}
       </ul>
 
-      {editing && (
-        <div className="flex items-center gap-2 mt-3">
+      <div className="flex items-center gap-2 mt-3 opacity-0 group-hover/panel:opacity-100 focus-within:opacity-100 [@media(hover:none)]:opacity-100 transition-opacity">
           <input
             value={newLabel} onChange={(e) => setNewLabel(e.target.value)} placeholder="new line…"
             onKeyDown={(e) => { if (e.key === 'Enter') addLine(); }}
@@ -278,11 +252,10 @@ function MoneySection({
             onKeyDown={(e) => { if (e.key === 'Enter') addLine(); }}
             className="w-[72px] bg-[color:var(--color-paper-card)] border-[0.5px] border-[color:var(--color-border-paper)] rounded-[3px] px-2 py-1 text-[13px] text-right tabular-nums outline-none focus:border-[color:var(--color-border-brass)]"
           />
-          <button type="button" onClick={addLine} title="add line" className="p-1 text-[color:var(--color-brass)] hover:text-[color:var(--color-brass-deep)]">
-            <Plus size={14} />
-          </button>
-        </div>
-      )}
+        <button type="button" onClick={addLine} title="add a line to this plan" className="p-1 text-[color:var(--color-brass)] hover:text-[color:var(--color-brass-deep)]">
+          <Plus size={14} />
+        </button>
+      </div>
 
       <div className="flex items-baseline justify-between mt-3 pt-3 border-t-[0.5px] border-[color:var(--color-border-paper)]">
         <span className="label-caps text-[color:var(--color-on-paper-muted)]">{totalLabel}</span>
@@ -290,5 +263,53 @@ function MoneySection({
       </div>
       {footer}
     </section>
+  );
+}
+
+
+/* An amount that is always click-to-edit.
+
+   It carries the same two guards as EditableText — commit nothing when nothing
+   changed, and refuse to write over a value another crew member moved while
+   this field was open — because the money board shares the same last-write-wins
+   cloud document as everything else. It also holds its width and alignment when
+   it opens, so a column of figures does not jump as you tab down it. */
+function Amount({ value, onSave, title }: { value: number; onSave: (n: number) => void; title?: string }) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(String(value));
+  const baseRef = useRef(value);
+  const liveRef = useRef(value);
+  liveRef.current = value;
+
+  function begin() { baseRef.current = value; setDraft(String(value)); setOpen(true); }
+
+  function commit() {
+    const n = Math.round(Number(draft));
+    setOpen(false);
+    if (!Number.isFinite(n) || n < 0) return;              // a typo is not an edit
+    if (n === baseRef.current) return;                      // nothing changed
+    if (liveRef.current !== baseRef.current) return;         // someone else moved it
+    onSave(n);
+  }
+
+  if (open) {
+    return (
+      <input
+        autoFocus type="number" min={0} value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setOpen(false); }}
+        className="w-[76px] bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-brass)] rounded-[3px] px-1.5 py-0.5 text-[13px] text-right tabular-nums outline-none"
+      />
+    );
+  }
+  return (
+    <span
+      title={title}
+      onClick={begin}
+      className="w-[76px] text-right tabular-nums text-[13px] text-[color:var(--color-on-paper)] cursor-text rounded-[2px] px-1.5 py-0.5 hover:bg-[color:var(--color-paper-deep)]/60 transition-colors"
+    >
+      {eur(value)}
+    </span>
   );
 }

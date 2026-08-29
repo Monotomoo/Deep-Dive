@@ -6,6 +6,7 @@ import { ChevronDown, ChevronUp, MapPin, Plus, Trash2 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import type { FourKey, MapAside, MapLane, MapNode, MapNodeKind } from '../../types';
 import { classifyLabel, depthValue, markForm } from '../../lib/mapKinds';
+import { EditableText } from '../primitives/EditableText';
 
 /* The Plan — the map Tomo and Vito drew, as a printed plate.
 
@@ -705,51 +706,5 @@ function Tool({ children, title, onClick, disabled }: { children: ReactNode; tit
     >
       {children}
     </button>
-  );
-}
-
-/* Always live. Click the word, it becomes an input; Enter or blur commits,
-   Escape reverts. There is no mode to be in. */
-function EditableText({
-  value, placeholder, onSave, onOpenChange, className = '', style, multiline = false,
-}: {
-  value: string; placeholder?: string; onSave: (v: string) => void;
-  onOpenChange?: (open: boolean) => void;
-  className?: string; style?: CSSProperties; multiline?: boolean;
-}) {
-  const [open, setOpen] = useState(false);
-  const [draft, setDraft] = useState(value);
-
-  useEffect(() => { onOpenChange?.(open); }, [open, onOpenChange]);
-
-  function begin() { setDraft(value); setOpen(true); }
-  function commit() { setOpen(false); if (draft !== value) onSave(draft); }
-
-  if (open) {
-    const shared = 'bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-brass)] rounded-[3px] px-1.5 py-0.5 outline-none';
-    return multiline ? (
-      <textarea
-        autoFocus rows={2} value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={commit}
-        onKeyDown={(e) => { if (e.key === 'Escape') setOpen(false); }}
-        className={`${shared} ${className} w-full resize-y`} style={style}
-      />
-    ) : (
-      <input
-        autoFocus value={draft} onChange={(e) => setDraft(e.target.value)} onBlur={commit}
-        onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setOpen(false); }}
-        className={`${shared} ${className} w-full min-w-[60px]`} style={style}
-      />
-    );
-  }
-
-  const empty = value.trim() === '';
-  return (
-    <span
-      onClick={begin}
-      className={`${className} cursor-text hover:bg-[color:var(--color-paper-deep)]/50 rounded-[2px] px-0.5 -mx-0.5 transition-colors ${empty ? 'italic opacity-40' : ''}`}
-      style={style}
-    >
-      {empty ? (placeholder ?? '…') : value}
-    </span>
   );
 }

@@ -256,6 +256,11 @@ export type Action =
   | { type: 'ADD_SCENARIO_ARC'; arc: ScenarioArc }
   | { type: 'UPDATE_SCENARIO_ARC'; id: string; patch: Partial<ScenarioArc> }
   | { type: 'DELETE_SCENARIO_ARC'; id: string }
+  /* Quotes are a bare string[] addressed by index, so a delete carries the text
+     it believes it is removing. If the array moved under us between render and
+     click, the index now points at a different line — and silently deleting a
+     subject's words is the worst thing this view could do. */
+  | { type: 'DELETE_SCENARIO_QUOTE'; partId: string; index: number; text: string }
   /* The Map — the drawn plan */
   | { type: 'ADD_MAP_LANE'; lane: MapLane }
   | { type: 'UPDATE_MAP_LANE'; id: string; patch: Partial<MapLane> }
@@ -690,6 +695,17 @@ export function reducer(state: AppState, action: Action): AppState {
             node.label,
             ...state.mapNodes.filter((n) => n.parentId === action.id).map((n) => n.label),
           ],
+        }),
+      };
+    }
+
+    case 'DELETE_SCENARIO_QUOTE': {
+      const part = state.scenarioParts.find((p) => p.id === action.partId);
+      if (!part || part.quotes?.[action.index] !== action.text) return state;
+      return {
+        ...state,
+        scenarioParts: upd(state.scenarioParts, action.partId, {
+          quotes: (part.quotes ?? []).filter((_, i) => i !== action.index),
         }),
       };
     }
