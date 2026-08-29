@@ -129,7 +129,13 @@ export const SCENARIOS: Record<ScenarioKey, ScenarioData> = {
 
      The rebate is booked below the headline 25% of qualifying spend, and
      qualifying spend falls as the film shoots more abroad. An incentive you
-     have not been paid is not money to promise a funder. */
+     have not been paid is not money to promise a funder.
+
+     NOTHING IS MARKED CONFIRMED. Every funding line starts as a target,
+     because as of this writing not one euro is signed. The plans balance on
+     paper — that is what a plan IS — but the board now reports secured money
+     separately, so "covered" can only ever mean money somebody has actually
+     committed. Mark HAVC or HRT confirmed the day the letter arrives. */
   lean: {
     episodes: 3,
     assumption: 'Assumes all ten shoots happen on a two-person crew, and that nothing goes wrong: there is no reserve and no contingency worth the name.',
@@ -1742,7 +1748,7 @@ export const SCENARIO_SEED_VERSION = 8;
 /* The money carries its own generation, separate from the story's. The two
    get rewritten on completely different days, and a doc should never lose
    one because the other moved. */
-export const MONEY_SEED_VERSION = 4;
+export const MONEY_SEED_VERSION = 5;
 
 export const SEED_SCENARIO_ARCS: ScenarioArc[] = [
   {

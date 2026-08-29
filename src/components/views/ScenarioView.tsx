@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { AlertTriangle, Check, Plus, Trash2, TrendingDown } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import { FUNDING_SOURCES, COST_CATEGORIES } from '../../lib/seed';
-import type { ScenarioKey } from '../../types';
+import type { FundingStatus, ScenarioKey } from '../../types';
 import { SCENARIO_LABEL } from '../../lib/shortcuts';
 import { EditableText } from '../primitives/EditableText';
 
@@ -53,7 +53,13 @@ export function ScenarioView() {
       const sc = state.scenarios[key];
       const funding = Object.values(sc.funding).reduce((a, b) => a + b, 0);
       const cost = Object.values(sc.costs).reduce((a, b) => a + b, 0);
-      return { key, sc, funding, cost, gap: cost - funding };
+      /* Only money somebody has actually committed counts as secured. The
+         planned raise balancing the budget is what a PLAN is; it says nothing
+         about whether the film is funded. */
+      const secured = Object.entries(sc.funding)
+        .filter(([k]) => (sc.fundingStatus?.[k] ?? 'target') === 'confirmed')
+        .reduce((a, [, v]) => a + v, 0);
+      return { key, sc, funding, cost, secured, gap: cost - secured };
     });
   }, [state.scenarios]);
 
@@ -68,7 +74,7 @@ export function ScenarioView() {
 
       {/* The three columns */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        {rows.map(({ key, sc, funding, cost, gap }) => {
+        {rows.map(({ key, sc, funding, cost, secured, gap }) => {
           const active = state.activeScenario === key;
           return (
             /* A div, not a button: the assumption line inside is editable, and an
@@ -100,16 +106,16 @@ export function ScenarioView() {
 
               <div className="mt-4">
                 <div className={`label-caps ${active ? 'text-[color:var(--color-on-chrome-faint)]' : 'text-[color:var(--color-on-paper-faint)]'}`}>
-                  {gap > 0 ? 'the gap' : 'covered'}
+                  {gap > 0 ? 'still to raise' : 'fully secured'}
                 </div>
                 <div className="display-italic text-[40px] leading-none mt-1" style={{ color: gap > 0 ? 'var(--color-danger)' : 'var(--color-success)' }}>
-                  {gap > 0 ? eur(gap) : gap < 0 ? `+${eur(-gap)}` : eur(0)}
+                  {gap > 0 ? eur(gap) : eur(0)}
                 </div>
-                {gap < 0 && (
-                  <div className={`prose-body italic text-[11px] mt-1 ${active ? 'text-[color:var(--color-on-chrome-faint)]' : 'text-[color:var(--color-on-paper-faint)]'}`}>
-                    raises more than it spends — the spare is the safety margin
-                  </div>
-                )}
+                <div className={`prose-body italic text-[11px] mt-1 ${active ? 'text-[color:var(--color-on-chrome-faint)]' : 'text-[color:var(--color-on-paper-faint)]'}`}>
+                  {secured === 0
+                    ? 'nothing committed yet — every line is still a target'
+                    : `${eur(secured)} committed of ${eur(cost)}`}
+                </div>
               </div>
 
               <button
@@ -118,8 +124,9 @@ export function ScenarioView() {
                 title={active ? 'this is the active plan' : `make ${LABEL[key]} the active plan`}
                 className="block w-full mt-4 space-y-2 cursor-pointer"
               >
-                <Bar label="raise" value={funding} max={maxAmount} tone="var(--color-dock)" active={active} valueLabel={eur(funding)} />
-                <Bar label="cost" value={cost} max={maxAmount} tone="var(--color-brass)" active={active} valueLabel={eur(cost)} />
+                <Bar label="planned raise" value={funding} max={maxAmount} tone="var(--color-dock)" active={active} valueLabel={eur(funding)} />
+                <Bar label="budget" value={cost} max={maxAmount} tone="var(--color-brass)" active={active} valueLabel={eur(cost)} />
+                <Bar label="secured" value={secured} max={maxAmount} tone="var(--color-success)" active={active} valueLabel={eur(secured)} />
               </button>
 
               {/* What this plan is betting on. Every budget is a set of
@@ -224,7 +231,9 @@ function MoneySection({
   renderMeta: (key: string) => { label: string; dot?: string; tag?: string };
   footer?: React.ReactNode;
 }) {
-  const { dispatch } = useApp();
+  const { state, dispatch } = useApp();
+  const sc = state.scenarios[scenarioKey];
+  const statusOf = (k: string): FundingStatus => sc.fundingStatus?.[k] ?? 'target';
   const [newLabel, setNewLabel] = useState('');
   const [newAmount, setNewAmount] = useState('');
 
@@ -252,7 +261,15 @@ function MoneySection({
             <li key={k} className="flex items-center gap-2.5 group">
               {meta.dot && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: meta.dot }} />}
               <span className="prose-body text-[13px] text-[color:var(--color-on-paper)] flex-1">{meta.label}</span>
-              {meta.tag && <span className="label-caps text-[color:var(--color-on-paper-faint)] opacity-100 group-hover:opacity-0 [@media(hover:none)]:opacity-100 transition-opacity">{meta.tag}</span>}
+              {kind === 'funding' ? (
+                <StatusChip
+                  status={statusOf(k)}
+                  tag={meta.tag}
+                  onCycle={() => dispatch({ type: 'SET_FUNDING_STATUS', scenario: scenarioKey, key: k, status: NEXT_STATUS[statusOf(k)] })}
+                />
+              ) : (
+                meta.tag && <span className="label-caps text-[color:var(--color-on-paper-faint)] opacity-100 group-hover:opacity-0 [@media(hover:none)]:opacity-100 transition-opacity">{meta.tag}</span>
+              )}
               <Amount
                 value={v}
                 onSave={(n) => dispatch({ type: 'SET_MONEY_LINE', scenario: scenarioKey, kind, key: k, value: n })}
@@ -340,5 +357,42 @@ function Amount({ value, onSave, title }: { value: number; onSave: (n: number) =
     >
       {eur(value)}
     </span>
+  );
+}
+
+
+/* ---------- funding status ---------- */
+
+const NEXT_STATUS: Record<FundingStatus, FundingStatus> = {
+  target: 'applied',
+  applied: 'confirmed',
+  confirmed: 'target',
+};
+
+const STATUS_META: Record<FundingStatus, { label: string; color: string }> = {
+  confirmed: { label: 'confirmed', color: 'var(--color-success)' },
+  applied:   { label: 'applied',   color: 'var(--color-warn)' },
+  target:    { label: 'target',    color: 'var(--color-on-paper-faint)' },
+};
+
+/* One click walks a line from target to applied to confirmed. Only confirmed
+   money counts towards secured, so this is the control that decides whether
+   the board is telling the truth. */
+function StatusChip({ status, tag, onCycle }: { status: FundingStatus; tag?: string; onCycle: () => void }) {
+  const meta = STATUS_META[status];
+  return (
+    <button
+      type="button"
+      onClick={onCycle}
+      title={`${tag ? tag + ' · ' : ''}${meta.label} — click to change`}
+      className="label-caps !text-[9px] !tracking-[0.12em] px-1.5 py-0.5 rounded-full border-[0.5px] transition-colors shrink-0"
+      style={{
+        color: meta.color,
+        borderColor: status === 'target' ? 'var(--color-border-paper)' : meta.color,
+        background: status === 'confirmed' ? 'color-mix(in srgb, var(--color-success) 10%, transparent)' : 'transparent',
+      }}
+    >
+      {meta.label}
+    </button>
   );
 }

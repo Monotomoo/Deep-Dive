@@ -14,6 +14,7 @@ import type {
   Evidence2023,
   FestivalSubmission,
   FourKey,
+  FundingStatus,
   GrammarDevice,
   Holder,
   HubIdea,
@@ -79,6 +80,7 @@ export type Action =
   | { type: 'SET_FUNDING'; scenario: ScenarioKey; key: string; value: number }
   | { type: 'SET_COST'; scenario: ScenarioKey; key: string; value: number }
   | { type: 'SET_SCENARIO_ASSUMPTION'; scenario: ScenarioKey; text: string }
+  | { type: 'SET_FUNDING_STATUS'; scenario: ScenarioKey; key: string; status: FundingStatus }
   /* The Four */
   | { type: 'UPDATE_FOUR'; key: FourKey; patch: Partial<TalentFour> }
   /* Talents */
@@ -571,6 +573,16 @@ export function reducer(state: AppState, action: Action): AppState {
         scenarios: {
           ...state.scenarios,
           [action.scenario]: { ...sc, [action.kind]: { ...sc[action.kind], [action.key]: action.value } },
+        },
+      };
+    }
+    case 'SET_FUNDING_STATUS': {
+      const sc = state.scenarios[action.scenario];
+      return {
+        ...state,
+        scenarios: {
+          ...state.scenarios,
+          [action.scenario]: { ...sc, fundingStatus: { ...(sc.fundingStatus ?? {}), [action.key]: action.status } },
         },
       };
     }

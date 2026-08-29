@@ -29,8 +29,19 @@ export interface CashflowQuarter {
   outflow: number;
 }
 
+/* Where a funding line actually stands. Without this the board can only show
+   what a plan WANTS, which always balances against what it costs, which always
+   reads as fully funded. */
+export type FundingStatus =
+  | 'confirmed'   // awarded or signed — the money is coming
+  | 'applied'     // application in, decision pending
+  | 'target';     // we intend to ask
+
 export interface ScenarioData {
   episodes: number;
+  /* Per funding line. Absent means 'target' — nothing is claimed as secured
+     until somebody says so. */
+  fundingStatus?: Record<string, FundingStatus>;
   /* What this plan is betting on. Every budget is a set of assumptions; a
      board that shows only the numbers hides the part a funder will actually
      interrogate. Editable, like every other line. */
