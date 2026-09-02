@@ -346,8 +346,12 @@ function Amount({ value, onSave, title }: { value: number; onSave: (n: number) =
   function begin() { baseRef.current = value; setDraft(String(value)); setOpen(true); }
 
   function commit() {
-    const n = Math.round(Number(draft));
     setOpen(false);
+    /* An emptied field means "I am about to type", not "this line is zero".
+       Writing 0 here is how a funding line silently became nothing. */
+    const raw = draft.trim();
+    if (raw === '') return;
+    const n = Math.round(Number(raw));
     if (!Number.isFinite(n) || n < 0) return;              // a typo is not an edit
     if (n === baseRef.current) return;                      // nothing changed
     if (liveRef.current !== baseRef.current) return;         // someone else moved it
@@ -492,8 +496,10 @@ function PlainNumber({ value, onSave }: { value: number; onSave: (n: number) => 
 
   function begin() { base.current = value; setDraft(String(value)); setOpen(true); }
   function commit() {
-    const n = Number(draft);
     setOpen(false);
+    const raw = draft.trim();
+    if (raw === '') return;                      // cleared, not zeroed
+    const n = Number(raw);
     if (!Number.isFinite(n) || n < 0) return;
     if (n === base.current) return;
     if (live.current !== base.current) return;   // somebody else moved it

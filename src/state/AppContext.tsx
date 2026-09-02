@@ -165,6 +165,38 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   /* Debounced push on every change, once the initial pull is done. */
   const saveTimer = useRef<number | undefined>(undefined);
+  const retryTimer = useRef<number | undefined>(undefined);
+
+  /* A push that fails is retried, because the failure we actually see in the
+     wild is a transport one — "NetworkError when attempting to fetch
+     resource", a browser or extension blocking the cross-origin request to
+     Supabase. Before this, one blocked request meant the edit simply never
+     reached the cloud: the footer went red, nothing retried, and the next
+     refresh pulled the older crew copy back over the work. Always sends the
+     LATEST state, never the one that failed. */
+  const pushWithRetry = useCallback((via: string, attempt = 0) => {
+    window.clearTimeout(retryTimer.current);
+    saveSharedDoc(presentRef.current, attempt ? `${via} · retry ${attempt}` : via).then((r) => {
+      if (r.updatedAt) setCloudSyncedAt(r.updatedAt);
+      if (!r.error) {
+        setCloudDirty(false);
+        localEditRef.current = false;
+        setCloudStatus('synced');
+        return;
+      }
+      const waits = [2000, 5000, 12000];
+      if (attempt < waits.length) {
+        setCloudStatus('syncing');
+        logSync('push', false, `will retry in ${waits[attempt] / 1000}s`, { attempt: attempt + 1, error: r.error });
+        retryTimer.current = window.setTimeout(() => pushWithRetry(via, attempt + 1), waits[attempt]);
+      } else {
+        /* Out of retries. The dirty flag stays set, so the next load defends
+           this edit instead of letting the crew copy overwrite it. */
+        logSync('push', false, 'gave up after 3 retries — the edit is still only on this browser', { error: r.error });
+        setCloudStatus('error');
+      }
+    });
+  }, []);
   useEffect(() => {
     if (!cloudEnabled) return;
     /* Did the state actually change, or is this effect just re-running because
@@ -189,14 +221,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       /* Clear the marker as the push commits, so the live-refresh subscription
          knows we're no longer mid-edit and can pull crew changes again. */
       saveTimer.current = undefined;
-      saveSharedDoc(history.present, 'debounced edit').then((r) => {
-        if (r.updatedAt) setCloudSyncedAt(r.updatedAt);
-        /* Surface write failures instead of lying 'synced'. If the push was
-           rejected (e.g. RLS), the footer says so and we know the edit didn't
-           reach the cloud. */
-        if (r.error) { console.error('[cloud] push rejected:', r.error); setCloudStatus('error'); }
-        else { setCloudDirty(false); localEditRef.current = false; setCloudStatus('synced'); }
-      });
+      pushWithRetry('debounced edit');
     }, 700);
     return () => window.clearTimeout(saveTimer.current);
   }, [history.present, userId]);
@@ -217,6 +242,16 @@ export function AppProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [userId]);
 
+  /* If every retry failed, the edit exists only in this browser. Closing or
+     refreshing now is how the work is lost — and refreshing is exactly what
+     somebody does when the screen looks wrong. Say so before it happens. */
+  useEffect(() => {
+    if (!cloudEnabled || cloudStatus !== 'error') return;
+    const warn = (e: BeforeUnloadEvent) => { e.preventDefault(); e.returnValue = ''; };
+    window.addEventListener('beforeunload', warn);
+    return () => window.removeEventListener('beforeunload', warn);
+  }, [cloudStatus]);
+
   const signOut = useCallback(async () => {
     await signOutCloud();
     cloudReadyRef.current = false;
@@ -236,7 +271,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const publishLocal = useCallback(async () => {
     if (!cloudEnabled || !userId) return;
     setCloudStatus('syncing');
-    const r = await saveSharedDoc(history.present, 'publish my copy button');
+    const r = await saveSharedDoc(presentRef.current, 'publish my copy button');
     if (r.updatedAt) setCloudSyncedAt(r.updatedAt);
     if (!r.error) setCloudDirty(false);
     setCloudStatus('synced');
