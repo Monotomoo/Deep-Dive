@@ -76,6 +76,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
      otherwise every hydrate re-pushes the doc it just received, and with two
      tabs open the echoes fight each other and can resurrect stale state. */
   const remoteHydrateRef = useRef(false);
+  /* The live state, readable from inside an async handler. The load effect's
+     closure captures `history.present` as it was at mount, so pushing that
+     would push a copy from BEFORE the edit we are trying to defend. */
+  const presentRef = useRef(history.present);
+  presentRef.current = history.present;
+  /* Has anything been edited in this browser since it opened? Set for any real
+     change, including one made before the cloud finished answering. */
+  const localEditRef = useRef(false);
+  /* The last state we saw, so we can tell a genuine edit from this effect
+     merely re-running because the session arrived. */
+  const lastPresentRef = useRef(history.present);
 
   useEffect(() => {
     if (!cloudEnabled) return;
@@ -115,13 +126,18 @@ export function AppProvider({ children }: { children: ReactNode }) {
              wins, the cloud copy stands, and our unpushed edit is dropped.) */
         const marker = getCloudSyncedAt();
         const cloudMoved = !marker || !res.updatedAt || res.updatedAt > marker;
-        if (getCloudDirty() && !cloudMoved) {
-          saveSharedDoc(history.present).then((r) => {
+        /* `localEditRef` matters as much as the stored flag: the app is
+           interactive from the first paint, but this pull can take seconds, and
+           an edit typed in that window never reached the push effect. Without
+           counting it here, the hydrate below would quietly overwrite it. */
+        const haveLocalEdit = getCloudDirty() || localEditRef.current;
+        if (haveLocalEdit && !cloudMoved) {
+          saveSharedDoc(presentRef.current).then((r) => {
             if (r.updatedAt) setCloudSyncedAt(r.updatedAt);
-            if (!r.error) setCloudDirty(false);
+            if (!r.error) { setCloudDirty(false); localEditRef.current = false; }
           });
         } else {
-          try { window.localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(history.present)); } catch { /* ignore */ }
+          try { window.localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(presentRef.current)); } catch { /* ignore */ }
           remoteHydrateRef.current = true;
           internalDispatch({ type: 'HYDRATE', state: res.doc });
           if (res.updatedAt) setCloudSyncedAt(res.updatedAt);
@@ -129,7 +145,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       } else {
         // First crew member in — seed the shared project from local data.
-        saveSharedDoc(history.present).then((r) => { if (r.updatedAt) setCloudSyncedAt(r.updatedAt); if (!r.error) setCloudDirty(false); });
+        saveSharedDoc(presentRef.current).then((r) => { if (r.updatedAt) setCloudSyncedAt(r.updatedAt); if (!r.error) { setCloudDirty(false); localEditRef.current = false; } });
       }
       cloudReadyRef.current = true;
       setCloudStatus('synced');
@@ -141,12 +157,23 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /* Debounced push on every change, once the initial pull is done. */
   const saveTimer = useRef<number | undefined>(undefined);
   useEffect(() => {
-    if (!cloudEnabled || !userId || !cloudReadyRef.current) return;
+    if (!cloudEnabled) return;
+    /* Did the state actually change, or is this effect just re-running because
+       the session finally arrived? Only a real change counts as an edit. */
+    if (lastPresentRef.current === history.present) return;
+    lastPresentRef.current = history.present;
     /* This change came from the cloud — don't push it straight back. */
     if (remoteHydrateRef.current) { remoteHydrateRef.current = false; return; }
-    /* A real local edit: mark dirty NOW, before the debounce — so a refresh
-       inside the window still knows there's an unpushed edit to defend. */
+
+    /* Mark the edit BEFORE checking whether the cloud is ready. This gate used
+       to sit at the top of the effect, so anything typed before the initial
+       pull answered was never marked dirty and never pushed — and then the
+       pull hydrated the crew copy straight over it. That is why an edit could
+       survive closing the window (the tab still held it in memory) and vanish
+       on a refresh. */
+    localEditRef.current = true;
     setCloudDirty(true);
+    if (!userId || !cloudReadyRef.current) return;  // the load handler pushes it
     setCloudStatus('syncing');
     window.clearTimeout(saveTimer.current);
     saveTimer.current = window.setTimeout(() => {
@@ -159,7 +186,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
            rejected (e.g. RLS), the footer says so and we know the edit didn't
            reach the cloud. */
         if (r.error) { console.error('[cloud] push rejected:', r.error); setCloudStatus('error'); }
-        else { setCloudDirty(false); setCloudStatus('synced'); }
+        else { setCloudDirty(false); localEditRef.current = false; setCloudStatus('synced'); }
       });
     }, 700);
     return () => window.clearTimeout(saveTimer.current);
