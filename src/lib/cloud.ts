@@ -140,6 +140,41 @@ export async function saveSharedDoc(state: AppState, via = '?'): Promise<{ error
     gen: `${state.scenarioSeedVersion}/${state.moneySeedVersion}`,
     SENT: fingerprint(state),
   });
+
+  /* READ IT BACK. An upsert that returns a row and a fresh updated_at has only
+     told us the statement ran — not that the document now holds what we sent.
+     A BEFORE UPDATE trigger that rewrites NEW, a policy that filters the
+     returned row, a stale read replica: all of them report success. This asks
+     the database what it actually has and compares. Deliberately narrow — one
+     JSON subtree, not the 150KB document. */
+  try {
+    const back = await cloud
+      .from(TABLE)
+      .select('updated_at, doc->scenarios->realistic->funding')
+      .eq('project', PROJECT)
+      .maybeSingle();
+    const stored = (back.data as { funding?: Record<string, number> } | null)?.funding;
+    const sent = state.scenarios?.realistic?.funding;
+    if (back.error) {
+      logSync('verify', false, 'could not read the row back', { error: back.error.message });
+    } else if (!stored || !sent) {
+      logSync('verify', false, 'read back but the funding subtree was missing', { stored: stored ?? null });
+    } else {
+      const differs = Object.keys(sent).filter((k) => sent[k] !== stored[k]);
+      if (differs.length) {
+        logSync('verify', false, 'THE DATABASE DOES NOT HOLD WHAT WE SENT', {
+          differs,
+          sent: Object.fromEntries(differs.map((k) => [k, sent[k]])),
+          stored: Object.fromEntries(differs.map((k) => [k, stored[k]])),
+        });
+      } else {
+        logSync('verify', true, 'read back — the database holds what we sent');
+      }
+    }
+  } catch (e) {
+    logSync('verify', false, 'read-back threw', { error: String(e) });
+  }
+
   return { updatedAt: (data.updated_at as string) ?? updatedAt };
 }
 
