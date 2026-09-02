@@ -140,12 +140,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
             cloudMoved, marker: getCloudSyncedAt(), cloudUpdatedAt: res.updatedAt,
             ONSCREEN: fingerprint(presentRef.current), FROMCLOUD: fingerprint(res.doc) });
         if (haveLocalEdit && !cloudMoved) {
-          saveSharedDoc(presentRef.current).then((r) => {
+          saveSharedDoc(presentRef.current, 'load-handler: defending an unpushed edit').then((r) => {
             if (r.updatedAt) setCloudSyncedAt(r.updatedAt);
             if (!r.error) { setCloudDirty(false); localEditRef.current = false; }
           });
         } else {
           try { window.localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(presentRef.current)); } catch { /* ignore */ }
+          logSync('decide', true, 'HYDRATE — replacing on-screen state with the crew copy', { to: fingerprint(res.doc) });
           remoteHydrateRef.current = true;
           internalDispatch({ type: 'HYDRATE', state: res.doc });
           if (res.updatedAt) setCloudSyncedAt(res.updatedAt);
@@ -153,7 +154,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
         }
       } else {
         // First crew member in — seed the shared project from local data.
-        saveSharedDoc(presentRef.current).then((r) => { if (r.updatedAt) setCloudSyncedAt(r.updatedAt); if (!r.error) { setCloudDirty(false); localEditRef.current = false; } });
+        saveSharedDoc(presentRef.current, 'load-handler: seeding an empty project').then((r) => { if (r.updatedAt) setCloudSyncedAt(r.updatedAt); if (!r.error) { setCloudDirty(false); localEditRef.current = false; } });
       }
       cloudReadyRef.current = true;
       setCloudStatus('synced');
@@ -188,7 +189,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       /* Clear the marker as the push commits, so the live-refresh subscription
          knows we're no longer mid-edit and can pull crew changes again. */
       saveTimer.current = undefined;
-      saveSharedDoc(history.present).then((r) => {
+      saveSharedDoc(history.present, 'debounced edit').then((r) => {
         if (r.updatedAt) setCloudSyncedAt(r.updatedAt);
         /* Surface write failures instead of lying 'synced'. If the push was
            rejected (e.g. RLS), the footer says so and we know the edit didn't
@@ -206,6 +207,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (!cloudEnabled || !userId) return;
     const unsub = subscribeShared((doc, updatedAt) => {
       if (saveTimer.current) return; // mid-edit locally — don't stomp our work
+      logSync('remote', true, 'HYDRATE — a crew change replaced on-screen state', { to: fingerprint(doc) });
       remoteHydrateRef.current = true;
       internalDispatch({ type: 'HYDRATE', state: doc });
       if (updatedAt) setCloudSyncedAt(updatedAt);
@@ -234,7 +236,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const publishLocal = useCallback(async () => {
     if (!cloudEnabled || !userId) return;
     setCloudStatus('syncing');
-    const r = await saveSharedDoc(history.present);
+    const r = await saveSharedDoc(history.present, 'publish my copy button');
     if (r.updatedAt) setCloudSyncedAt(r.updatedAt);
     if (!r.error) setCloudDirty(false);
     setCloudStatus('synced');

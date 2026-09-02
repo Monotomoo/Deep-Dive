@@ -105,7 +105,7 @@ export async function loadSharedDoc(): Promise<SharedLoad | null> {
 /* Upsert the shared project doc. `updated_by` carries our clientId so our own
    Realtime echo can be ignored by this tab. Returns the timestamp written, so
    the caller can record "the cloud is at this point" and detect later drift. */
-export async function saveSharedDoc(state: AppState): Promise<{ error?: string; updatedAt?: string }> {
+export async function saveSharedDoc(state: AppState, via = '?'): Promise<{ error?: string; updatedAt?: string }> {
   if (!cloud) return {};
   const updatedAt = new Date().toISOString();
   /* VERIFIED write. `.select()` makes PostgREST return the row it actually
@@ -128,6 +128,7 @@ export async function saveSharedDoc(state: AppState): Promise<{ error?: string; 
     /* Zero rows back from an upsert means the write was silently dropped —
        an RLS policy filtered it, or a BEFORE UPDATE trigger returned null. */
     logSync('push', false, 'the write returned no row — it did not persist', {
+      via,
       hint: 'an RLS policy or a BEFORE UPDATE trigger (deep_dive_guard) dropped it',
       scenarioGen: state.scenarioSeedVersion, moneyGen: state.moneySeedVersion,
     });
@@ -135,6 +136,7 @@ export async function saveSharedDoc(state: AppState): Promise<{ error?: string; 
   }
   logSync('push', true, 'wrote the shared doc', {
     updatedAt: data.updated_at,
+    via,
     gen: `${state.scenarioSeedVersion}/${state.moneySeedVersion}`,
     SENT: fingerprint(state),
   });
