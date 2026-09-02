@@ -9,6 +9,8 @@
    It records facts, not opinions: what the cloud returned, which branch was
    taken and why, what the server said when a write was refused. */
 
+import type { AppState } from '../types';
+
 const KEY = 'deep-dive-sync-log';
 const MAX = 60;
 
@@ -65,4 +67,23 @@ export function syncLogText(extra?: Record<string, unknown>): string {
     return `${time} ${e.ok ? 'ok  ' : 'FAIL'} ${e.kind.padEnd(6)} ${e.what}${d}`;
   });
   return [...head, ...(body.length ? body : ['(nothing recorded yet)'])].join('\n');
+}
+
+
+/* A few real values out of the document, so a push and the next load can be
+   compared directly. "The write succeeded" and "the write contained my edit"
+   are different claims, and only this distinguishes them. */
+export function fingerprint(doc: Partial<AppState>): Record<string, unknown> {
+  const sum = (o?: Record<string, number>) =>
+    o ? Object.values(o).reduce((a, b) => a + b, 0) : null;
+  const sc = doc.scenarios?.realistic;
+  return {
+    havc: sc?.funding?.havc ?? null,
+    income: sum(sc?.funding),
+    costs: sum(sc?.costs),
+    post: sc?.costs?.post ?? null,
+    part1: doc.scenarioParts?.find((p) => p.order === 1)?.title?.slice(0, 24) ?? null,
+    lane1: doc.mapLanes?.[0]?.title ?? null,
+    nParts: doc.scenarioParts?.length ?? null,
+  };
 }

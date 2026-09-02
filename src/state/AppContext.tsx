@@ -18,7 +18,7 @@ import {
 } from '../lib/cloud';
 import { SignIn } from '../components/auth/SignIn';
 import { UI_MODE_KEY, type UiMode } from '../lib/shortcuts';
-import { logSync } from '../lib/syncLog';
+import { fingerprint, logSync } from '../lib/syncLog';
 import { type Action } from './reducer';
 import { historyReducer, makeHistory } from './history';
 
@@ -137,7 +137,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
             ? 'keeping this browser’s unpushed edit and sending it up'
             : 'taking the crew copy and replacing what is on this browser',
           { haveLocalEdit, storedDirty: getCloudDirty(), inFlightEdit: localEditRef.current,
-            cloudMoved, marker: getCloudSyncedAt(), cloudUpdatedAt: res.updatedAt });
+            cloudMoved, marker: getCloudSyncedAt(), cloudUpdatedAt: res.updatedAt,
+            ONSCREEN: fingerprint(presentRef.current), FROMCLOUD: fingerprint(res.doc) });
         if (haveLocalEdit && !cloudMoved) {
           saveSharedDoc(presentRef.current).then((r) => {
             if (r.updatedAt) setCloudSyncedAt(r.updatedAt);

@@ -1,7 +1,7 @@
 import { createClient, type Session, type SupabaseClient } from '@supabase/supabase-js';
 import type { AppState } from '../types';
 import { migrateLoaded } from './storage';
-import { logSync } from './syncLog';
+import { fingerprint, logSync } from './syncLog';
 
 /* Cloud layer — optional Supabase sync, SHARED-PROJECT model.
 
@@ -94,9 +94,9 @@ export async function loadSharedDoc(): Promise<SharedLoad | null> {
     const raw = data.doc as Partial<AppState>;
     logSync('load', true, 'read the shared doc', {
       updatedAt: data.updated_at,
-      cloudScenarioGen: raw.scenarioSeedVersion,
-      cloudMoneyGen: raw.moneySeedVersion,
-      cloudBytes: JSON.stringify(raw).length,
+      gen: `${raw.scenarioSeedVersion}/${raw.moneySeedVersion}`,
+      bytes: JSON.stringify(raw).length,
+      GOT: fingerprint(raw),
     });
     return { doc: migrateLoaded(raw), updatedAt: (data.updated_at as string | null) ?? null };
   } catch (e) { logSync('load', false, 'shared doc failed to migrate', { error: String(e) }); return null; }
@@ -134,7 +134,9 @@ export async function saveSharedDoc(state: AppState): Promise<{ error?: string; 
     return { error: 'write did not persist — an RLS policy or the deep_dive_guard trigger dropped it' };
   }
   logSync('push', true, 'wrote the shared doc', {
-    updatedAt: data.updated_at, scenarioGen: state.scenarioSeedVersion, moneyGen: state.moneySeedVersion,
+    updatedAt: data.updated_at,
+    gen: `${state.scenarioSeedVersion}/${state.moneySeedVersion}`,
+    SENT: fingerprint(state),
   });
   return { updatedAt: (data.updated_at as string) ?? updatedAt };
 }
