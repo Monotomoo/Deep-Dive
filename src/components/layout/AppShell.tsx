@@ -1,8 +1,9 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
-import { Menu, Mic, X } from 'lucide-react';
+import { AlertTriangle, Menu, Mic, X } from 'lucide-react';
 import { Sidebar, NAV_VIEW_ORDER } from './Sidebar';
 import { SIMPLE_VIEW_SET } from '../../lib/shortcuts';
 import { PageHeader } from './PageHeader';
+import { watchTabs, type TabPresence } from '../../lib/tabs';
 import { useApp } from '../../state/AppContext';
 import type { ScenarioKey, ViewKey } from '../../types';
 
@@ -149,6 +150,7 @@ export function AppShell({ children }: Props) {
       )}
 
       <main className="flex-1 flex flex-col min-w-0 relative">
+        <DuplicateTabWarning />
         {/* Top bar */}
         <div className="px-5 pt-5 pb-2 md:px-8 md:pt-7 lg:px-14 lg:pt-9 flex items-end justify-between gap-3 md:gap-10 shrink-0 no-print">
           {/* Hamburger — visible on phone + iPad portrait */}
@@ -221,6 +223,43 @@ export function AppShell({ children }: Props) {
           <Mic size={20} strokeWidth={2.25} />
         </button>
       </main>
+    </div>
+  );
+}
+
+
+/* ---------- more than one tab ----------
+   The crew document is last-write-wins, so two tabs of the same browser
+   overwrite each other: touch the older one and it pushes ITS copy over the
+   edit you just made in the newer one. From the outside that is indis-
+   tinguishable from "nothing is being saved", and it cost an evening to find.
+   Now it says so, in coral, across the top. */
+function DuplicateTabWarning() {
+  const [others, setOthers] = useState<TabPresence[]>([]);
+  const build = typeof __BUILD_TS__ === 'string' ? __BUILD_TS__ : '?';
+
+  useEffect(() => watchTabs(build, setOthers), [build]);
+
+  if (others.length === 0) return null;
+  const stale = others.filter((o) => o.build !== build);
+
+  return (
+    <div
+      className="no-print px-5 md:px-8 lg:px-14 py-2.5 flex items-start gap-2.5 text-[color:var(--color-paper-light)]"
+      style={{ background: 'var(--color-danger)' }}
+    >
+      <AlertTriangle size={14} className="mt-[2px] shrink-0" />
+      <p className="prose-body text-[12.5px] leading-snug">
+        <b>Deep Dive is open in {others.length === 1 ? 'another tab' : `${others.length} other tabs`}.</b>{' '}
+        Every tab holds its own copy and the last one you touch wins — the others will
+        overwrite your edits. Close {others.length === 1 ? 'the other tab' : 'the other tabs'} and keep this one.
+        {stale.length > 0 && (
+          <> {stale.length === 1 ? 'One of them is' : `${stale.length} of them are`} running an{' '}
+            <b>older build</b>{stale[0]?.build ? ` (${stale[0].build})` : ''} — that one will also undo
+            fixes made since.
+          </>
+        )}
+      </p>
     </div>
   );
 }
