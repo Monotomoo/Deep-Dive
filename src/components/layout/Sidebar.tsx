@@ -316,8 +316,27 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
 
         {/* Build stamp — if this doesn't match the latest deploy, the browser
            is running a stale cached bundle (hard-refresh fixes it). */}
-        <div className="font-sans text-[11px] text-[color:var(--color-on-chrome-faint)]/60">
-          build {__BUILD_TS__}
+        <div className="font-sans text-[11px] text-[color:var(--color-on-chrome-faint)]/60 flex items-center gap-2">
+          <span>build {__BUILD_TS__}</span>
+          <button
+            type="button"
+            title="Fetch the newest build, ignoring the browser cache. A normal refresh can keep serving the old bundle."
+            onClick={async () => {
+              try {
+                if ('caches' in window) {
+                  for (const k of await caches.keys()) await caches.delete(k);
+                }
+                const rs = await navigator.serviceWorker?.getRegistrations?.();
+                if (rs) for (const r of rs) await r.unregister();
+              } catch { /* best effort */ }
+              /* A fresh query string defeats a cached index.html, which is what
+                 pins a browser to an old bundle even after a reload. */
+              window.location.replace(`${window.location.pathname}?v=${Date.now()}`);
+            }}
+            className="underline decoration-dotted hover:text-[color:var(--color-brass)] transition-colors"
+          >
+            get latest
+          </button>
         </div>
 
         <div className="font-sans text-[11px] tracking-[0.14em] uppercase text-[color:var(--color-on-chrome-faint)] flex items-center gap-2">

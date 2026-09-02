@@ -56,7 +56,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => makeHistory(loadState() ?? makeInitialState())
   );
 
-  const dispatch = useCallback<Dispatch<Action>>((action) => internalDispatch(action), []);
+  /* Actions that change only what THIS person is looking at. They alter
+     `present` (so they flow through the reducer normally) but they are nobody
+     else's business, and pushing the whole document to the cloud every time
+     somebody clicks a menu item is churn — wasted writes, a sync log full of
+     noise, and more chances for a blocked request on a bad network. */
+  const UI_ONLY: ReadonlySet<string> = new Set([
+    'SET_VIEW', 'SELECT_PERSON', 'SELECT_SHOOT', 'SELECT_THREAD',
+    'SELECT_EPISODE', 'OPEN_PALETTE', 'OPEN_CAPTURE', 'SET_PRINT_MODE',
+  ]);
+  const uiOnlyRef = useRef(false);
+
+  const dispatch = useCallback<Dispatch<Action>>((action) => {
+    if (UI_ONLY.has(action.type)) uiOnlyRef.current = true;
+    internalDispatch(action);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
   const undo = useCallback(() => internalDispatch({ type: 'UNDO' }), []);
   const redo = useCallback(() => internalDispatch({ type: 'REDO' }), []);
 
@@ -205,6 +220,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     lastPresentRef.current = history.present;
     /* This change came from the cloud — don't push it straight back. */
     if (remoteHydrateRef.current) { remoteHydrateRef.current = false; return; }
+    /* Looking at a different view is not an edit. */
+    if (uiOnlyRef.current) { uiOnlyRef.current = false; return; }
 
     /* Mark the edit BEFORE checking whether the cloud is ready. This gate used
        to sit at the top of the effect, so anything typed before the initial
