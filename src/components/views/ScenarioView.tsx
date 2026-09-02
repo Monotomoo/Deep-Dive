@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { AlertTriangle, Check, Plus, Trash2, TrendingDown } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import { FUNDING_SOURCES, COST_CATEGORIES } from '../../lib/seed';
-import type { FundingStatus, ScenarioKey } from '../../types';
+import type { BudgetLine, FundingStatus, ScenarioKey } from '../../types';
 import { SCENARIO_LABEL } from '../../lib/shortcuts';
 import { EditableText } from '../primitives/EditableText';
 
@@ -235,6 +235,7 @@ function MoneySection({
 }) {
   const { state, dispatch } = useApp();
   const sc = state.scenarios[scenarioKey];
+  const [openCat, setOpenCat] = useState<string | null>(null);
   const statusOf = (k: string): FundingStatus => sc.fundingStatus?.[k] ?? 'target';
   const [newLabel, setNewLabel] = useState('');
   const [newAmount, setNewAmount] = useState('');
@@ -260,7 +261,7 @@ function MoneySection({
           const meta = renderMeta(k);
           const v = values[k] ?? 0;
           return (
-            <li key={k} className="flex items-center gap-2.5 group">
+            <li key={k} className="flex flex-wrap items-center gap-2.5 group">
               {meta.dot && <span className="w-2 h-2 rounded-full shrink-0" style={{ background: meta.dot }} />}
               <span className="prose-body text-[13px] text-[color:var(--color-on-paper)] flex-1">{meta.label}</span>
               {kind === 'funding' ? (
@@ -277,6 +278,16 @@ function MoneySection({
                 onSave={(n) => dispatch({ type: 'SET_MONEY_LINE', scenario: scenarioKey, kind, key: k, value: n })}
                 title={`${meta.label} — click to change`}
               />
+              {kind === 'costs' && (sc.costLines?.[k]?.length ?? 0) > 0 && (
+                <button
+                  type="button"
+                  onClick={() => setOpenCat(openCat === k ? null : k)}
+                  title={openCat === k ? 'hide the build-up' : `${sc.costLines?.[k]?.length} lines behind this number`}
+                  className="label-caps !text-[8px] !tracking-[0.12em] px-1.5 py-0.5 rounded-full border-[0.5px] border-[color:var(--color-border-paper)] text-[color:var(--color-on-paper-faint)] hover:border-[color:var(--color-brass)] hover:text-[color:var(--color-brass)] transition-colors shrink-0"
+                >
+                  {openCat === k ? 'hide' : `${sc.costLines?.[k]?.length} lines`}
+                </button>
+              )}
               <button
                 type="button" title={`remove "${meta.label}" from ${LABEL[scenarioKey]}`}
                 onClick={() => { if (window.confirm(`Remove "${meta.label}" from ${LABEL[scenarioKey]}?`)) dispatch({ type: 'DELETE_MONEY_LINE', scenario: scenarioKey, kind, key: k }); }}
@@ -284,6 +295,9 @@ function MoneySection({
               >
                 <Trash2 size={12} />
               </button>
+              {kind === 'costs' && openCat === k && (
+                <BuildUp scenarioKey={scenarioKey} category={k} lines={sc.costLines?.[k] ?? []} />
+              )}
             </li>
           );
         })}
@@ -396,5 +410,110 @@ function StatusChip({ status, tag, onCycle }: { status: FundingStatus; tag?: str
     >
       {meta.label}
     </button>
+  );
+}
+
+
+/* ---------- the build-up behind a cost category ---------- */
+
+/* A number nobody can take apart is a number nobody can defend. Post-production
+   at 96k means nothing; editor 28 weeks at 1,400 plus a 12-day grade plus an
+   8-day mix can be argued with, quoted against, and corrected. Rates are in
+   EUROS here, not thousands — this is where real prices live. */
+function BuildUp({ scenarioKey, category, lines }: { scenarioKey: ScenarioKey; category: string; lines: BudgetLine[] }) {
+  const { dispatch } = useApp();
+  const total = lines.reduce((a, l) => a + l.qty * l.rate, 0);
+
+  function patch(id: string, p: Partial<BudgetLine>) {
+    dispatch({ type: 'SET_BUDGET_LINE', scenario: scenarioKey, category, id, patch: p });
+  }
+
+  return (
+    <div className="basis-full mt-1 mb-2 ml-4 pl-3 border-l-[0.5px] border-[color:var(--color-border-brass)]">
+      {lines.map((l) => (
+        <div key={l.id} className="group/line flex items-baseline gap-2 py-[3px] text-[12px]">
+          <EditableText
+            value={l.label}
+            onSave={(v) => patch(l.id, { label: v })}
+            className="flex-1 text-[color:var(--color-on-paper-muted)]"
+          />
+          {l.unit === 'sum' ? (
+            <span className="text-[color:var(--color-on-paper-faint)] text-[11px] w-[112px] text-right">one sum</span>
+          ) : (
+            <span className="text-[color:var(--color-on-paper-faint)] text-[11px] w-[112px] text-right tabular-nums">
+              <PlainNumber value={l.qty} onSave={(n) => patch(l.id, { qty: n })} /> {l.unit}
+              {' × '}
+              <PlainNumber value={l.rate} onSave={(n) => patch(l.id, { rate: n })} />
+            </span>
+          )}
+          <span className="tabular-nums text-[color:var(--color-on-paper)] w-[76px] text-right">
+            {`€${(l.qty * l.rate).toLocaleString('en-US')}`}
+          </span>
+          <button
+            type="button"
+            title="remove this line"
+            onClick={() => dispatch({ type: 'DELETE_BUDGET_LINE', scenario: scenarioKey, category, id: l.id })}
+            className="opacity-0 group-hover/line:opacity-100 [@media(hover:none)]:opacity-70 text-[color:var(--color-on-paper-faint)] hover:text-[color:var(--color-danger)] transition-opacity"
+          >
+            <Trash2 size={10} />
+          </button>
+        </div>
+      ))}
+      <div className="flex items-baseline gap-2 pt-1.5 mt-1 border-t-[0.5px] border-[color:var(--color-border-paper)] text-[11px]">
+        <button
+          type="button"
+          onClick={() => dispatch({
+            type: 'ADD_BUDGET_LINE', scenario: scenarioKey, category,
+            line: { id: `bl-${Date.now().toString(36)}`, label: 'new line', qty: 1, unit: 'sum', rate: 0 },
+          })}
+          className="text-[color:var(--color-on-paper-faint)] hover:text-[color:var(--color-brass)] inline-flex items-center gap-1 transition-colors"
+        >
+          <Plus size={10} /> line
+        </button>
+        <span className="flex-1" />
+        <span className="label-caps !text-[8px] text-[color:var(--color-on-paper-faint)]">builds to</span>
+        <span className="tabular-nums text-[color:var(--color-on-paper)] w-[76px] text-right">
+          {`€${total.toLocaleString('en-US')}`}
+        </span>
+        <span className="w-[14px]" />
+      </div>
+    </div>
+  );
+}
+
+/* A bare number, edited in place. No euro sign — these are quantities and unit
+   rates, and dressing them as currency would make the row unreadable. */
+function PlainNumber({ value, onSave }: { value: number; onSave: (n: number) => void }) {
+  const [open, setOpen] = useState(false);
+  const [draft, setDraft] = useState(String(value));
+  const base = useRef(value);
+  const live = useRef(value);
+  live.current = value;
+
+  function begin() { base.current = value; setDraft(String(value)); setOpen(true); }
+  function commit() {
+    const n = Number(draft);
+    setOpen(false);
+    if (!Number.isFinite(n) || n < 0) return;
+    if (n === base.current) return;
+    if (live.current !== base.current) return;   // somebody else moved it
+    onSave(n);
+  }
+
+  if (open) {
+    return (
+      <input
+        autoFocus type="number" min={0} value={draft}
+        onChange={(e) => setDraft(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => { if (e.key === 'Enter') commit(); if (e.key === 'Escape') setOpen(false); }}
+        className="w-[54px] bg-[color:var(--color-paper-light)] border-[0.5px] border-[color:var(--color-brass)] rounded-[2px] px-1 text-right tabular-nums outline-none text-[11px]"
+      />
+    );
+  }
+  return (
+    <span onClick={begin} className="cursor-text hover:bg-[color:var(--color-paper-deep)]/60 rounded-[2px] px-0.5 transition-colors">
+      {value.toLocaleString('en-US')}
+    </span>
   );
 }

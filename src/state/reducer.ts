@@ -3,6 +3,7 @@ import type {
   Asset,
   BiggerSwing,
   Broadcaster,
+  BudgetLine,
   CalendarEvent,
   Camera,
   ChoirEntry,
@@ -81,6 +82,9 @@ export type Action =
   | { type: 'SET_COST'; scenario: ScenarioKey; key: string; value: number }
   | { type: 'SET_SCENARIO_ASSUMPTION'; scenario: ScenarioKey; text: string }
   | { type: 'SET_FUNDING_STATUS'; scenario: ScenarioKey; key: string; status: FundingStatus }
+  | { type: 'SET_BUDGET_LINE'; scenario: ScenarioKey; category: string; id: string; patch: Partial<BudgetLine> }
+  | { type: 'ADD_BUDGET_LINE'; scenario: ScenarioKey; category: string; line: BudgetLine }
+  | { type: 'DELETE_BUDGET_LINE'; scenario: ScenarioKey; category: string; id: string }
   /* The Four */
   | { type: 'UPDATE_FOUR'; key: FourKey; patch: Partial<TalentFour> }
   /* Talents */
@@ -573,6 +577,31 @@ export function reducer(state: AppState, action: Action): AppState {
         scenarios: {
           ...state.scenarios,
           [action.scenario]: { ...sc, [action.kind]: { ...sc[action.kind], [action.key]: action.value } },
+        },
+      };
+    }
+    /* A category's total is the sum of its lines, so every line edit rewrites
+       the category figure too — otherwise the column would stop adding up to
+       its own footer the moment anybody changed a rate. */
+    case 'SET_BUDGET_LINE':
+    case 'ADD_BUDGET_LINE':
+    case 'DELETE_BUDGET_LINE': {
+      const sc = state.scenarios[action.scenario];
+      const cur = sc.costLines?.[action.category] ?? [];
+      const next =
+        action.type === 'ADD_BUDGET_LINE' ? [...cur, action.line]
+        : action.type === 'DELETE_BUDGET_LINE' ? cur.filter((l) => l.id !== action.id)
+        : cur.map((l) => (l.id === action.id ? { ...l, ...action.patch } : l));
+      const euros = next.reduce((a, l) => a + l.qty * l.rate, 0);
+      return {
+        ...state,
+        scenarios: {
+          ...state.scenarios,
+          [action.scenario]: {
+            ...sc,
+            costLines: { ...(sc.costLines ?? {}), [action.category]: next },
+            costs: { ...sc.costs, [action.category]: Math.round(euros / 1000) },
+          },
         },
       };
     }

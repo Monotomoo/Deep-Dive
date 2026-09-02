@@ -6,6 +6,7 @@ import type {
   AppState,
   BiggerSwing,
   Broadcaster,
+  BudgetLine,
   CalendarEvent,
   Camera,
   CashflowQuarter,
@@ -71,19 +72,17 @@ export const FUNDING_SOURCES: FundingSourceMeta[] = [
 ];
 
 export const COST_CATEGORIES: CostCategoryMeta[] = [
-  { key: 'dev',   label: 'Development' },
-  { key: 'prod',  label: 'Production (shoots)' },
-  { key: 'post',  label: 'Post-production' },
-  { key: 'archive', label: 'Archive + music' },
-  { key: 'legal', label: 'Legal' },
-  { key: 'safety',label: 'Insurance' },
-  { key: 'mkt',   label: 'Marketing + festivals' },
-  { key: 'other', label: 'Other' },
-  /* 2026-08-20 — the raise exceeded the bare spend, so the budget carries the
-     difference as named, honest lines instead of an unexplained surplus. */
+  { key: 'dev',         label: 'Development' },
+  { key: 'crew',        label: 'Crew' },
+  { key: 'travel',      label: 'Travel & logistics' },
+  { key: 'equip',       label: 'Equipment' },
+  { key: 'safety',      label: 'Safety, insurance & permits' },
+  { key: 'post',        label: 'Post-production' },
+  { key: 'archive',     label: 'Music & archive' },
+  { key: 'legal',       label: 'Legal & admin' },
+  { key: 'mkt',         label: 'Marketing & festivals' },
+  { key: 'other',       label: 'Overheads' },
   { key: 'contingency', label: 'Contingency' },
-  { key: 'finishing',   label: 'Finishing + delivery' },
-  { key: 'reserve',     label: 'Production reserve' },
 ];
 
 const emptyCashflow: CashflowQuarter[] = [
@@ -95,70 +94,272 @@ const emptyCashflow: CashflowQuarter[] = [
   { quarter: '2027-Q2', inflows: {}, outflow: 0 },
 ];
 
+/* The budget, built from units. Every line is quantity x rate, so a number can
+   be argued with instead of taken on faith — which is what these were before:
+   plausible-looking totals with nothing underneath them.
+
+   87 shooting days across five countries and fourteen months, taken from the
+   app's own shoots — Krk 7, Sicily 6, Lastovo 8 already shot; USA 10, Sicily
+   camp 12, Cyprus 11, Sicily records 10, Philippines 14, Rijeka studio 3,
+   Njivice 3, coda 3 still to come.
+
+   The three plans differ by HOW MANY PEOPLE stand on those days and how long
+   the finish takes — not by a percentage applied to everything. HRT is two
+   people and an eighteen-week edit; Platform is six, an underwater unit, and
+   thirty-six weeks.
+
+   The rates are Croatian and regional 2026 ASSUMPTIONS, meant to be replaced by
+   real quotes. Showing them is the point: a budget is a set of assumptions
+   about quantity and price, and hiding them behind one number is how you end up
+   unable to say why post-production costs what it costs. */
+export const SEED_BUDGET_LINES: Record<ScenarioKey, Record<string, BudgetLine[]>> = {
+  lean: {
+    dev: [
+      { id: 'le-dev-1', label: 'Research & development', qty: 6, unit: 'months', rate: 1200 },
+      { id: 'le-dev-2', label: 'Dossier, design, translation', qty: 1, unit: 'sum', rate: 2800 },
+    ],
+    crew: [
+      { id: 'le-crew-1', label: 'Director / camera', qty: 87, unit: 'days', rate: 350 },
+      { id: 'le-crew-2', label: 'Second camera', qty: 40, unit: 'days', rate: 250 },
+      { id: 'le-crew-3', label: 'Sound, key blocks only', qty: 20, unit: 'days', rate: 280 },
+      { id: 'le-crew-4', label: 'Producer', qty: 14, unit: 'months', rate: 1500 },
+    ],
+    travel: [
+      { id: 'le-travel-1', label: 'Flights · 2 crew, 5 countries', qty: 1, unit: 'sum', rate: 11000 },
+      { id: 'le-travel-2', label: 'Accommodation', qty: 132, unit: 'nights', rate: 60 },
+      { id: 'le-travel-3', label: 'Per diems', qty: 132, unit: 'days', rate: 35 },
+      { id: 'le-travel-4', label: 'Ground transport & ferries', qty: 1, unit: 'sum', rate: 7000 },
+      { id: 'le-travel-5', label: 'Boat hire on dive days', qty: 20, unit: 'days', rate: 350 },
+    ],
+    equip: [
+      { id: 'le-equip-1', label: 'Camera package · owned, part hire', qty: 87, unit: 'days', rate: 120 },
+      { id: 'le-equip-2', label: 'Underwater housing hire', qty: 30, unit: 'days', rate: 150 },
+      { id: 'le-equip-3', label: 'Sound package', qty: 1, unit: 'sum', rate: 2500 },
+      { id: 'le-equip-4', label: 'Media, drives, backup', qty: 1, unit: 'sum', rate: 3000 },
+    ],
+    safety: [
+      { id: 'le-safety-1', label: 'Dive safety cover for the crew', qty: 20, unit: 'days', rate: 200 },
+      { id: 'le-safety-2', label: 'Production & equipment insurance', qty: 1, unit: 'sum', rate: 7000 },
+      { id: 'le-safety-3', label: 'Permits & location fees', qty: 1, unit: 'sum', rate: 3000 },
+    ],
+    post: [
+      { id: 'le-post-1', label: 'Editor', qty: 18, unit: 'weeks', rate: 1200 },
+      { id: 'le-post-2', label: 'Edit suite', qty: 18, unit: 'weeks', rate: 200 },
+      { id: 'le-post-3', label: 'Colour grade', qty: 5, unit: 'days', rate: 450 },
+      { id: 'le-post-4', label: 'Sound design & mix · stereo', qty: 8, unit: 'days', rate: 400 },
+      { id: 'le-post-5', label: 'Titles & graphics', qty: 1, unit: 'sum', rate: 2500 },
+      { id: 'le-post-6', label: 'Deliverables & QC · HRT spec', qty: 1, unit: 'sum', rate: 3500 },
+    ],
+    archive: [
+      { id: 'le-archive-1', label: 'Library music licence', qty: 1, unit: 'sum', rate: 4000 },
+      { id: 'le-archive-2', label: 'Archive · domestic, limited', qty: 1, unit: 'sum', rate: 6000 },
+    ],
+    legal: [
+      { id: 'le-legal-1', label: 'Contracts & contributor agreements', qty: 1, unit: 'sum', rate: 5000 },
+      { id: 'le-legal-2', label: 'Accounting & audit', qty: 1, unit: 'sum', rate: 4000 },
+    ],
+    mkt: [
+      { id: 'le-mkt-1', label: 'Domestic launch materials', qty: 1, unit: 'sum', rate: 2000 },
+    ],
+    other: [
+      { id: 'le-other-1', label: 'Office, software, comms', qty: 14, unit: 'months', rate: 400 },
+    ],
+    contingency: [
+      { id: 'le-contingency-1', label: "5% — thin, and that is this plan's risk", qty: 1, unit: 'sum', rate: 11000 },
+    ],
+  },
+  realistic: {
+    dev: [
+      { id: 're-dev-1', label: 'Research & development', qty: 8, unit: 'months', rate: 1500 },
+      { id: 're-dev-2', label: 'Dossier, design, translation', qty: 1, unit: 'sum', rate: 4000 },
+      { id: 're-dev-3', label: 'Market travel · 2 markets, 2 people', qty: 1, unit: 'sum', rate: 6000 },
+    ],
+    crew: [
+      { id: 're-crew-1', label: 'Director', qty: 87, unit: 'days', rate: 400 },
+      { id: 're-crew-2', label: 'Director of photography', qty: 70, unit: 'days', rate: 380 },
+      { id: 're-crew-3', label: 'Second camera', qty: 45, unit: 'days', rate: 260 },
+      { id: 're-crew-4', label: 'Sound recordist', qty: 55, unit: 'days', rate: 300 },
+      { id: 're-crew-5', label: 'Underwater DOP', qty: 30, unit: 'days', rate: 550 },
+      { id: 're-crew-6', label: 'Underwater safety diver', qty: 30, unit: 'days', rate: 220 },
+      { id: 're-crew-7', label: 'Producer', qty: 14, unit: 'months', rate: 2400 },
+      { id: 're-crew-8', label: 'Production coordinator', qty: 9, unit: 'months', rate: 1300 },
+    ],
+    travel: [
+      { id: 're-travel-1', label: 'Flights · 4 crew, 5 countries', qty: 1, unit: 'sum', rate: 17000 },
+      { id: 're-travel-2', label: 'Accommodation', qty: 231, unit: 'nights', rate: 70 },
+      { id: 're-travel-3', label: 'Per diems', qty: 231, unit: 'days', rate: 42 },
+      { id: 're-travel-4', label: 'Ground transport, vehicles, ferries', qty: 1, unit: 'sum', rate: 13000 },
+      { id: 're-travel-5', label: 'Boat hire on dive days', qty: 28, unit: 'days', rate: 420 },
+    ],
+    equip: [
+      { id: 're-equip-1', label: 'Camera package hire', qty: 87, unit: 'days', rate: 240 },
+      { id: 're-equip-2', label: 'Underwater housings, lights, scooter', qty: 30, unit: 'days', rate: 320 },
+      { id: 're-equip-3', label: 'Sound package', qty: 55, unit: 'days', rate: 90 },
+      { id: 're-equip-4', label: 'Drone', qty: 15, unit: 'days', rate: 250 },
+      { id: 're-equip-5', label: 'Media, drives, on-set backup', qty: 1, unit: 'sum', rate: 6000 },
+    ],
+    safety: [
+      { id: 're-safety-1', label: 'Dive safety cover for the crew', qty: 30, unit: 'days', rate: 300 },
+      { id: 're-safety-2', label: 'Diving & travel medical cover', qty: 1, unit: 'sum', rate: 6000 },
+      { id: 're-safety-3', label: 'Production & equipment insurance', qty: 1, unit: 'sum', rate: 12000 },
+      { id: 're-safety-4', label: 'Permits · competition, marine parks', qty: 1, unit: 'sum', rate: 6000 },
+    ],
+    post: [
+      { id: 're-post-1', label: 'Editor', qty: 28, unit: 'weeks', rate: 1400 },
+      { id: 're-post-2', label: 'Assistant editor', qty: 12, unit: 'weeks', rate: 800 },
+      { id: 're-post-3', label: 'Edit suite', qty: 28, unit: 'weeks', rate: 300 },
+      { id: 're-post-4', label: 'Colour grade · feature + 3 eps', qty: 12, unit: 'days', rate: 550 },
+      { id: 're-post-5', label: 'Online & conform', qty: 8, unit: 'days', rate: 450 },
+      { id: 're-post-6', label: 'Sound design', qty: 15, unit: 'days', rate: 400 },
+      { id: 're-post-7', label: 'Mix · 5.1', qty: 8, unit: 'days', rate: 550 },
+      { id: 're-post-8', label: 'Titles, graphics, depth cards', qty: 1, unit: 'sum', rate: 6000 },
+      { id: 're-post-9', label: 'Deliverables, QC, masters', qty: 1, unit: 'sum', rate: 7000 },
+      { id: 're-post-10', label: 'Subtitles & versioning', qty: 1, unit: 'sum', rate: 5000 },
+    ],
+    archive: [
+      { id: 're-archive-1', label: 'Composer · original score', qty: 1, unit: 'sum', rate: 22000 },
+      { id: 're-archive-2', label: 'Music licensing', qty: 1, unit: 'sum', rate: 8000 },
+      { id: 're-archive-3', label: 'Archive · competition, news, 2023', qty: 1, unit: 'sum', rate: 18000 },
+    ],
+    legal: [
+      { id: 're-legal-1', label: 'Contracts, co-production, releases', qty: 1, unit: 'sum', rate: 8000 },
+      { id: 're-legal-2', label: 'Legal review · the 2023 chapter', qty: 1, unit: 'sum', rate: 5000 },
+      { id: 're-legal-3', label: 'E&O insurance', qty: 1, unit: 'sum', rate: 9000 },
+      { id: 're-legal-4', label: 'Accounting & audit', qty: 1, unit: 'sum', rate: 6000 },
+    ],
+    mkt: [
+      { id: 're-mkt-1', label: 'Festival submissions', qty: 1, unit: 'sum', rate: 4000 },
+      { id: 're-mkt-2', label: 'Trailer, poster, EPK', qty: 1, unit: 'sum', rate: 7000 },
+      { id: 're-mkt-3', label: 'Market attendance', qty: 1, unit: 'sum', rate: 9000 },
+      { id: 're-mkt-4', label: 'Publicist · limited', qty: 1, unit: 'sum', rate: 6000 },
+    ],
+    other: [
+      { id: 're-other-1', label: 'Office, software, comms', qty: 14, unit: 'months', rate: 700 },
+    ],
+    contingency: [
+      { id: 're-contingency-1', label: '8% of production and post', qty: 1, unit: 'sum', rate: 38000 },
+    ],
+  },
+  ambitious: {
+    dev: [
+      { id: 'am-dev-1', label: 'Research & development', qty: 10, unit: 'months', rate: 2200 },
+      { id: 'am-dev-2', label: 'Dossier, design, translation', qty: 1, unit: 'sum', rate: 7000 },
+      { id: 'am-dev-3', label: 'Market travel & pitching', qty: 1, unit: 'sum', rate: 12000 },
+    ],
+    crew: [
+      { id: 'am-crew-1', label: 'Director', qty: 87, unit: 'days', rate: 550 },
+      { id: 'am-crew-2', label: 'Director of photography', qty: 87, unit: 'days', rate: 520 },
+      { id: 'am-crew-3', label: 'Second camera', qty: 70, unit: 'days', rate: 340 },
+      { id: 'am-crew-4', label: 'Sound recordist', qty: 70, unit: 'days', rate: 340 },
+      { id: 'am-crew-5', label: 'Underwater DOP', qty: 45, unit: 'days', rate: 700 },
+      { id: 'am-crew-6', label: 'Underwater second / safety', qty: 45, unit: 'days', rate: 320 },
+      { id: 'am-crew-7', label: 'Drone operator', qty: 22, unit: 'days', rate: 400 },
+      { id: 'am-crew-8', label: 'Producer', qty: 18, unit: 'months', rate: 3200 },
+      { id: 'am-crew-9', label: 'Line producer', qty: 10, unit: 'months', rate: 2400 },
+      { id: 'am-crew-10', label: 'Production coordinator', qty: 12, unit: 'months', rate: 1700 },
+    ],
+    travel: [
+      { id: 'am-travel-1', label: 'Flights · 6 crew, 5 countries', qty: 1, unit: 'sum', rate: 34000 },
+      { id: 'am-travel-2', label: 'Accommodation', qty: 396, unit: 'nights', rate: 85 },
+      { id: 'am-travel-3', label: 'Per diems', qty: 396, unit: 'days', rate: 52 },
+      { id: 'am-travel-4', label: 'Ground transport, vehicles, ferries', qty: 1, unit: 'sum', rate: 26000 },
+      { id: 'am-travel-5', label: 'Boat & support vessel', qty: 35, unit: 'days', rate: 700 },
+    ],
+    equip: [
+      { id: 'am-equip-1', label: 'Camera package hire · multi-body', qty: 87, unit: 'days', rate: 450 },
+      { id: 'am-equip-2', label: 'Underwater housings, lights, scooters', qty: 45, unit: 'days', rate: 600 },
+      { id: 'am-equip-3', label: 'Sound package', qty: 70, unit: 'days', rate: 140 },
+      { id: 'am-equip-4', label: 'Drone & specialist rigs', qty: 22, unit: 'days', rate: 450 },
+      { id: 'am-equip-5', label: 'Media, drives, on-set DIT', qty: 1, unit: 'sum', rate: 16000 },
+    ],
+    safety: [
+      { id: 'am-safety-1', label: 'Dive safety team for the crew', qty: 45, unit: 'days', rate: 450 },
+      { id: 'am-safety-2', label: 'Dive medic on record days', qty: 20, unit: 'days', rate: 550 },
+      { id: 'am-safety-3', label: 'Diving & travel medical cover', qty: 1, unit: 'sum', rate: 14000 },
+      { id: 'am-safety-4', label: 'Production & equipment insurance', qty: 1, unit: 'sum', rate: 26000 },
+      { id: 'am-safety-5', label: 'Permits · competition, marine parks', qty: 1, unit: 'sum', rate: 12000 },
+    ],
+    post: [
+      { id: 'am-post-1', label: 'Editor', qty: 36, unit: 'weeks', rate: 1900 },
+      { id: 'am-post-2', label: 'Assistant editor', qty: 20, unit: 'weeks', rate: 1000 },
+      { id: 'am-post-3', label: 'Edit suite', qty: 36, unit: 'weeks', rate: 450 },
+      { id: 'am-post-4', label: 'Colour grade · feature + 3 eps', qty: 20, unit: 'days', rate: 750 },
+      { id: 'am-post-5', label: 'Online & conform', qty: 12, unit: 'days', rate: 600 },
+      { id: 'am-post-6', label: 'Sound design', qty: 25, unit: 'days', rate: 550 },
+      { id: 'am-post-7', label: 'Mix · 5.1 + Atmos', qty: 12, unit: 'days', rate: 800 },
+      { id: 'am-post-8', label: 'Titles, graphics, depth cards', qty: 1, unit: 'sum', rate: 18000 },
+      { id: 'am-post-9', label: 'Deliverables, QC, masters', qty: 1, unit: 'sum', rate: 16000 },
+      { id: 'am-post-10', label: 'Subtitles & versioning · platform territories', qty: 1, unit: 'sum', rate: 22000 },
+    ],
+    archive: [
+      { id: 'am-archive-1', label: 'Composer · original score', qty: 1, unit: 'sum', rate: 55000 },
+      { id: 'am-archive-2', label: 'Music licensing', qty: 1, unit: 'sum', rate: 22000 },
+      { id: 'am-archive-3', label: 'Archive · cleared worldwide, all media', qty: 1, unit: 'sum', rate: 55000 },
+    ],
+    legal: [
+      { id: 'am-legal-1', label: 'Contracts, co-production, releases', qty: 1, unit: 'sum', rate: 14000 },
+      { id: 'am-legal-2', label: 'Legal review · the 2023 chapter', qty: 1, unit: 'sum', rate: 12000 },
+      { id: 'am-legal-3', label: 'E&O insurance · platform grade', qty: 1, unit: 'sum', rate: 17000 },
+      { id: 'am-legal-4', label: 'Accounting & audit', qty: 1, unit: 'sum', rate: 11000 },
+    ],
+    mkt: [
+      { id: 'am-mkt-1', label: 'Festival submissions & prints', qty: 1, unit: 'sum', rate: 9000 },
+      { id: 'am-mkt-2', label: 'Trailer, poster, EPK', qty: 1, unit: 'sum', rate: 16000 },
+      { id: 'am-mkt-3', label: 'Market attendance', qty: 1, unit: 'sum', rate: 18000 },
+      { id: 'am-mkt-4', label: 'Publicist & campaign', qty: 1, unit: 'sum', rate: 22000 },
+    ],
+    other: [
+      { id: 'am-other-1', label: 'Office, software, comms', qty: 18, unit: 'months', rate: 1100 },
+    ],
+    contingency: [
+      { id: 'am-contingency-1', label: '10% of production and post', qty: 1, unit: 'sum', rate: 110000 },
+    ],
+  },
+};
+
 export const SCENARIOS: Record<ScenarioKey, ScenarioData> = {
-  /* The three plans are three buyers (2026-08-29, Tomo).
+  /* Three buyers, and now three budgets built from units rather than guessed at.
 
-     COSTS AND INCOME ARE NOT THE SAME NUMBER. The first pass made every plan
-     balance to the euro, which was a tidy fiction: a budget is what the film
-     costs, income is what the sources actually bring, and forcing them equal
-     hides the only thing the comparison is for. They differ here, and the
-     difference is the point.
+     HRT       224k  in 209k   short 15k
+     NETWORKS  572k  in 642k   +70k
+     PLATFORM 1249k  in 2549k  +1300k
 
-     HRT · costs 180, in 165 → SHORT 15
-       HAVC + HRT + the rebate, essentially. Ten shoots on a very small crew,
-       no EU MEDIA, no festival run, no reserve, contingency at 10. Even cut
-       this far it does not quite close: the obvious money runs 15k short, and
-       that gap is the argument for the sponsors.
+     The costs come from SEED_BUDGET_LINES above — 87 shooting days, real crew
+     sizes, real edit weeks — and the category totals here are the sum of those
+     lines. Change a rate and the plan changes; that is the whole point.
 
-     NETWORKS · costs 620, in 690 → +70
-       European co-production: EU MEDIA plus two or three broadcasters. The
-       surplus is the producer's fee, which is where the money is actually
-       made at this tier — not on the back end.
+     What separates the plans is people and time, not a multiplier: HRT is two
+     crew and an 18-week edit, NETWORKS four crew with an underwater DOP and 28
+     weeks, PLATFORM six crew with an underwater unit and 36 weeks. Contingency
+     runs 5% / 7% / 10% of the rest, which is the normal band and is now stated
+     as a percentage rather than an unexplained lump.
 
-     PLATFORM · costs 1650, in 2950 → +1300
-       Netflix / HBO / Apple BUY IT. This was modelled as a commission first —
-       cost plus a producer fee, which caps the upside at 10-20% of budget and
-       came out at +300. That is the right answer to a question Tomo did not
-       ask: he said "we managed to SELL it", and a sale is not a fee on top of
-       costs, it is a price for the film. Comparables for a worldwide all-rights
-       doc buy of this class — Icarus, Free Solo, and the freediving film
-       already on Netflix, The Deepest Breath — sit in the €1.5-3M band for a
-       strong title, and a feature plus three episodes commands more than a
-       feature alone. €2.4M is ambitious, which is what this plan is for.
+     HAVC stays 30 in every plan; at PLATFORM that is 1% of the raise, which is
+     exactly what a fixed state grant looks like against platform money.
 
-       EU MEDIA drops from 200 to 100 here on purpose: Creative Europe attaches
-       European exploitation conditions that sit awkwardly against an
-       all-rights platform sale, so some of that money would not survive the
-       deal even if it were awarded.
-
-     WHAT SCALES AND WHAT DOES NOT. The ten trips happen in every plan, because
-     the records happen in every plan. What scales is who goes on them and what
-     they carry — one camera or three, a safety team or a friend, six weeks of
-     edit or twenty. HAVC stays 30 throughout; at 1.65M that is 2% of the
-     raise, which is exactly the point of calling it one committed number.
-
-     NOTHING IS MARKED CONFIRMED. Every funding line starts as a target,
-     because not one euro is signed. Mark HAVC or HRT confirmed the day the
-     letter arrives, and the board's secured figure moves with it. */
+     NOTHING IS MARKED CONFIRMED. Not one euro is signed. */
   lean: {
     episodes: 3,
-    assumption: 'Assumes all ten shoots happen on a two-person crew, and that nothing goes wrong: there is no reserve and no contingency worth the name. Even so it runs €15k short — that hole is what the sponsors are for.',
-    funding: { havc: 30, hrt: 50, eu: 0,   sale: 0,    sponsors: 35,  sports: 25, rebate: 25 },
-    costs:   { dev: 10, prod: 55,  post: 45,  archive: 8,   legal: 10, safety: 12, mkt: 0,  other: 5,  contingency: 10,  finishing: 25, reserve: 0 },
+    assumption: 'Assumes all ten shoots happen on a two-person crew and that nothing goes wrong: contingency is 5%, which is thin. Even cut this far it runs €15k short — that hole is what the sponsors are for.',
+    funding: { havc: 30, hrt: 50, eu: 0, sale: 0, sponsors: 63, sports: 35, rebate: 31 },
+    costs:   { dev: 10, crew: 67, travel: 38, equip: 20, safety: 14, post: 37, archive: 10, legal: 9, mkt: 2, other: 6, contingency: 11 },
+    costLines: SEED_BUDGET_LINES.lean,
     cashflow: emptyCashflow, qualifyingSpendPct: 55, blendedRebateRate: 25,
   },
   realistic: {
     episodes: 3,
-    assumption: 'Assumes EU MEDIA lands and two or three broadcasters buy at roughly €80k each. One buyer instead of three leaves a €170k hole, and the €70k surplus is the producer fee — the only money this tier actually pays out.',
-    funding: { havc: 30, hrt: 50, eu: 150, sale: 250,  sponsors: 80,  sports: 45, rebate: 85 },
-    costs:   { dev: 30, prod: 180, post: 140, archive: 45,  legal: 25, safety: 25, mkt: 40, other: 20, contingency: 55,  finishing: 40, reserve: 20 },
+    assumption: 'Assumes EU MEDIA lands and two or three broadcasters buy at roughly €65k each. One buyer instead of three leaves a €130k hole. The €70k surplus is the producer fee — the only money this tier actually pays out.',
+    funding: { havc: 30, hrt: 50, eu: 150, sale: 200, sponsors: 90, sports: 48, rebate: 74 },
+    costs:   { dev: 22, crew: 158, travel: 68, equip: 45, safety: 33, post: 96, archive: 48, legal: 28, mkt: 26, other: 10, contingency: 38 },
+    costLines: SEED_BUDGET_LINES.realistic,
     cashflow: emptyCashflow, qualifyingSpendPct: 52, blendedRebateRate: 25,
   },
   ambitious: {
     episodes: 3,
-    assumption: 'Assumes a major platform BUYS worldwide rights to the finished film for around €2.4M. Two things to watch: that money arrives after delivery, so it finances nothing — the film still has to be made first, on money raised elsewhere. And public funders usually recoup from a sale that size, so some of the EU and HAVC money here goes back out again.',
-    funding: { havc: 30, hrt: 50, eu: 100, sale: 2400, sponsors: 180, sports: 70, rebate: 120 },
-    costs:   { dev: 60, prod: 480, post: 340, archive: 180, legal: 90, safety: 70, mkt: 90, other: 60, contingency: 165, finishing: 75, reserve: 40 },
+    assumption: 'Assumes a major platform BUYS worldwide rights to the finished film for around €2M. That money arrives after delivery, so it finances nothing — the film still has to be made first, on money raised elsewhere. Public funders usually recoup from a sale that size, so some of the EU and HAVC money goes back out again.',
+    funding: { havc: 30, hrt: 50, eu: 100, sale: 1980, sponsors: 189, sports: 75, rebate: 125 },
+    costs:   { dev: 41, crew: 297, travel: 139, equip: 102, safety: 83, post: 206, archive: 132, legal: 54, mkt: 65, other: 20, contingency: 110 },
+    costLines: SEED_BUDGET_LINES.ambitious,
     cashflow: emptyCashflow, qualifyingSpendPct: 40, blendedRebateRate: 25,
   },
 };
@@ -1752,7 +1953,7 @@ export const SCENARIO_SEED_VERSION = 8;
 /* The money carries its own generation, separate from the story's. The two
    get rewritten on completely different days, and a doc should never lose
    one because the other moved. */
-export const MONEY_SEED_VERSION = 7;
+export const MONEY_SEED_VERSION = 8;
 
 export const SEED_SCENARIO_ARCS: ScenarioArc[] = [
   {

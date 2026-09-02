@@ -18,6 +18,19 @@ export interface FundingSourceMeta {
   tag: 'state' | 'private';
 }
 
+/* One line of the budget, as quantity x rate. A category with lines derives its
+   total from them; a category without keeps a typed figure. This exists because
+   a single number for "post-production" cannot be defended in a room — 18 weeks
+   of edit at a rate can. */
+export interface BudgetLine {
+  id: string;
+  label: string;
+  qty: number;
+  unit: string;      // days · weeks · months · nights · sum
+  rate: number;      // EUROS, not thousands — the line is where real prices live
+  note?: string;
+}
+
 export interface CostCategoryMeta {
   key: string;
   label: string;
@@ -42,6 +55,9 @@ export interface ScenarioData {
   /* Per funding line. Absent means 'target' — nothing is claimed as secured
      until somebody says so. */
   fundingStatus?: Record<string, FundingStatus>;
+  /* The build-up behind each cost category, keyed by category. Where lines
+     exist they are the truth and the category total is derived from them. */
+  costLines?: Record<string, BudgetLine[]>;
   /* What this plan is betting on. Every budget is a set of assumptions; a
      board that shows only the numbers hides the part a funder will actually
      interrogate. Editable, like every other line. */
