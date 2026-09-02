@@ -42,25 +42,50 @@ export function loadState(): AppState | null {
   }
 }
 
+/* Add what is new from the seed; never overwrite what is already there.
+
+   This replaces a wholesale swap that was quietly destroying work. The old
+   rule was "if the doc's generation is behind, take the seed's copy of these
+   collections" — which meant every time a new build shipped, the next load
+   threw away whatever the crew had written in the scenario, the map, the
+   shoots and the records. Eight generations shipped in one day; eight silent
+   wipes of a shared document.
+
+   The rule now: an item the doc already has is the crew's, full stop. Items
+   the seed has and the doc does not are new content and get added. Nothing is
+   ever removed. The cost is that a correction to an EXISTING seed item no
+   longer reaches an existing doc — which is the right trade, because the
+   alternative is losing somebody's afternoon. */
+function mergeById<T extends { id: string }>(loaded: T[] | undefined, seed: T[]): T[] {
+  if (!loaded) return seed;
+  const have = new Set(loaded.map((x) => x.id));
+  const added = seed.filter((x) => !have.has(x.id));
+  return added.length ? [...loaded, ...added] : loaded;
+}
+
+/* Shoots are keyed by `key`, not `id`, everywhere else in the app. */
+function mergeByKey<T extends { key: string }>(loaded: T[] | undefined, seed: T[]): T[] {
+  if (!loaded) return seed;
+  const have = new Set(loaded.map((x) => x.key));
+  const added = seed.filter((x) => !have.has(x.key));
+  return added.length ? [...loaded, ...added] : loaded;
+}
+
 function migrateState(loaded: Partial<AppState>): AppState {
   const defaults = makeInitialState();
-  /* Content generation. A doc below the current SCENARIO_SEED_VERSION (this
-     includes the shared cloud doc, which was seeded from an earlier build) gets
-     the fresh narrative collections wholesale — the screenplay, its stories,
-     and everything the screenplay links to (shoots, interviews, records, story
-     events, topics, USA trip, calendar). Everything else in the doc — notes,
-     ideas, holders, journal, pitch decks, budgets — is left alone. */
-  const contentUpgrade = (loaded.scenarioSeedVersion ?? 1) < defaults.scenarioSeedVersion;
-  const moneyUpgrade = (loaded.moneySeedVersion ?? 0) < defaults.moneySeedVersion;
+  /* The budget was restructured on generation 8 — "Production (shoots)" became
+     four separate categories, so an old doc's cost keys no longer describe the
+     same thing and cannot be merged item by item. This is the ONE gate that
+     still replaces, it fires once per doc, and it exists because the budget was
+     rebuilt on request rather than edited. Everything else merges. */
+  const budgetRestructure = (loaded.moneySeedVersion ?? 0) < 8;
   /* Coordinates arrived in v11. A cloud doc written before that has shoots with
      no lat/lng and would silently vanish from the map, so backfill from the
      seed by shoot key while leaving every user-edited field alone. */
   const seedCoords = new Map(defaults.shoots.map((s) => [s.key, { lat: s.lat, lng: s.lng }]));
-  const shoots = contentUpgrade
-    ? defaults.shoots
-    : (loaded.shoots ?? defaults.shoots).map((s) =>
-        s.lat === undefined && s.lng === undefined ? { ...s, ...(seedCoords.get(s.key) ?? {}) } : s,
-      );
+  const shoots = mergeByKey(loaded.shoots, defaults.shoots).map((s) =>
+    s.lat === undefined && s.lng === undefined ? { ...s, ...(seedCoords.get(s.key) ?? {}) } : s,
+  );
   return {
     ...defaults,
     ...loaded,
@@ -70,20 +95,20 @@ function migrateState(loaded: Partial<AppState>): AppState {
     /* The budget is gated on its OWN generation. It used to ride along with
        the story's, which meant retuning the money reset the screenplay and
        rewriting the screenplay reset the money. */
-    scenarios: moneyUpgrade ? defaults.scenarios : (loaded.scenarios ?? defaults.scenarios),
+    scenarios: budgetRestructure ? defaults.scenarios : (loaded.scenarios ?? defaults.scenarios),
     four: loaded.four ?? defaults.four,
     talents: loaded.talents ?? defaults.talents,
     threads: loaded.threads ?? defaults.threads,
     threadQuestions: loaded.threadQuestions ?? defaults.threadQuestions,
     spineIdeas: loaded.spineIdeas ?? defaults.spineIdeas,
-    shootDays: contentUpgrade ? defaults.shootDays : (loaded.shootDays ?? defaults.shootDays),
+    shootDays: mergeById(loaded.shootDays, defaults.shootDays),
     coverageCams: loaded.coverageCams ?? defaults.coverageCams,
-    interviews: contentUpgrade ? defaults.interviews : (loaded.interviews ?? defaults.interviews),
+    interviews: mergeById(loaded.interviews, defaults.interviews),
     swings: loaded.swings ?? defaults.swings,
     devices: loaded.devices ?? defaults.devices,
     rituals: loaded.rituals ?? defaults.rituals,
     watcherMoments: loaded.watcherMoments ?? defaults.watcherMoments,
-    records: contentUpgrade ? defaults.records : (loaded.records ?? defaults.records),
+    records: mergeById(loaded.records, defaults.records),
     attempts: loaded.attempts ?? defaults.attempts,
     physiology: loaded.physiology ?? defaults.physiology,
     evidence2023: loaded.evidence2023 ?? defaults.evidence2023,
@@ -92,18 +117,18 @@ function migrateState(loaded: Partial<AppState>): AppState {
     microphones: loaded.microphones ?? defaults.microphones,
     lights: loaded.lights ?? defaults.lights,
     crew: loaded.crew ?? defaults.crew,
-    schedulePhases: contentUpgrade ? defaults.schedulePhases : (loaded.schedulePhases ?? defaults.schedulePhases),
-    milestones: contentUpgrade ? defaults.milestones : (loaded.milestones ?? defaults.milestones),
-    calendarEvents: contentUpgrade ? defaults.calendarEvents : (loaded.calendarEvents ?? defaults.calendarEvents),
+    schedulePhases: mergeById(loaded.schedulePhases, defaults.schedulePhases),
+    milestones: mergeById(loaded.milestones, defaults.milestones),
+    calendarEvents: mergeById(loaded.calendarEvents, defaults.calendarEvents),
     holders: loaded.holders ?? defaults.holders,
     choirQuestions: loaded.choirQuestions ?? defaults.choirQuestions,
     choirEntries: loaded.choirEntries ?? defaults.choirEntries,
     lifeEvents: loaded.lifeEvents ?? defaults.lifeEvents,
     motifChains: loaded.motifChains ?? defaults.motifChains,
-    storyEvents: contentUpgrade ? defaults.storyEvents : (loaded.storyEvents ?? defaults.storyEvents),
-    topics: contentUpgrade ? defaults.topics : (loaded.topics ?? defaults.topics),
+    storyEvents: mergeById(loaded.storyEvents, defaults.storyEvents),
+    topics: mergeById(loaded.topics, defaults.topics),
     hubIdeas: loaded.hubIdeas ?? defaults.hubIdeas,
-    usaTrip: contentUpgrade ? defaults.usaTrip : (loaded.usaTrip ?? defaults.usaTrip),
+    usaTrip: loaded.usaTrip ?? defaults.usaTrip,
     locale: 'en',
     sponsors: loaded.sponsors ?? defaults.sponsors,
     risks: loaded.risks ?? defaults.risks,
@@ -115,17 +140,14 @@ function migrateState(loaded: Partial<AppState>): AppState {
     broadcasters: loaded.broadcasters ?? defaults.broadcasters,
     pitchCards: loaded.pitchCards ?? defaults.pitchCards,
     pitchDecks: loaded.pitchDecks ?? defaults.pitchDecks,
-    /* Scenario content upgrade: docs from an older seed generation (including
-       the shared cloud doc) get the rewritten parts + the four stories. Docs
-       already on the current generation keep their own edits. */
-    scenarioParts: contentUpgrade ? defaults.scenarioParts : (loaded.scenarioParts ?? defaults.scenarioParts),
-    scenarioArcs: contentUpgrade ? defaults.scenarioArcs : (loaded.scenarioArcs ?? defaults.scenarioArcs),
-    /* The Map arrived in generation 7. A doc written before that has no lanes
-       at all, so `?? defaults` seeds it; once a doc carries its own map, only a
-       later content generation replaces it. */
-    mapLanes: contentUpgrade ? defaults.mapLanes : (loaded.mapLanes ?? defaults.mapLanes),
-    mapNodes: contentUpgrade ? defaults.mapNodes : (loaded.mapNodes ?? defaults.mapNodes),
-    mapAsides: contentUpgrade ? defaults.mapAsides : (loaded.mapAsides ?? defaults.mapAsides),
+    /* Merged, not replaced: new parts and stories arrive, existing ones are
+       whatever the crew last made them. */
+    scenarioParts: mergeById(loaded.scenarioParts, defaults.scenarioParts),
+    scenarioArcs: mergeById(loaded.scenarioArcs, defaults.scenarioArcs),
+    /* Same for the map: new stages and marks arrive, edited ones stay. */
+    mapLanes: mergeById(loaded.mapLanes, defaults.mapLanes),
+    mapNodes: mergeById(loaded.mapNodes, defaults.mapNodes),
+    mapAsides: mergeById(loaded.mapAsides, defaults.mapAsides),
     scenarioSeedVersion: Math.max(loaded.scenarioSeedVersion ?? 1, defaults.scenarioSeedVersion),
     moneySeedVersion: Math.max(loaded.moneySeedVersion ?? 0, defaults.moneySeedVersion),
     tasks: loaded.tasks ?? defaults.tasks,
