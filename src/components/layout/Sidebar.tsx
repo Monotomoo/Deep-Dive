@@ -42,6 +42,7 @@ import { useState, type ComponentType } from 'react';
 import { BackupPanel } from '../backup/BackupPanel';
 import { SIMPLE_VIEW_SET } from '../../lib/shortcuts';
 import { useApp } from '../../state/AppContext';
+import { clearSyncLog, readSyncLog, syncLogText } from '../../lib/syncLog';
 import type { ViewKey } from '../../types';
 import { useT } from '../../i18n';
 import type { StringKey } from '../../i18n';
@@ -297,6 +298,7 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
             <div className="text-[11px] tracking-[0.12em] uppercase text-[color:var(--color-on-chrome-faint)]/70 mt-1">
               {cloudStatus === 'error' ? 'shared crew project · SYNC ERROR — not saved' : cloudStatus === 'synced' ? 'shared crew project · synced' : 'shared crew project · syncing…'}
             </div>
+            <SyncLogPanel />
             <button
               type="button"
               onClick={() => {
@@ -331,5 +333,73 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
         </div>
       </div>
     </aside>
+  );
+}
+
+
+/* ---------- the sync log ----------
+   What the sync actually did, in order, with the server's own words. This
+   exists because "nothing is being saved" was diagnosed three times by reading
+   code and guessing; one copyable panel ends that. */
+function SyncLogPanel() {
+  const { state } = useApp();
+  const [open, setOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [, tick] = useState(0);
+  const events = readSyncLog();
+  const failures = events.filter((e) => !e.ok).length;
+
+  async function copy() {
+    const text = syncLogText({
+      localScenarioGen: state.scenarioSeedVersion,
+      localMoneyGen: state.moneySeedVersion,
+      build: typeof __BUILD_TS__ === 'string' ? __BUILD_TS__ : '?',
+    });
+    try { await navigator.clipboard.writeText(text); setCopied(true); setTimeout(() => setCopied(false), 2000); }
+    catch { window.prompt('Copy this:', text); }
+  }
+
+  return (
+    <div className="mt-1.5">
+      <div className="flex items-center gap-2">
+        <button
+          type="button"
+          onClick={() => { tick((n) => n + 1); setOpen((v) => !v); }}
+          className="text-[11px] tracking-[0.1em] uppercase text-[color:var(--color-on-chrome-faint)]/60 hover:text-[color:var(--color-brass)] transition-colors"
+        >
+          sync log{failures > 0 && <span className="text-[color:var(--color-danger)]"> · {failures} failed</span>}
+        </button>
+        {open && (
+          <>
+            <button type="button" onClick={copy} className="text-[11px] tracking-[0.1em] uppercase text-[color:var(--color-brass)] hover:text-[color:var(--color-on-chrome)]">
+              {copied ? 'copied' : 'copy'}
+            </button>
+            <button type="button" onClick={() => { clearSyncLog(); tick((n) => n + 1); }} className="text-[11px] tracking-[0.1em] uppercase text-[color:var(--color-on-chrome-faint)]/50 hover:text-[color:var(--color-on-chrome)]">
+              clear
+            </button>
+          </>
+        )}
+      </div>
+      {open && (
+        <div className="mt-1.5 max-h-[190px] overflow-y-auto rounded-[3px] bg-[color:var(--color-chrome-deep)]/70 p-2 space-y-1">
+          {events.length === 0 && (
+            <p className="text-[10px] italic text-[color:var(--color-on-chrome-faint)]/60">nothing recorded yet — reload once</p>
+          )}
+          {events.slice().reverse().map((e, i) => (
+            <div key={i} className="text-[10px] leading-snug">
+              <span className="mono-num text-[color:var(--color-on-chrome-faint)]/50">{e.t.slice(11, 19)}</span>{' '}
+              <span style={{ color: e.ok ? 'var(--color-on-chrome-muted)' : 'var(--color-danger)' }}>
+                {e.kind} — {e.what}
+              </span>
+              {e.detail && (
+                <div className="text-[9px] text-[color:var(--color-on-chrome-faint)]/45 break-all">
+                  {JSON.stringify(e.detail)}
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
   );
 }

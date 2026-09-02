@@ -1,6 +1,7 @@
 import { createClient, type Session, type SupabaseClient } from '@supabase/supabase-js';
 import type { AppState } from '../types';
 import { migrateLoaded } from './storage';
+import { logSync } from './syncLog';
 
 /* Cloud layer — optional Supabase sync, SHARED-PROJECT model.
 
@@ -87,11 +88,18 @@ export async function loadSharedDoc(): Promise<SharedLoad | null> {
     .select('doc, updated_at')
     .eq('project', PROJECT)
     .maybeSingle();
-  if (error) { console.warn('[cloud] load failed:', error.message); return null; }
-  if (!data?.doc) return null;
+  if (error) { logSync('load', false, 'could not read the shared doc', { error: error.message }); return null; }
+  if (!data?.doc) { logSync('load', true, 'no shared doc yet — this browser will seed it'); return null; }
   try {
-    return { doc: migrateLoaded(data.doc as Partial<AppState>), updatedAt: (data.updated_at as string | null) ?? null };
-  } catch { return null; }
+    const raw = data.doc as Partial<AppState>;
+    logSync('load', true, 'read the shared doc', {
+      updatedAt: data.updated_at,
+      cloudScenarioGen: raw.scenarioSeedVersion,
+      cloudMoneyGen: raw.moneySeedVersion,
+      cloudBytes: JSON.stringify(raw).length,
+    });
+    return { doc: migrateLoaded(raw), updatedAt: (data.updated_at as string | null) ?? null };
+  } catch (e) { logSync('load', false, 'shared doc failed to migrate', { error: String(e) }); return null; }
 }
 
 /* Upsert the shared project doc. `updated_by` carries our clientId so our own
@@ -112,8 +120,22 @@ export async function saveSharedDoc(state: AppState): Promise<{ error?: string; 
     )
     .select('updated_at')
     .maybeSingle();
-  if (error) { console.error('[cloud] save failed:', error.message); return { error: error.message }; }
-  if (!data) { console.error('[cloud] save wrote 0 rows'); return { error: 'write did not persist — refresh this tab (it may be running an old build)' }; }
+  if (error) {
+    logSync('push', false, 'the server refused the write', { error: error.message, code: (error as { code?: string }).code });
+    return { error: error.message };
+  }
+  if (!data) {
+    /* Zero rows back from an upsert means the write was silently dropped —
+       an RLS policy filtered it, or a BEFORE UPDATE trigger returned null. */
+    logSync('push', false, 'the write returned no row — it did not persist', {
+      hint: 'an RLS policy or a BEFORE UPDATE trigger (deep_dive_guard) dropped it',
+      scenarioGen: state.scenarioSeedVersion, moneyGen: state.moneySeedVersion,
+    });
+    return { error: 'write did not persist — an RLS policy or the deep_dive_guard trigger dropped it' };
+  }
+  logSync('push', true, 'wrote the shared doc', {
+    updatedAt: data.updated_at, scenarioGen: state.scenarioSeedVersion, moneyGen: state.moneySeedVersion,
+  });
   return { updatedAt: (data.updated_at as string) ?? updatedAt };
 }
 
@@ -192,6 +214,7 @@ export function subscribeShared(onRemoteChange: (doc: AppState, updatedAt: strin
         const row = payload.new as { doc?: unknown; updated_by?: string; updated_at?: string } | undefined;
         if (!row?.doc) return;
         if (row.updated_by === clientId) return; // our own echo
+        logSync('remote', true, 'another crew member saved', { updatedAt: row.updated_at, by: row.updated_by });
         try { onRemoteChange(migrateLoaded(row.doc as Partial<AppState>), row.updated_at ?? null); } catch { /* ignore */ }
       },
     )

@@ -18,6 +18,7 @@ import {
 } from '../lib/cloud';
 import { SignIn } from '../components/auth/SignIn';
 import { UI_MODE_KEY, type UiMode } from '../lib/shortcuts';
+import { logSync } from '../lib/syncLog';
 import { type Action } from './reducer';
 import { historyReducer, makeHistory } from './history';
 
@@ -98,7 +99,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
        effect only re-pulls on a userId change), which silently killed every
        cloud push. Readiness is (re)established by the load effect per userId,
        and cleared on sign-out. */
-    const unsub = onAuthChange((s) => { if (active) setSession(s); });
+    const unsub = onAuthChange((s) => { if (active) { setSession(s); logSync('auth', !!s, s ? 'signed in' : 'signed out', { user: s?.user?.email }); } });
     return () => { active = false; unsub(); };
   }, []);
 
@@ -131,6 +132,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
            an edit typed in that window never reached the push effect. Without
            counting it here, the hydrate below would quietly overwrite it. */
         const haveLocalEdit = getCloudDirty() || localEditRef.current;
+        logSync('decide', true,
+          haveLocalEdit && !cloudMoved
+            ? 'keeping this browser’s unpushed edit and sending it up'
+            : 'taking the crew copy and replacing what is on this browser',
+          { haveLocalEdit, storedDirty: getCloudDirty(), inFlightEdit: localEditRef.current,
+            cloudMoved, marker: getCloudSyncedAt(), cloudUpdatedAt: res.updatedAt });
         if (haveLocalEdit && !cloudMoved) {
           saveSharedDoc(presentRef.current).then((r) => {
             if (r.updatedAt) setCloudSyncedAt(r.updatedAt);
