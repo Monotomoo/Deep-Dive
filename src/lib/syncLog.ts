@@ -19,6 +19,7 @@ export type SyncEventKind =
   | 'load'      // pulled the shared doc
   | 'decide'    // chose between keeping local and taking the cloud copy
   | 'push'      // wrote the shared doc
+  | 'edit'      // a dispatch changed the document
   | 'remote';   // another crew member's change arrived
 
 export interface SyncEvent {

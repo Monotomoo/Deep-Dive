@@ -56,6 +56,12 @@ export function AppProvider({ children }: { children: ReactNode }) {
     () => makeHistory(loadState() ?? makeInitialState())
   );
 
+  /* The live state, readable from inside an async handler. The load effect's
+     closure captures `history.present` as it was at mount, so pushing that
+     would push a copy from BEFORE the edit we are trying to defend. */
+  const presentRef = useRef(history.present);
+  presentRef.current = history.present;
+
   /* Actions that change only what THIS person is looking at. They alter
      `present` (so they flow through the reducer normally) but they are nobody
      else's business, and pushing the whole document to the cloud every time
@@ -67,13 +73,30 @@ export function AppProvider({ children }: { children: ReactNode }) {
   ]);
   const uiOnlyRef = useRef(false);
 
+  /* Which action last changed the document. The sync log can say a value went
+     back to what it was, but not WHAT put it back — and a revert with no
+     hydrate and no remote event means some dispatch did it. This names it. */
+  const lastActionRef = useRef<string>('load');
+
   const dispatch = useCallback<Dispatch<Action>>((action) => {
     if (UI_ONLY.has(action.type)) uiOnlyRef.current = true;
+    else logSync('edit', true, action.type, { was: fingerprint(presentRef.current) });
+    lastActionRef.current = action.type;
     internalDispatch(action);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-  const undo = useCallback(() => internalDispatch({ type: 'UNDO' }), []);
-  const redo = useCallback(() => internalDispatch({ type: 'REDO' }), []);
+  const undo = useCallback(() => {
+    lastActionRef.current = 'UNDO';
+    logSync('edit', true, 'UNDO', { was: fingerprint(presentRef.current) });
+    internalDispatch({ type: 'UNDO' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const redo = useCallback(() => {
+    lastActionRef.current = 'REDO';
+    logSync('edit', true, 'REDO', { was: fingerprint(presentRef.current) });
+    internalDispatch({ type: 'REDO' });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   /* Local cache — always on. Persist `present` only. */
   const firstMountRef = useRef(true);
@@ -92,11 +115,6 @@ export function AppProvider({ children }: { children: ReactNode }) {
      otherwise every hydrate re-pushes the doc it just received, and with two
      tabs open the echoes fight each other and can resurrect stale state. */
   const remoteHydrateRef = useRef(false);
-  /* The live state, readable from inside an async handler. The load effect's
-     closure captures `history.present` as it was at mount, so pushing that
-     would push a copy from BEFORE the edit we are trying to defend. */
-  const presentRef = useRef(history.present);
-  presentRef.current = history.present;
   /* Has anything been edited in this browser since it opened? Set for any real
      change, including one made before the cloud finished answering. */
   const localEditRef = useRef(false);
