@@ -139,7 +139,10 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
   }
 
   function handleReset() {
-    if (window.confirm('Reset to seed?\n\nThis discards all your edits and restores the original seed data.')) {
+    const msg = cloudEnabled && session
+      ? 'Reset THIS browser\'s copy to the seed?\n\nThe shared crew project is NOT touched. Reloading the page brings the crew copy back. If you really want the crew project reset too, use "publish my copy to crew" afterwards.'
+      : 'Reset to seed?\n\nThis discards all your edits on this browser and restores the original seed data.';
+    if (window.confirm(msg)) {
       dispatch({ type: 'RESET_TO_SEED' });
     }
   }
@@ -296,7 +299,10 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
               </button>
             </div>
             <div className="text-[11px] tracking-[0.12em] uppercase text-[color:var(--color-on-chrome-faint)]/70 mt-1">
-              {cloudStatus === 'error' ? 'shared crew project · SYNC ERROR — not saved' : cloudStatus === 'synced' ? 'shared crew project · synced' : 'shared crew project · syncing…'}
+              {cloudStatus === 'error' ? 'shared crew project · SYNC ERROR — not saved'
+                : cloudStatus === 'detached' ? 'seed on this browser only · reload to rejoin the crew project'
+                : cloudStatus === 'synced' ? 'shared crew project · synced'
+                : 'shared crew project · syncing…'}
             </div>
             <SyncLogPanel />
             <button

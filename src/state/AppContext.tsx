@@ -32,7 +32,7 @@ interface ContextShape {
   /* Cloud (inert unless a Supabase project is configured). */
   cloudEnabled: boolean;
   session: Session | null;
-  cloudStatus: 'off' | 'syncing' | 'synced' | 'error';
+  cloudStatus: 'off' | 'syncing' | 'synced' | 'error' | 'detached';
   signOut: () => Promise<void>;
   /* Simple vs Full sidebar. Per-device (own localStorage key), deliberately NOT
      part of the synced doc — a crew member switching to Full mustn't flip
@@ -73,6 +73,21 @@ export function AppProvider({ children }: { children: ReactNode }) {
   ]);
   const uiOnlyRef = useRef(false);
 
+  /* Actions that change the document but must NEVER be pushed to the crew.
+     Resetting to seed is a decision about THIS browser's copy — one person
+     doing it must not replace the project everyone else is working on. The
+     reset shows locally, and the next load pulls the crew copy back. Anyone
+     who genuinely wants the shared project reset does it deliberately, with
+     "publish my copy to crew" afterwards. */
+  const LOCAL_ONLY: ReadonlySet<string> = new Set(['RESET_TO_SEED']);
+  const localOnlyRef = useRef(false);
+  /* After a reset this browser shows the seed, and the crew shows the project.
+     If the very next edit were pushed, it would carry the whole seed with it —
+     the same overwrite, one click later. So a reset DETACHES this browser:
+     nothing goes up until a reload (which brings the crew copy back) or an
+     explicit "publish my copy". */
+  const detachedRef = useRef(false);
+
   /* Which action last changed the document. The sync log can say a value went
      back to what it was, but not WHAT put it back — and a revert with no
      hydrate and no remote event means some dispatch did it. This names it. */
@@ -81,6 +96,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const dispatch = useCallback<Dispatch<Action>>((action) => {
     if (UI_ONLY.has(action.type)) uiOnlyRef.current = true;
     else logSync('edit', true, action.type, { was: fingerprint(presentRef.current) });
+    if (LOCAL_ONLY.has(action.type)) localOnlyRef.current = true;
     lastActionRef.current = action.type;
     internalDispatch(action);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -108,7 +124,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /* ---------- Cloud (Stage A) — only active when configured ---------- */
   // undefined = still checking, null = signed out, Session = signed in
   const [session, setSession] = useState<Session | null | undefined>(cloudEnabled ? undefined : null);
-  const [cloudStatus, setCloudStatus] = useState<'off' | 'syncing' | 'synced' | 'error'>(cloudEnabled ? 'syncing' : 'off');
+  const [cloudStatus, setCloudStatus] = useState<'off' | 'syncing' | 'synced' | 'error' | 'detached'>(cloudEnabled ? 'syncing' : 'off');
   const cloudReadyRef = useRef(false); // have we pulled the cloud doc for this session yet?
   /* True while the latest history.present change came FROM the cloud (initial
      pull or a realtime event). The push effect skips exactly one run when set —
@@ -181,6 +197,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
           try { window.localStorage.setItem(LOCAL_BACKUP_KEY, JSON.stringify(presentRef.current)); } catch { /* ignore */ }
           logSync('decide', true, 'HYDRATE — replacing on-screen state with the crew copy', { to: fingerprint(res.doc) });
           remoteHydrateRef.current = true;
+          detachedRef.current = false;
           internalDispatch({ type: 'HYDRATE', state: res.doc });
           if (res.updatedAt) setCloudSyncedAt(res.updatedAt);
           setCloudDirty(false);
@@ -240,6 +257,22 @@ export function AppProvider({ children }: { children: ReactNode }) {
     if (remoteHydrateRef.current) { remoteHydrateRef.current = false; return; }
     /* Looking at a different view is not an edit. */
     if (uiOnlyRef.current) { uiOnlyRef.current = false; return; }
+    /* A reset is this browser's business, not the crew's. It is not marked
+       dirty — a reset means "discard my edits", so an older unpushed edit must
+       not be "defended" on the next load either — and from here on this
+       browser is detached: the next load brings the crew copy straight back. */
+    if (localOnlyRef.current) {
+      localOnlyRef.current = false;
+      localEditRef.current = false;
+      setCloudDirty(false);
+      if (userId) {
+        detachedRef.current = true;
+        setCloudStatus('detached');
+        logSync('decide', true, 'reset to seed on THIS browser only — detached from the crew project until reload or publish', { now: fingerprint(presentRef.current) });
+      }
+      return;
+    }
+    if (detachedRef.current) return;
 
     /* Mark the edit BEFORE checking whether the cloud is ready. This gate used
        to sit at the top of the effect, so anything typed before the initial
@@ -269,6 +302,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
       if (saveTimer.current) return; // mid-edit locally — don't stomp our work
       logSync('remote', true, 'HYDRATE — a crew change replaced on-screen state', { to: fingerprint(doc) });
       remoteHydrateRef.current = true;
+      detachedRef.current = false;
       internalDispatch({ type: 'HYDRATE', state: doc });
       if (updatedAt) setCloudSyncedAt(updatedAt);
       setCloudStatus('synced');
@@ -308,8 +342,8 @@ export function AppProvider({ children }: { children: ReactNode }) {
     setCloudStatus('syncing');
     const r = await saveSharedDoc(presentRef.current, 'publish my copy button');
     if (r.updatedAt) setCloudSyncedAt(r.updatedAt);
-    if (!r.error) setCloudDirty(false);
-    setCloudStatus('synced');
+    if (!r.error) { setCloudDirty(false); detachedRef.current = false; }
+    setCloudStatus(r.error ? 'error' : 'synced');
   }, [userId, history.present]);
 
   const value: ContextShape = {

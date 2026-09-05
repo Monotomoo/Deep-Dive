@@ -165,14 +165,12 @@ function GlobalShortcuts() {
         dispatch({ type: 'SET_SCENARIO', scenario: SCENARIO_KEYS[e.key] });
         return;
       }
-      /* ⌘R → reset to seed */
-      if (isMod(e) && e.key.toLowerCase() === 'r' && !e.shiftKey) {
-        e.preventDefault();
-        if (window.confirm('Reset to seed?\n\nThis discards all your edits and restores the original seed data.')) {
-          dispatch({ type: 'RESET_TO_SEED' });
-        }
-        return;
-      }
+      /* There is deliberately NO keyboard shortcut for reset-to-seed. It used to
+         be Ctrl+R — the universal refresh key. Someone pressing refresh got a
+         dialog they read as a refresh confirmation, clicked OK, and had every
+         edit in the shared crew document replaced with the seed. That was
+         "nothing is being saved" for an entire evening. Reset lives on one
+         button, behind a confirm that says what it does, and nowhere else. */
     }
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
