@@ -47,6 +47,27 @@ export async function getSession(): Promise<Session | null> {
   return data.session;
 }
 
+/* Is the crew server there at all? Supabase PAUSES a free-tier project after a
+   week without a single request, and a paused project's hostname stops
+   resolving — every request then fails before it leaves the machine. Without
+   this probe the app sat on the blue "checking" screen indefinitely: the stored
+   session kept trying to refresh itself against a server that no longer
+   existed, under a lock other tabs waited on. Any HTTP answer at all, even a
+   401, means the server exists; only a network failure or a timeout is "no". */
+export async function probeCloud(timeoutMs = 6000): Promise<boolean> {
+  if (!URL || !ANON) return false;
+  const ctrl = new AbortController();
+  const t = window.setTimeout(() => ctrl.abort(), timeoutMs);
+  try {
+    await fetch(`${URL}/auth/v1/health`, { headers: { apikey: ANON }, signal: ctrl.signal, cache: 'no-store' });
+    return true;
+  } catch {
+    return false;
+  } finally {
+    window.clearTimeout(t);
+  }
+}
+
 export function onAuthChange(cb: (session: Session | null) => void): () => void {
   if (!cloud) return () => {};
   const { data } = cloud.auth.onAuthStateChange((_event, session) => cb(session));
@@ -88,7 +109,11 @@ export async function loadSharedDoc(): Promise<SharedLoad | null> {
     .select('doc, updated_at')
     .eq('project', PROJECT)
     .maybeSingle();
-  if (error) { logSync('load', false, 'could not read the shared doc', { error: error.message }); return null; }
+  /* An unreadable doc is NOT a missing one. Returning null here used to send
+     the caller down the "seed an empty project" path — pushing this browser's
+     copy over a crew doc that was merely unreachable for a moment. Throw, and
+     the caller keeps its hands off the cloud until a read succeeds. */
+  if (error) { logSync('load', false, 'could not read the shared doc', { error: error.message }); throw new Error(error.message); }
   if (!data?.doc) { logSync('load', true, 'no shared doc yet — this browser will seed it'); return null; }
   try {
     const raw = data.doc as Partial<AppState>;
@@ -99,7 +124,7 @@ export async function loadSharedDoc(): Promise<SharedLoad | null> {
       GOT: fingerprint(raw),
     });
     return { doc: migrateLoaded(raw), updatedAt: (data.updated_at as string | null) ?? null };
-  } catch (e) { logSync('load', false, 'shared doc failed to migrate', { error: String(e) }); return null; }
+  } catch (e) { logSync('load', false, 'shared doc failed to migrate', { error: String(e) }); throw e instanceof Error ? e : new Error(String(e)); }
 }
 
 /* Upsert the shared project doc. `updated_by` carries our clientId so our own

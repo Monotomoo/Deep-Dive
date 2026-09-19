@@ -1,0 +1,30 @@
+# The crew document lives in a free-tier Supabase project, and Supabase pauses
+# a free project after seven days without a single request. On 19 Sep 2026 that
+# became "nobody can log in". This touches the project every two days so it never
+# goes quiet. The key below is the PUBLISHABLE anon key — it is already inside
+# the deployed app for anyone to read; row-level security is what protects the
+# data. If the project ever moves, update the URL here too.
+name: keep the crew server awake
+
+on:
+  schedule:
+    - cron: '17 5 */2 * *'
+  workflow_dispatch:
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: touch the database through the API
+        env:
+          URL: https://dvhgclwdiiygmpywnkqy.supabase.co
+          KEY: sb_publishable_HMhAMAQ_c0zr9F9uJ_pZ8w_Mz4iEMP2
+        run: |
+          code=$(curl -s -o /dev/null -w '%{http_code}' --max-time 20 \
+            "$URL/rest/v1/deep_dive_shared?select=updated_at&project=eq.main" \
+            -H "apikey: $KEY" -H "Authorization: Bearer $KEY")
+          echo "rest answered $code"
+          case "$code" in
+            2*|4*) echo "server is awake" ;;
+            *) echo "no proper answer - is the project paused?"; exit 1 ;;
+          esac

@@ -22,7 +22,13 @@ export function SignIn() {
       /* Invite-only: Supabase rejects un-invited emails with a signups-disabled
          error. Translate that into something a crew member understands. */
       const invite = /signup|not allowed|disabled/i.test(error);
-      setErr(invite ? "That email isn't on the crew list yet — ask to be added." : error);
+      /* A dead host surfaces as a fetch error. Say what it almost always is. */
+      const network = /fetch|network|load failed|unreachable|abort/i.test(error);
+      setErr(
+        network ? 'Can’t reach the crew server. If nobody has used Deep Dive for a week, the project is probably paused — whoever runs it restores it from the Supabase dashboard, then try again.'
+        : invite ? "That email isn't on the crew list yet — ask to be added."
+        : error,
+      );
     } else setSent(true);
   }
 

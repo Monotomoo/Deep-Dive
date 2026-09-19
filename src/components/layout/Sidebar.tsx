@@ -300,6 +300,7 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
             </div>
             <div className="text-[11px] tracking-[0.12em] uppercase text-[color:var(--color-on-chrome-faint)]/70 mt-1">
               {cloudStatus === 'error' ? 'shared crew project · SYNC ERROR — not saved'
+                : cloudStatus === 'offline' ? 'offline · this browser’s copy only — the crew server is unreachable'
                 : cloudStatus === 'detached' ? 'seed on this browser only · reload to rejoin the crew project'
                 : cloudStatus === 'synced' ? 'shared crew project · synced'
                 : 'shared crew project · syncing…'}

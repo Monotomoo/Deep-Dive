@@ -14,9 +14,10 @@ import type { AppState } from '../types';
 import { makeInitialState } from '../lib/seed';
 import { loadState, saveState, getCloudSyncedAt, setCloudSyncedAt, getCloudDirty, setCloudDirty } from '../lib/storage';
 import {
-  cloudEnabled, getSession, loadSharedDoc, onAuthChange, saveSharedDoc, signOutCloud, subscribeShared,
+  cloudEnabled, getSession, loadSharedDoc, onAuthChange, probeCloud, saveSharedDoc, signOutCloud, subscribeShared,
 } from '../lib/cloud';
 import { SignIn } from '../components/auth/SignIn';
+import { OfflineBar, Unreachable } from '../components/auth/Unreachable';
 import { UI_MODE_KEY, type UiMode } from '../lib/shortcuts';
 import { fingerprint, logSync } from '../lib/syncLog';
 import { type Action } from './reducer';
@@ -32,7 +33,7 @@ interface ContextShape {
   /* Cloud (inert unless a Supabase project is configured). */
   cloudEnabled: boolean;
   session: Session | null;
-  cloudStatus: 'off' | 'syncing' | 'synced' | 'error' | 'detached';
+  cloudStatus: 'off' | 'syncing' | 'synced' | 'error' | 'detached' | 'offline';
   signOut: () => Promise<void>;
   /* Simple vs Full sidebar. Per-device (own localStorage key), deliberately NOT
      part of the synced doc — a crew member switching to Full mustn't flip
@@ -124,7 +125,13 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /* ---------- Cloud (Stage A) — only active when configured ---------- */
   // undefined = still checking, null = signed out, Session = signed in
   const [session, setSession] = useState<Session | null | undefined>(cloudEnabled ? undefined : null);
-  const [cloudStatus, setCloudStatus] = useState<'off' | 'syncing' | 'synced' | 'error' | 'detached'>(cloudEnabled ? 'syncing' : 'off');
+  const sessionRef = useRef(session);
+  sessionRef.current = session;
+  /* The crew server is gone (paused project, blocked network) — and whether
+     this person chose to carry on with the browser's copy regardless. */
+  const [unreachable, setUnreachable] = useState<null | 'unreachable' | 'slow'>(null);
+  const [offline, setOffline] = useState(false);
+  const [cloudStatus, setCloudStatus] = useState<'off' | 'syncing' | 'synced' | 'error' | 'detached' | 'offline'>(cloudEnabled ? 'syncing' : 'off');
   const cloudReadyRef = useRef(false); // have we pulled the cloud doc for this session yet?
   /* True while the latest history.present change came FROM the cloud (initial
      pull or a realtime event). The push effect skips exactly one run when set —
@@ -141,7 +148,26 @@ export function AppProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     if (!cloudEnabled) return;
     let active = true;
-    getSession().then((s) => { if (active) setSession(s); });
+    /* Two ways to learn the server is gone: the probe fails outright, or nobody
+       answers the session check within 8 s. supabase-js retries a token refresh
+       against a dead host for ~30 s, holding a lock every other tab waits on —
+       which is how a paused project became an endless blue page. */
+    probeCloud().then((ok) => {
+      if (!active || ok) return;
+      logSync('auth', false, 'crew server unreachable — its address does not resolve or nothing answers (paused project?)');
+      setUnreachable('unreachable');
+    });
+    const slow = window.setTimeout(() => {
+      if (!active || sessionRef.current !== undefined) return;
+      logSync('auth', false, 'no answer to the session check after 8 s');
+      setUnreachable((u) => u ?? 'slow');
+    }, 8000);
+    getSession().then((s) => {
+      if (!active) return;
+      setSession(s);
+      /* Late is not dead: if it was only slow, let the app through. */
+      setUnreachable((u) => (u === 'slow' ? null : u));
+    });
     /* Only track the session here. Do NOT reset cloudReadyRef on every auth
        event — Supabase fires INITIAL_SESSION and periodic TOKEN_REFRESHED for
        the same user, and resetting the flag left it stuck false (the load
@@ -149,7 +175,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
        cloud push. Readiness is (re)established by the load effect per userId,
        and cleared on sign-out. */
     const unsub = onAuthChange((s) => { if (active) { setSession(s); logSync('auth', !!s, s ? 'signed in' : 'signed out', { user: s?.user?.email }); } });
-    return () => { active = false; unsub(); };
+    return () => { active = false; window.clearTimeout(slow); unsub(); };
   }, []);
 
   /* Pull the ONE shared crew doc when a session appears; seed it from this
@@ -160,7 +186,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
      an empty/stale cloud doc. */
   const userId = session?.user.id;
   useEffect(() => {
-    if (!cloudEnabled || !userId) return;
+    if (!cloudEnabled || !userId || offline) return;
     let active = true;
     setCloudStatus('syncing');
     loadSharedDoc().then((res) => {
@@ -208,10 +234,17 @@ export function AppProvider({ children }: { children: ReactNode }) {
       }
       cloudReadyRef.current = true;
       setCloudStatus('synced');
+    }).catch((e: unknown) => {
+      if (!active) return;
+      /* The server did not answer, or the doc would not read. This is NOT the
+         "seed an empty project" case: nothing is pushed until a read succeeds,
+         and the dirty flag keeps any edit made meanwhile defended. */
+      logSync('load', false, 'crew server did not answer — nothing pushed, working from this browser’s copy', { error: String(e) });
+      setCloudStatus('error');
     });
     return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
+  }, [userId, offline]);
 
   /* Debounced push on every change, once the initial pull is done. */
   const saveTimer = useRef<number | undefined>(undefined);
@@ -297,7 +330,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /* Live-refresh: when another crew member saves, pull their change in — unless
      we have an edit of our own pending (our debounced save will win instead). */
   useEffect(() => {
-    if (!cloudEnabled || !userId) return;
+    if (!cloudEnabled || !userId || offline) return;
     const unsub = subscribeShared((doc, updatedAt) => {
       if (saveTimer.current) return; // mid-edit locally — don't stomp our work
       logSync('remote', true, 'HYDRATE — a crew change replaced on-screen state', { to: fingerprint(doc) });
@@ -309,7 +342,7 @@ export function AppProvider({ children }: { children: ReactNode }) {
     });
     return unsub;
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [userId]);
+  }, [userId, offline]);
 
   /* If every retry failed, the edit exists only in this browser. Closing or
      refreshing now is how the work is lost — and refreshing is exactly what
@@ -364,14 +397,27 @@ export function AppProvider({ children }: { children: ReactNode }) {
 
   return (
     <AppContext.Provider value={value}>
-      {cloudEnabled && session === undefined ? (
-        <div className="fixed inset-0 flex items-center justify-center" style={{ background: '#041531' }}>
+      {cloudEnabled && unreachable && !offline ? (
+        <Unreachable
+          slow={unreachable === 'slow'}
+          onOffline={() => {
+            logSync('decide', true, 'working on this browser’s copy — the crew server is unreachable, nothing is pushed');
+            setOffline(true);
+            setCloudStatus('offline');
+          }}
+        />
+      ) : cloudEnabled && session === undefined && !offline ? (
+        <div className="fixed inset-0 flex flex-col items-center justify-center gap-3" style={{ background: '#041531' }}>
           <div className="display-italic text-[28px] text-[color:var(--color-paper)]/70">Deep&nbsp;Dive</div>
+          <div className="prose-body italic text-[12px] text-[color:var(--color-paper)]/40">checking who is signed in…</div>
         </div>
-      ) : cloudEnabled && session === null ? (
+      ) : cloudEnabled && session === null && !offline ? (
         <SignIn />
       ) : (
-        children
+        <>
+          {offline && <OfflineBar />}
+          {children}
+        </>
       )}
     </AppContext.Provider>
   );

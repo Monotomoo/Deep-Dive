@@ -145,3 +145,11 @@ app drops straight back to local-only, no sign-in, no network.
   account.
 - **Per-field merge / presence** — see who's editing what, live cursors. (Stage C
   — real-time collaborative editing, beyond the current whole-doc sync.)
+
+## If nobody can log in — a blue screen, or “the crew server isn’t answering”
+
+Supabase’s free plan **pauses a project after seven days without a single request**, and a paused project’s hostname stops resolving (`curl: Could not resolve host: <ref>.supabase.co`). The app then shows “The crew server isn’t answering” (builds before 0.44 sat on a blank blue screen). This happened on 19 Sep 2026.
+
+1. Sign in at https://supabase.com/dashboard and open the Deep Dive project — it will say **Paused**. Click **Restore project**. It takes a few minutes; the data is intact.
+2. Reload the app. Sessions and the shared doc come back as they were.
+3. Prevention: `.github/workflows/keep-crew-server-awake.yml` pings the project every two days so it never goes quiet. GitHub disables scheduled workflows in a repository with no commits for 60 days, so keep an eye on it. The Pro plan never pauses, and is the right call once the crew, a lawyer and an investor rely on this.
