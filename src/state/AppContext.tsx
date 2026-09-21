@@ -18,7 +18,7 @@ import {
 } from '../lib/cloud';
 import { SignIn } from '../components/auth/SignIn';
 import { OfflineBar, Unreachable } from '../components/auth/Unreachable';
-import { UI_MODE_KEY, type UiMode } from '../lib/shortcuts';
+import { FULL_MODE_AVAILABLE, SIMPLE_VIEW_SET, UI_MODE_KEY, type UiMode } from '../lib/shortcuts';
 import { fingerprint, logSync } from '../lib/syncLog';
 import { type Action } from './reducer';
 import { historyReducer, makeHistory } from './history';
@@ -54,7 +54,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   const [history, internalDispatch] = useReducer(
     historyReducer,
     null,
-    () => makeHistory(loadState() ?? makeInitialState())
+    () => {
+      const s = loadState() ?? makeInitialState();
+      /* A view left over from Full mode would open with nothing lit in the menu. */
+      return makeHistory(FULL_MODE_AVAILABLE || SIMPLE_VIEW_SET.has(s.activeView) ? s : { ...s, activeView: 'overview' });
+    }
   );
 
   /* The live state, readable from inside an async handler. The load effect's
@@ -363,9 +367,11 @@ export function AppProvider({ children }: { children: ReactNode }) {
   /* Simple/Full — read once, persist on change. Anything but an explicit
      'full' is treated as simple, so the curated view is the safe default. */
   const [uiMode, setUiModeState] = useState<UiMode>(() => {
+    if (!FULL_MODE_AVAILABLE) return 'simple';
     try { return localStorage.getItem(UI_MODE_KEY) === 'full' ? 'full' : 'simple'; } catch { return 'simple'; }
   });
   const setUiMode = useCallback((m: UiMode) => {
+    if (!FULL_MODE_AVAILABLE && m === 'full') return;
     setUiModeState(m);
     try { localStorage.setItem(UI_MODE_KEY, m); } catch { /* noop */ }
   }, []);

@@ -1,7 +1,13 @@
 import type { ScenarioKey, ViewKey } from '../types';
 
+/* Full mode is hidden for now (September 2026): the crew gets the simple
+   version only. The other modules still exist and still render when something
+   links into them (a chip in The Scenario, say); they are just off every menu,
+   shortcut and search until this flips back to true. */
+export const FULL_MODE_AVAILABLE = false;
+
 /* Order used by ⌘1–⌘9 sidebar view shortcuts */
-export const VIEW_ORDER: ViewKey[] = [
+const FULL_VIEW_ORDER: ViewKey[] = [
   'overview',
   'four',
   'threads',
@@ -33,6 +39,9 @@ export const SIMPLE_VIEWS: readonly ViewKey[] = [
 ];
 
 export const SIMPLE_VIEW_SET: ReadonlySet<ViewKey> = new Set(SIMPLE_VIEWS);
+
+/* ⌘1–⌘9 — the first nine of whichever menu is showing. */
+export const VIEW_ORDER: ViewKey[] = FULL_MODE_AVAILABLE ? FULL_VIEW_ORDER : SIMPLE_VIEWS.slice(0, 9);
 
 export type UiMode = 'simple' | 'full';
 export const UI_MODE_KEY = 'deep-dive-ui-mode';

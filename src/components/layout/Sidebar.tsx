@@ -40,7 +40,7 @@ import {
 } from 'lucide-react';
 import { useState, type ComponentType } from 'react';
 import { BackupPanel } from '../backup/BackupPanel';
-import { SIMPLE_VIEW_SET } from '../../lib/shortcuts';
+import { FULL_MODE_AVAILABLE, SIMPLE_VIEW_SET } from '../../lib/shortcuts';
 import { useApp } from '../../state/AppContext';
 import { clearSyncLog, readSyncLog, syncLogText } from '../../lib/syncLog';
 import type { ViewKey } from '../../types';
@@ -170,7 +170,8 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
         </div>
       </div>
 
-      {/* Simple / Full mode toggle */}
+      {/* Simple / Full mode toggle — off the screen entirely while Full is hidden */}
+      {FULL_MODE_AVAILABLE && (
       <div className="px-4 pb-3">
         <div className="flex items-center gap-1 p-0.5 rounded-[4px] bg-[color:var(--color-chrome-deep)]/60 border-[0.5px] border-[color:var(--color-border-chrome)]">
           {(['simple', 'full'] as const).map((m) => (
@@ -195,6 +196,7 @@ export function Sidebar({ drawerOpen = false, onCloseDrawer }: SidebarProps = {}
           </div>
         )}
       </div>
+      )}
 
       {/* Nav groups */}
       <nav className="flex-1 overflow-y-auto px-4 pb-4">

@@ -1,3 +1,4 @@
+import { FULL_MODE_AVAILABLE, SIMPLE_VIEW_SET } from '../../lib/shortcuts';
 import { useMemo, useState } from 'react';
 import {
   Anchor, CalendarRange, Clapperboard, Lightbulb, MapPin, Music, Network,
@@ -164,7 +165,7 @@ export function OverviewView() {
       <section>
         <h3 className="label-caps text-[color:var(--color-brass)] mb-3">jump to</h3>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-2">
-          {JUMPS.map((j) => {
+          {JUMPS.filter((j) => FULL_MODE_AVAILABLE || SIMPLE_VIEW_SET.has(j.view)).map((j) => {
             const Icon = j.icon;
             return (
               <button key={j.view} type="button" onClick={() => go(j.view)}

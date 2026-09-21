@@ -1,3 +1,4 @@
+import { FULL_MODE_AVAILABLE, SIMPLE_VIEW_SET } from '../../lib/shortcuts';
 /* Command palette · global fuzzy search across the whole film.
    ⌘K opens it; type to search people, cast, shoots, threads, topics,
    story events, ideas, interviews, swings, spine, references, holders,
@@ -43,7 +44,7 @@ const NAV: { view: ViewKey; label: string }[] = [
 
 function buildIndex(state: AppState): Entry[] {
   const out: Entry[] = [];
-  NAV.forEach((n) => out.push({ id: `view:${n.view}`, label: n.label, group: 'Go to', view: n.view, keywords: 'view page tab' }));
+  NAV.filter((n) => FULL_MODE_AVAILABLE || SIMPLE_VIEW_SET.has(n.view)).forEach((n) => out.push({ id: `view:${n.view}`, label: n.label, group: 'Go to', view: n.view, keywords: 'view page tab' }));
   state.four.forEach((f) => out.push({ id: `four:${f.key}`, label: f.name, sub: f.role, group: 'The Four', view: 'cast', keywords: `${f.epithet} ${f.hometown}` }));
   state.talents.forEach((tl) => out.push({ id: `tal:${tl.id}`, label: tl.name, sub: tl.role, group: 'Cast', view: 'cast', keywords: tl.whyInFilm }));
   state.shoots.forEach((s) => out.push({ id: `shoot:${s.id}`, label: s.title, sub: s.location, group: 'Shoots', view: 'shoots', keywords: s.spirit }));
@@ -73,7 +74,8 @@ function buildIndex(state: AppState): Entry[] {
   state.pitchDecks.forEach((d) => out.push({ id: `deck:${d.id}`, label: d.name, sub: 'pitch deck', group: 'Pitch decks', view: 'pitch-deck', keywords: d.recipient ?? '' }));
   state.pitchCards.forEach((c) => out.push({ id: `pcard:${c.id}`, label: c.title, sub: 'pitch card', group: 'Pitch cards', view: 'pitch-deck', keywords: c.body }));
   state.watcherMoments.forEach((w) => out.push({ id: `wm:${w.id}`, label: w.moment.length > 46 ? w.moment.slice(0, 44) + '…' : w.moment, sub: 'watcher moment', group: 'Watchers', view: 'watchers' }));
-  return out;
+  /* No search hit may open a hidden module. */
+  return FULL_MODE_AVAILABLE ? out : out.filter((e) => SIMPLE_VIEW_SET.has(e.view));
 }
 
 export function CommandPalette({ open, onClose }: Props) {
