@@ -51,7 +51,7 @@ const VIEW_SUBTITLES: Partial<Record<ViewKey, string>> = {
   overview:      "one person holds another in the world · what needs you now",
   'gap-radar':   'the negative space · what the film is missing, ranked',
   screenplay:    'the film part by part · what happened, who appeared, what they said',
-  'story-map':   'the map Tomo and Vito drew · six stages, in the order they drew them',
+  'story-map':   'the map Tomo and Vito drew, over the season · six stages, wired to the shoots that feed them',
   vision:        'the film in one breath · grammar · north star',
   'idea-hub':    "the team's open inbox · every idea wired to the film",
   neuron:         'the film as a nervous system · every entity linked',
