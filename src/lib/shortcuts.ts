@@ -25,7 +25,7 @@ const FULL_VIEW_ORDER: ViewKey[] = [
    you flip to Full. Order here is the order shown in the simple sidebar. */
 export const SIMPLE_VIEWS: readonly ViewKey[] = [
   'overview',
-  'gap-radar',
+  /* 'gap-radar' — hidden 6 Oct 2026 at Tomo's request; still renders if linked. */
   'screenplay',
   'story-map',
   'four',

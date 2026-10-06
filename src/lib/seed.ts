@@ -1946,9 +1946,11 @@ export const SEED_PITCH_DECKS: PitchDeck[] = [
    dive arc corrected per Tomo — mentioned at Lastovo, reveal in USA/Cyprus,
    to be decided WITH Vito; the invented Sicily volcano plant removed.
    v7: The Map — Tomo and Vito's drawn plan transcribed into the app.
-   v8: The Plan — Vegas under Vito, stage 6 (The 4), unsorted brackets.) */
+   v8: The Plan — Vegas under Vito, stage 6 (The 4), unsorted brackets.
+   v9: the USA part is the Hall of Fame only — a targeted replacement of that
+   one part's text in storage.ts; nothing else is touched.) */
 
-export const SCENARIO_SEED_VERSION = 8;
+export const SCENARIO_SEED_VERSION = 9;
 
 /* The money carries its own generation, separate from the story's. The two
    get rewritten on completely different days, and a doc should never lose
@@ -2053,11 +2055,13 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
   },
   /* ---- to come · open blocks ---- */
   {
-    id: 'sp-usa', order: 4, title: 'The USA · the Hall of Fame', kicker: 'Part four · recognition',
-    location: 'San Francisco → Las Vegas · USA', dateLabel: 'September 2026', status: 'upcoming', shootId: 'shoot-usa',
+    id: 'sp-usa', order: 4, title: 'Las Vegas · the Hall of Fame', kicker: 'Part four · recognition',
+    location: 'Las Vegas · USA', dateLabel: '26 September 2026', status: 'upcoming', shootId: 'shoot-usa',
     arcIds: ['arc-mentor', 'arc-vito-deep'],
     episodeHint: 'Ep 3 · The Rise',
-    background: 'Vito’s chapter, alone. Only he goes — inducted into the Hall of Fame by the world that once branded him — and the trip around the ceremony is his: surfing and climbing along the road, the deep diver on solid ground. Meanwhile Zso and Pero are training in Sicily. He flies straight from Vegas to the Cyprus World Cup.',
+    /* The ceremony only (Tomo, 6 Oct 2026). The road trip that used to sit
+       around it is out of the scenario. */
+    background: 'Vito’s chapter, alone. Only he goes — inducted into the Hall of Fame by the world that once branded him. One evening: the arrival, the room, the induction, and the room after. Meanwhile Zso and Pero are training in Sicily. He flies straight from Vegas to the Cyprus World Cup.',
     whatHappened: '',
     peopleKeys: ['vito'],
     topicIds: ['top-recognition', 'top-2023'],
@@ -2066,11 +2070,10 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
     eventIds: ['ev-hall'],
     beats: [
       { id: 'b-usa-1', text: 'The Hall of Fame induction — only Vito', done: false },
-      { id: 'b-usa-2', text: 'Surfing + climbing stops along the trip', done: false },
       { id: 'b-usa-3', text: 'The PUBLIC half of the 2023 resolution — the world honours him (the personal half is the studio)', done: false },
       { id: 'b-usa-4', text: "Vito's deep dive — the real reveal may start here · HOW is to be decided with Vito", done: false },
     ],
-    notes: 'Open block — to plan. See the USA Trip module for the itinerary + costs (Vito + film crew).',
+    notes: 'Open block — the ceremony only: who films it, the arrival, the speech, the room after.',
     colorHint: '#c9a961',
   },
   {

@@ -142,7 +142,16 @@ function migrateState(loaded: Partial<AppState>): AppState {
     pitchDecks: loaded.pitchDecks ?? defaults.pitchDecks,
     /* Merged, not replaced: new parts and stories arrive, existing ones are
        whatever the crew last made them. */
-    scenarioParts: mergeById(loaded.scenarioParts, defaults.scenarioParts),
+    scenarioParts: mergeById(loaded.scenarioParts, defaults.scenarioParts).map((p) => {
+      /* v9 — the USA part is the Hall of Fame only (Tomo, 6 Oct 2026). This
+         replaces the TEXT of that one part, once; its links, people and
+         every other part keep whatever the crew has written. */
+      if ((loaded.scenarioSeedVersion ?? 0) >= 9 || p.id !== 'sp-usa') return p;
+      const fresh = defaults.scenarioParts.find((d) => d.id === 'sp-usa');
+      return fresh
+        ? { ...p, title: fresh.title, kicker: fresh.kicker, location: fresh.location, dateLabel: fresh.dateLabel, background: fresh.background, beats: fresh.beats, notes: fresh.notes }
+        : p;
+    }),
     scenarioArcs: mergeById(loaded.scenarioArcs, defaults.scenarioArcs),
     /* Same for the map: new stages and marks arrive, edited ones stay. */
     /* Additive: a stage that has never had connections takes the seed's

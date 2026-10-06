@@ -1,5 +1,5 @@
 import {
-  useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState,
+  useCallback, useLayoutEffect, useMemo, useRef, useState, useEffect,
   type DragEvent, type ReactNode,
 } from 'react';
 import {
@@ -7,28 +7,27 @@ import {
 } from 'lucide-react';
 import { useApp } from '../../state/AppContext';
 import type {
-  AppState, FourKey, Interview, MapAside, MapLane, MapLink, MapLinkKind, MapNode, MapNodeKind, Milestone, Shoot,
+  AppState, FourKey, Interview, MapAside, MapLane, MapLink, MapLinkKind, MapNode, MapNodeKind,
 } from '../../types';
 import { classifyLabel, depthValue, markForm } from '../../lib/mapKinds';
 import { EditableText } from '../primitives/EditableText';
 
-/* The Plan — the map Tomo and Vito drew, laid over the season.
+/* The Plan — the map Tomo and Vito drew, as a timeline of the film.
 
-   Two registers on one board. On top, the six stages they drew, left to right
-   in the order they drew them: the chapters of the film. Underneath, the
-   season itself: every shoot as a bar at its real dates, done ones solid,
-   planned ones outlined, with today marked. Between the two, wires. A stage
-   that is wired to a shoot gets a line from its foot down to that bar, so the
-   board answers the producer's question without a word: what is shot, what
-   remains, and where each chapter's material comes from.
+   One rail runs left to right across the board: the six stages they drew, in
+   the order they drew them, each a numbered stop on the rail. Under each stop
+   sits what they wrote on the paper — the marks, still click-to-edit and
+   still draggable between stages — and at its foot the things in the app
+   that feed it: shoots, parts of the scenario, interviews, ideas, threads,
+   the four. The curved arrows a mark makes across the sheet are drawn over
+   the rail, stop to stop.
 
-   Still no edit mode. Click a word to rewrite it, type under a stage to add a
-   mark, drag a mark between stages, "+ connect" to wire a stage to a shoot, a
-   part of the scenario, an interview, an idea, a thread or one of the four.
+   No edit mode. Click a word to rewrite it, type under a stage to add a
+   mark, drag a mark between stages, "+ connect" to wire a stage to the film.
 
    Colour is spent only where it carries meaning: a diver's signature hue, a
-   shoot's own colour on its bar, and each stage's colour on the wires that
-   leave it — so a line can be followed back to its stage by eye. */
+   shoot's own colour and status on its chip, and each stage's colour on its
+   stop. Everything else is navy on cream. */
 
 /* ---------- small helpers ---------------------------------------------- */
 
@@ -36,11 +35,7 @@ const NUMBER_WORDS = ['no', 'one', 'two', 'three', 'four', 'five', 'six', 'seven
 const word = (n: number) => NUMBER_WORDS[n] ?? String(n);
 const norm = (s: string) => s.replace(/[^a-z0-9]/gi, '').toLowerCase();
 
-const DAY = 86_400_000;
 const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-const PX_PER_MONTH = 58;          // the calendar never gets narrower than this
-const BOARD_MIN = 960;            // nor the board
-
 function parseDay(iso?: string): number | null {
   if (!iso) return null;
   const m = iso.match(/^(\d{4})-(\d{2})-(\d{2})/);
@@ -50,18 +45,10 @@ function fmtDay(t: number): string {
   const d = new Date(t);
   return `${d.getUTCDate()} ${MONTHS[d.getUTCMonth()]}`;
 }
-function monthStart(t: number): number {
-  const d = new Date(t);
-  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), 1);
-}
-function addMonths(t: number, n: number): number {
-  const d = new Date(t);
-  return Date.UTC(d.getUTCFullYear(), d.getUTCMonth() + n, 1);
-}
-function todayUTC(): number {
-  const d = new Date();
-  return Date.UTC(d.getFullYear(), d.getMonth(), d.getDate());
-}
+
+/* The stop on the rail: its centre sits this far below a column's top edge. */
+const STOP_Y = 18;
+const STOP_R = 11;
 
 /* A depth is sized from its own value, so reading a stage tells you how deep
    these people go before you have read a single word. */
@@ -95,7 +82,7 @@ function interviewLabel(state: AppState, iv: Interview): string {
   return [iv.subjectLabel ?? who, where].filter(Boolean).join(' · ');
 }
 
-interface Resolved { label: string; sub?: string; color?: string; ok: boolean }
+interface Resolved { label: string; sub?: string; color?: string; ok: boolean; done?: boolean }
 
 /* What a connection points at, in words — or the fact that it points at
    nothing any more, so the chip can still be removed. */
@@ -107,7 +94,7 @@ function resolve(state: AppState, c: MapLink): Resolved {
       if (!s) return missing;
       const a = parseDay(s.startDate), b = parseDay(s.endDate);
       const when = a ? (b && b !== a ? `${fmtDay(a)} – ${fmtDay(b)}` : fmtDay(a)) : 'no dates yet';
-      return { label: s.title, sub: `${when} · ${s.status}`, color: s.colorHint, ok: true };
+      return { label: s.title, sub: `${when} · ${s.status}`, color: s.colorHint, ok: true, done: s.status === 'completed' };
     }
     case 'part': {
       const p = state.scenarioParts.find((x) => x.id === c.id);
@@ -145,61 +132,8 @@ function itemsFor(state: AppState, kind: MapLinkKind): { id: string; label: stri
 
 const sameLink = (a: MapLink, b: MapLink) => a.kind === b.kind && a.id === b.id;
 
-/* ---------- the season's axis ------------------------------------------ */
-
-/* Positions along the season are fractions of `span`, which is in
-   milliseconds like every timestamp here — so a fraction is always
-   (t - t0) / span, never divided by a day count. */
-interface Axis {
-  t0: number; t1: number; span: number;
-  months: { t: number; label: string; first: boolean; x: number; w: number }[];
-}
-
-function buildAxis(shoots: Shoot[], milestones: Milestone[], today: number): Axis {
-  const ts: number[] = [today];
-  for (const s of shoots) { const a = parseDay(s.startDate), b = parseDay(s.endDate); if (a) ts.push(a); if (b) ts.push(b); }
-  for (const m of milestones) { const t = parseDay(m.date); if (t) ts.push(t); }
-  const t0 = monthStart(Math.min(...ts));
-  const t1 = addMonths(monthStart(Math.max(...ts)), 1);
-  const span = t1 - t0;
-  const months: Axis['months'] = [];
-  for (let t = t0; t < t1; t = addMonths(t, 1)) {
-    const d = new Date(t);
-    months.push({
-      t, x: (t - t0) / span, w: (addMonths(t, 1) - t) / span,
-      label: MONTHS[d.getUTCMonth()], first: d.getUTCMonth() === 0 || t === t0,
-    });
-  }
-  return { t0, t1, span, months };
-}
-
-interface Bar { shoot: Shoot; start: number; end: number; row: number; x: number; w: number }
-
-/* Bars packed into rows, greedily, so overlapping shoots (the September
-   cluster) stack instead of hiding each other. The label to the right of a
-   bar is counted as part of its footprint, at the board's minimum width, so
-   two labels never collide even on the narrowest board. */
-function packBars(shoots: Shoot[], axis: Axis, boardPx: number): Bar[] {
-  const dated = shoots
-    .map((s) => ({ s, a: parseDay(s.startDate), b: parseDay(s.endDate) }))
-    .filter((x): x is { s: Shoot; a: number; b: number | null } => x.a !== null)
-    .sort((p, q) => p.a - q.a);
-  const rowEnds: number[] = [];
-  return dated.map(({ s, a, b }) => {
-    const end = b && b >= a ? b : a;
-    const x = (a - axis.t0) / axis.span;
-    const w = Math.max((end - a + DAY) / axis.span, 10 / boardPx);
-    const labelW = (10 + s.title.split('·')[0].trim().length * 6.4) / boardPx;
-    const foot = x + w + labelW;
-    let row = rowEnds.findIndex((e) => e + 4 / boardPx < x);
-    if (row < 0) { row = rowEnds.length; rowEnds.push(foot); } else rowEnds[row] = foot;
-    return { shoot: s, start: a, end, row, x, w };
-  });
-}
-
 /* ---------- the view --------------------------------------------------- */
 
-interface Wire { id: string; d: string; color: string; ax: number; ay: number; bx: number; by: number }
 interface Arc { id: string; d: string; label: string; lx: number; ly: number; bx: number; by: number }
 
 export function StoryMapView() {
@@ -218,23 +152,13 @@ export function StoryMapView() {
     return best;
   }, [state.mapNodes]);
 
-  const today = useMemo(() => todayUTC(), []);
-  const axis = useMemo(() => buildAxis(state.shoots, state.milestones, today), [state.shoots, state.milestones, today]);
-  const boardMin = Math.max(BOARD_MIN, axis.months.length * PX_PER_MONTH);
-  const bars = useMemo(() => packBars(state.shoots, axis, boardMin), [state.shoots, axis, boardMin]);
-  const undated = useMemo(() => state.shoots.filter((s) => !parseDay(s.startDate)), [state.shoots]);
-
-  /* ---- measurement, for the wires and the arcs ---- */
+  /* ---- measurement, for the arcs between stops ---- */
   const boardRef = useRef<HTMLDivElement | null>(null);
   const colRefs = useRef(new Map<string, HTMLElement>());
-  const shootRefs = useRef(new Map<string, HTMLElement>());
-  const [geom, setGeom] = useState<{ w: number; h: number; wires: Wire[]; arcs: Arc[] }>({ w: 0, h: 0, wires: [], arcs: [] });
+  const [geom, setGeom] = useState<{ w: number; h: number; arcs: Arc[] }>({ w: 0, h: 0, arcs: [] });
 
   const registerCol = useCallback((id: string) => (el: HTMLElement | null) => {
     if (el) colRefs.current.set(id, el); else colRefs.current.delete(id);
-  }, []);
-  const registerShoot = useCallback((id: string) => (el: HTMLElement | null) => {
-    if (el) shootRefs.current.set(id, el); else shootRefs.current.delete(id);
   }, []);
 
   const laneOfNode = useMemo(() => {
@@ -256,48 +180,23 @@ export function StoryMapView() {
     const board = boardRef.current;
     if (!board) return;
     const b = board.getBoundingClientRect();
-    const rel = (r: DOMRect) => ({ left: r.left - b.left, top: r.top - b.top, width: r.width, height: r.height });
-
-    const wires: Wire[] = [];
-    for (const lane of lanes) {
-      const col = colRefs.current.get(lane.id);
-      if (!col) continue;
-      const c = rel(col.getBoundingClientRect());
-      const shoots = (lane.connections ?? []).filter((x) => x.kind === 'shoot');
-      shoots.forEach((x, i) => {
-        const el = shootRefs.current.get(x.id);
-        if (!el) return;
-        const r = rel(el.getBoundingClientRect());
-        const ax = c.left + (c.width * (i + 1)) / (shoots.length + 1);
-        const ay = c.top + c.height;
-        const bx = r.left + r.width / 2;
-        const by = r.top;
-        const mid = ay + Math.max(18, (by - ay) * 0.5);
-        wires.push({
-          id: `${lane.id}:${x.id}`, color: lane.colorHint ?? 'var(--color-brass)',
-          ax, ay, bx, by,
-          d: `M ${ax} ${ay} C ${ax} ${mid}, ${bx} ${mid}, ${bx} ${by}`,
-        });
-      });
-    }
-
     const arcs: Arc[] = [];
     arcLinks.forEach((l, i) => {
       const a = colRefs.current.get(l.fromLane), z = colRefs.current.get(l.toLane);
       if (!a || !z) return;
-      const ra = rel(a.getBoundingClientRect()), rz = rel(z.getBoundingClientRect());
-      const ax = ra.left + ra.width / 2, ay = ra.top;
-      const bx = rz.left + rz.width / 2, by = rz.top;
-      const lift = 22 + i * 10;
+      const ra = a.getBoundingClientRect(), rz = z.getBoundingClientRect();
+      /* From the top of one stop to the top of the other, lifted over the rail. */
+      const ax = ra.left - b.left + ra.width / 2, ay = ra.top - b.top + STOP_Y - STOP_R;
+      const bx = rz.left - b.left + rz.width / 2, by = rz.top - b.top + STOP_Y - STOP_R;
+      const lift = 30 + i * 10;
       arcs.push({
         id: l.id, label: l.label,
         d: `M ${ax} ${ay} C ${ax} ${ay - lift}, ${bx} ${by - lift}, ${bx} ${by}`,
         lx: (ax + bx) / 2, ly: ay - lift * 0.75, bx, by,
       });
     });
-
-    setGeom({ w: board.offsetWidth, h: board.offsetHeight, wires, arcs });
-  }, [lanes, arcLinks]);
+    setGeom({ w: board.offsetWidth, h: board.offsetHeight, arcs });
+  }, [arcLinks]);
 
   useLayoutEffect(() => {
     measure();
@@ -308,7 +207,7 @@ export function StoryMapView() {
     colRefs.current.forEach((el) => ro.observe(el));
     window.addEventListener('resize', measure);
     /* A background tab is throttled, and a resize that happened while it was
-       hidden can leave the wires drawn for the old layout. Measure again the
+       hidden can leave the arcs drawn for the old layout. Measure again the
        moment it is looked at. */
     document.addEventListener('visibilitychange', measure);
     document.fonts?.ready.then(() => measure()).catch(() => { /* ignore */ });
@@ -317,7 +216,7 @@ export function StoryMapView() {
       window.removeEventListener('resize', measure);
       document.removeEventListener('visibilitychange', measure);
     };
-  }, [measure, state.mapLanes, state.mapNodes, state.mapAsides, state.shoots]);
+  }, [measure, state.mapLanes, state.mapNodes, state.mapAsides]);
 
   /* ---- drop handling ---- */
   function onDropInLane(e: DragEvent, laneId: string) {
@@ -341,11 +240,6 @@ export function StoryMapView() {
     setDrag(null);
   }
 
-  function openShoot(id: string) {
-    dispatch({ type: 'SELECT_SHOOT', id });
-    dispatch({ type: 'SET_VIEW', view: 'shoots' });
-  }
-
   function addLane() {
     const max = state.mapLanes.reduce((m, l) => Math.max(m, l.order), 0);
     dispatch({ type: 'ADD_MAP_LANE', lane: { id: `ml-${Date.now().toString(36)}`, order: max + 1, title: 'New stage', connections: [] } });
@@ -354,8 +248,7 @@ export function StoryMapView() {
   const markCount = state.mapNodes.length;
   const wiredCount = lanes.reduce((n, l) => n + (l.connections?.length ?? 0), 0);
   const looseCount = trays.reduce((n, t) => n + t.lines.length, 0);
-  const done = state.shoots.filter((s) => s.status === 'completed').length;
-  const hasArcs = geom.arcs.length > 0 || arcLinks.length > 0;
+  const hasArcs = arcLinks.length > 0;
 
   return (
     <div className="space-y-5 max-w-[1240px]">
@@ -364,7 +257,7 @@ export function StoryMapView() {
       <style>{'@media print { @page { size: A4 landscape; margin: 12mm; } }'}</style>
 
       <div className="flex items-baseline justify-between gap-4 flex-wrap">
-        <h3 className="label-caps text-[color:var(--color-brass)]">the map · over the season</h3>
+        <h3 className="label-caps text-[color:var(--color-brass)]">the map · in story order</h3>
         <span className="prose-body italic text-[11px] text-[color:var(--color-on-paper-faint)]">
           click any word to rewrite it · drag a mark between stages · + connect wires a stage to the film
         </span>
@@ -372,25 +265,9 @@ export function StoryMapView() {
 
       {/* The board scrolls inside itself on a narrow desktop; the page never does. */}
       <div className="lg:overflow-x-auto print:overflow-visible rounded-[4px] border-[0.5px] border-[color:var(--color-border-paper)] bg-[color:var(--color-paper-light)]">
-        <div
-          ref={boardRef}
-          className="relative lg:min-w-[var(--board-min)] print:min-w-0"
-          style={{ ['--board-min' as string]: `${boardMin}px` }}
-        >
-          {/* ---- wires and arcs, drawn over the whole board ---- */}
-          <svg
-            className="absolute inset-0 pointer-events-none max-lg:hidden"
-            width={geom.w || 0}
-            height={geom.h || 0}
-            aria-hidden
-          >
-            {geom.wires.map((w) => (
-              <g key={w.id} style={{ color: w.color }}>
-                <path d={w.d} fill="none" stroke="currentColor" strokeWidth="1" strokeOpacity="0.75" />
-                <circle cx={w.ax} cy={w.ay} r="2.6" fill="currentColor" />
-                <circle cx={w.bx} cy={w.by} r="2" fill="currentColor" />
-              </g>
-            ))}
+        <div ref={boardRef} className="relative lg:min-w-[960px] print:min-w-0">
+          {/* ---- the arcs, drawn over the rail ---- */}
+          <svg className="absolute inset-0 pointer-events-none max-lg:hidden" width={geom.w || 0} height={geom.h || 0} aria-hidden>
             {geom.arcs.map((a) => (
               <g key={a.id} opacity="0.85">
                 <path d={a.d} fill="none" stroke="var(--color-brass)" strokeWidth="1" strokeLinecap="round" />
@@ -408,8 +285,8 @@ export function StoryMapView() {
             </span>
           ))}
 
-          {/* ---- the stages ---- */}
-          <div className={`flex max-lg:flex-col items-stretch ${hasArcs ? 'lg:pt-9' : 'lg:pt-2'}`}>
+          {/* ---- the stages, on one rail ---- */}
+          <div className={`flex max-lg:flex-col items-stretch ${hasArcs ? 'lg:pt-6' : 'lg:pt-1'}`}>
             {lanes.map((lane, i) => (
               <Stage
                 key={lane.id}
@@ -463,17 +340,6 @@ export function StoryMapView() {
               </p>
             </aside>
           </div>
-
-          {/* ---- the season ---- */}
-          <Season
-            axis={axis}
-            bars={bars}
-            undated={undated}
-            milestones={state.milestones}
-            today={today}
-            registerShoot={registerShoot}
-            onOpenShoot={openShoot}
-          />
         </div>
       </div>
 
@@ -482,8 +348,7 @@ export function StoryMapView() {
           After the paper map drawn by Tomo and Vito &middot; {word(lanes.length)} stages &middot;{' '}
           <span className="mono-num">{markCount}</span> marks &middot;{' '}
           <span className="mono-num">{wiredCount}</span> wired &middot;{' '}
-          <span className="mono-num">{looseCount}</span> still loose &middot;{' '}
-          <span className="mono-num">{done}</span> of <span className="mono-num">{state.shoots.length}</span> shoots done
+          <span className="mono-num">{looseCount}</span> still loose
         </span>
         <button
           type="button"
@@ -551,24 +416,50 @@ function Stage({
     }
   }
 
+  const stop = (
+    <span
+      className="inline-flex items-center justify-center shrink-0 rounded-full font-sans mono-num text-[10.5px] font-medium text-[color:var(--color-paper-light)] ring-[3px] ring-[color:var(--color-paper-light)] select-none"
+      style={{ width: STOP_R * 2, height: STOP_R * 2, background: hue }}
+    >
+      {n}
+    </span>
+  );
+
   return (
     <section
       ref={registerCol(lane.id)}
       className={`group/stage relative flex flex-col min-w-0 flex-1 lg:basis-0 lg:border-r-[0.5px] max-lg:border-b-[0.5px] border-[color:var(--color-border-paper)] transition-colors ${
         dropping ? 'bg-[color:var(--color-brass)]/[0.07]' : 'hover:bg-[color:var(--color-paper-card)]/50'
       }`}
-      style={{ boxShadow: `inset 0 3px 0 ${hue}` }}
       onDragOver={onDragOver}
       onDragLeave={onDragLeave}
       onDrop={onDrop}
     >
+      {/* the rail and this stage's stop on it */}
+      <div className="relative max-lg:hidden" style={{ height: STOP_Y * 2 }}>
+        <div
+          className={`absolute top-1/2 h-px bg-[color:var(--color-border-brass)] ${isFirst ? 'left-1/2' : 'left-0'} ${isLast ? 'right-1/2' : 'right-0'}`}
+        />
+        <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2">{stop}</span>
+      </div>
+
+      {/* tools — off the page until the stage is hovered */}
+      <span className="no-print absolute top-1.5 right-1.5 z-10 flex items-center rounded-[3px] bg-[color:var(--color-paper-light)]/90 opacity-0 group-hover/stage:opacity-100 focus-within:opacity-100 transition-opacity">
+        <Tool title="move left" disabled={isFirst} onClick={() => dispatch({ type: 'MOVE_MAP_LANE', id: lane.id, dir: -1 })}><ChevronLeft size={12} /></Tool>
+        <Tool title="move right" disabled={isLast} onClick={() => dispatch({ type: 'MOVE_MAP_LANE', id: lane.id, dir: 1 })}><ChevronRight size={12} /></Tool>
+        <Tool title="remove this stage and everything on it" onClick={() => dispatch({ type: 'DELETE_MAP_LANE', id: lane.id })}><Trash2 size={11} /></Tool>
+      </span>
+
       {/* head */}
-      <header className="px-3 pt-3 pb-2">
-        <div className="flex items-start justify-between gap-2">
-          <span className="display-italic text-[26px] mono-num leading-none text-[color:var(--color-on-paper-faint)] group-hover/stage:text-[color:var(--color-brass)] transition-colors select-none">
-            {n}
-          </span>
-          <div className="flex items-center gap-1">
+      <header className="px-3 pb-2.5 lg:text-center max-lg:pt-3 max-lg:flex max-lg:items-start max-lg:gap-2.5">
+        <span className="lg:hidden mt-0.5">{stop}</span>
+        <div className="min-w-0">
+          <div className="flex items-baseline lg:justify-center gap-1.5 flex-wrap">
+            <EditableText
+              value={lane.title}
+              onSave={(v) => dispatch({ type: 'UPDATE_MAP_LANE', id: lane.id, patch: { title: v } })}
+              className="display-italic text-[19px] leading-tight text-[color:var(--color-on-paper)]"
+            />
             {code && (
               <EditableText
                 value={code}
@@ -576,23 +467,13 @@ function Stage({
                 className="label-caps !text-[9px] text-[color:var(--color-brass-deep)]"
               />
             )}
-            <span className="no-print flex items-center opacity-0 group-hover/stage:opacity-100 focus-within:opacity-100 transition-opacity">
-              <Tool title="move left" disabled={isFirst} onClick={() => dispatch({ type: 'MOVE_MAP_LANE', id: lane.id, dir: -1 })}><ChevronLeft size={12} /></Tool>
-              <Tool title="move right" disabled={isLast} onClick={() => dispatch({ type: 'MOVE_MAP_LANE', id: lane.id, dir: 1 })}><ChevronRight size={12} /></Tool>
-              <Tool title="remove this stage and everything on it" onClick={() => dispatch({ type: 'DELETE_MAP_LANE', id: lane.id })}><Trash2 size={11} /></Tool>
-            </span>
           </div>
+          <p className="prose-body italic text-[11px] text-[color:var(--color-on-paper-muted)] leading-snug mt-0.5">{gloss}</p>
         </div>
-        <EditableText
-          value={lane.title}
-          onSave={(v) => dispatch({ type: 'UPDATE_MAP_LANE', id: lane.id, patch: { title: v } })}
-          className="display-italic text-[18px] leading-tight text-[color:var(--color-on-paper)] mt-1"
-        />
-        <p className="prose-body italic text-[11px] text-[color:var(--color-on-paper-muted)] leading-snug mt-0.5">{gloss}</p>
       </header>
 
       {/* the field */}
-      <div className="px-3 pb-3 flex flex-wrap items-start content-start gap-x-2.5 gap-y-2">
+      <div className="px-3 pb-3 flex flex-wrap items-start content-start gap-x-2.5 gap-y-2 border-t-[0.5px] border-dashed border-[color:var(--color-border-paper)] pt-3">
         {roots.map((node) => (
           <Mark key={node.id} node={node} nodes={nodes} deepest={deepest} onDragStart={onDragStartNode} />
         ))}
@@ -609,8 +490,8 @@ function Stage({
         <AddMark laneId={lane.id} laneTitle={lane.title} hasMarks={roots.length > 0} />
       </div>
 
-      {/* what feeds it — pinned to the foot, where the wires leave */}
-      <div className="mt-auto border-t-[0.5px] border-dashed border-[color:var(--color-border-paper)] px-3 pt-2 pb-2.5">
+      {/* what feeds it — pinned to the foot so every stage ends the same way */}
+      <div className="mt-auto border-t-[0.5px] border-dashed border-[color:var(--color-border-paper)] bg-[color:var(--color-paper-card)]/40 px-3 pt-2 pb-2.5">
         <div className="flex items-center justify-between gap-2 mb-1">
           <span className="label-caps !text-[8px] !tracking-[0.14em] text-[color:var(--color-on-paper-faint)]">wired to</span>
           <Connect lane={lane} alignRight={alignRight} />
@@ -632,9 +513,16 @@ function Stage({
                       r.ok ? 'text-[color:var(--color-on-paper)] hover:text-[color:var(--color-brass)]' : 'text-[color:var(--color-on-paper-faint)] italic'
                     }`}
                   >
-                    {c.kind === 'shoot' && r.ok
-                      ? <span className="w-2 h-2 rounded-full shrink-0" style={{ background: hue }} title="wired to the season below" />
-                      : <Icon size={11} className="shrink-0 text-[color:var(--color-on-paper-faint)]" />}
+                    {c.kind === 'shoot' && r.ok ? (
+                      /* a shoot shows its own colour and whether it is in the can */
+                      <span
+                        className="w-2 h-2 rounded-[2px] shrink-0"
+                        title={r.done ? 'shot' : 'still to shoot'}
+                        style={{ background: r.done ? r.color : 'transparent', border: `1px ${r.done ? 'solid' : 'dashed'} ${r.color ?? 'var(--color-on-paper-faint)'}` }}
+                      />
+                    ) : (
+                      <Icon size={11} className="shrink-0 text-[color:var(--color-on-paper-faint)]" />
+                    )}
                     {r.color && c.kind !== 'shoot' && <span className="w-1.5 h-1.5 rounded-full shrink-0" style={{ background: r.color }} />}
                     <span className="truncate">{r.label}</span>
                   </button>
@@ -784,127 +672,6 @@ function Connect({ lane, alignRight }: { lane: MapLane; alignRight: boolean }) {
         </div>
       )}
     </>
-  );
-}
-
-/* ---------- the season --------------------------------------------------- */
-
-function Season({
-  axis, bars, undated, milestones, today, registerShoot, onOpenShoot,
-}: {
-  axis: Axis; bars: Bar[]; undated: Shoot[]; milestones: Milestone[]; today: number;
-  registerShoot: (id: string) => (el: HTMLElement | null) => void;
-  onOpenShoot: (id: string) => void;
-}) {
-  const rows = bars.reduce((m, b) => Math.max(m, b.row + 1), 0);
-  const ROW = 24;
-  const pct = (f: number) => `${(f * 100).toFixed(3)}%`;
-  const inRange = (t: number) => t >= axis.t0 && t < axis.t1;
-  const ticks = milestones
-    .map((m) => ({ m, t: parseDay(m.date) }))
-    .filter((x): x is { m: Milestone; t: number } => x.t !== null && inRange(x.t));
-  const todayX = inRange(today) ? (today - axis.t0) / axis.span : null;
-  const yearOf = (t: number) => String(new Date(t).getUTCFullYear()).slice(2);
-
-  return (
-    <section className="border-t-[0.5px] border-[color:var(--color-border-brass)] bg-[color:var(--color-paper-card)]/40 pt-10 pb-3">
-      <div className="flex items-baseline justify-between gap-3 px-4 mb-2">
-        <h4 className="label-caps !text-[9px] text-[color:var(--color-brass)]">the season</h4>
-        <span className="prose-body italic text-[10.5px] text-[color:var(--color-on-paper-faint)]">
-          solid = shot &middot; outlined = still to shoot &middot; click a bar to open the shoot
-        </span>
-      </div>
-
-      {/* scrolls on its own on a phone; on a desktop the board already made room */}
-      <div className="max-lg:overflow-x-auto print:overflow-visible">
-        <div className="relative mx-4 max-lg:min-w-[880px]">
-          {/* ruler */}
-          <div className="relative h-5 border-b-[0.5px] border-[color:var(--color-border-paper-strong)]">
-            {axis.months.map((m) => (
-              <div
-                key={m.t}
-                className="absolute top-0 bottom-0 border-l-[0.5px] border-[color:var(--color-border-paper)] pl-1 label-caps !text-[8px] !tracking-[0.1em] text-[color:var(--color-on-paper-faint)] whitespace-nowrap overflow-hidden"
-                style={{ left: pct(m.x), width: pct(m.w) }}
-              >
-                {m.label}{m.first && <span className="opacity-60"> ’{yearOf(m.t)}</span>}
-              </div>
-            ))}
-          </div>
-
-          {/* bars */}
-          <div className="relative" style={{ height: Math.max(1, rows) * ROW + 10 }}>
-            {axis.months.map((m) => (
-              <div key={m.t} className="absolute top-0 bottom-0 border-l-[0.5px] border-[color:var(--color-border-paper)]/60" style={{ left: pct(m.x) }} />
-            ))}
-            {bars.map((b) => {
-              const doneBar = b.shoot.status === 'completed';
-              const live = b.shoot.status === 'in-progress';
-              const colour = b.shoot.colorHint ?? 'var(--color-on-paper)';
-              const short = b.shoot.title.split('·')[0].trim();
-              const when = b.end !== b.start ? `${fmtDay(b.start)} – ${fmtDay(b.end)}` : fmtDay(b.start);
-              return (
-                <div key={b.shoot.id} className="absolute" style={{ left: pct(b.x), top: b.row * ROW + 6, width: pct(b.w), minWidth: 10 }}>
-                  <button
-                    ref={registerShoot(b.shoot.id)}
-                    type="button"
-                    title={`${b.shoot.title} · ${when} · ${b.shoot.status}`}
-                    onClick={() => onOpenShoot(b.shoot.id)}
-                    className="group/bar block w-full h-[14px] rounded-[2px] transition-transform hover:scale-y-110 origin-center"
-                    style={{
-                      background: doneBar ? colour : live ? `color-mix(in srgb, ${colour} 35%, transparent)` : 'transparent',
-                      border: `1px ${b.shoot.status === 'planned' ? 'dashed' : 'solid'} ${colour}`,
-                    }}
-                  />
-                  <span
-                    className="absolute top-0 left-full ml-1.5 leading-[14px] text-[11px] whitespace-nowrap pointer-events-none"
-                    style={{ color: doneBar ? 'var(--color-on-paper)' : 'var(--color-on-paper-muted)' }}
-                  >
-                    {short}
-                  </span>
-                </div>
-              );
-            })}
-
-            {/* milestones — hover for the name */}
-            {ticks.map(({ m, t }) => (
-              <span
-                key={m.id}
-                title={`${m.label} · ${fmtDay(t)}`}
-                className="absolute -top-[5px] -translate-x-1/2 w-[7px] h-[7px] rotate-45 bg-[color:var(--color-brass)] border-[0.5px] border-[color:var(--color-paper-light)]"
-                style={{ left: pct((t - axis.t0) / axis.span) }}
-              />
-            ))}
-
-            {/* today */}
-            {todayX !== null && (
-              <div className="absolute -top-5 bottom-0 w-px bg-[color:var(--color-coral)] pointer-events-none" style={{ left: pct(todayX) }}>
-                <span className="absolute -top-[14px] left-1 label-caps !text-[8px] !tracking-[0.12em] text-[color:var(--color-coral)] whitespace-nowrap">today</span>
-              </div>
-            )}
-          </div>
-        </div>
-      </div>
-
-      {undated.length > 0 && (
-        <div className="flex items-center flex-wrap gap-x-2 gap-y-1.5 px-4 mt-2 pt-2 border-t-[0.5px] border-dashed border-[color:var(--color-border-paper)]">
-          <span className="label-caps !text-[8px] !tracking-[0.14em] text-[color:var(--color-on-paper-faint)] mr-1">no dates yet</span>
-          {undated.map((s) => (
-            <button
-              key={s.id}
-              ref={registerShoot(s.id)}
-              type="button"
-              title={`${s.title} · no dates yet · open the shoot to set them`}
-              onClick={() => onOpenShoot(s.id)}
-              className="inline-flex items-center gap-1.5 text-[11px] px-2 py-0.5 rounded-[3px] border border-dashed text-[color:var(--color-on-paper-muted)] hover:text-[color:var(--color-on-paper)] transition-colors"
-              style={{ borderColor: s.colorHint ?? 'var(--color-border-paper-strong)' }}
-            >
-              <span className="w-1.5 h-1.5 rounded-full" style={{ background: s.colorHint ?? 'var(--color-on-paper-faint)' }} />
-              {s.title.split('·')[0].trim()}
-            </button>
-          ))}
-        </div>
-      )}
-    </section>
   );
 }
 
