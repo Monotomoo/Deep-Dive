@@ -2206,12 +2206,19 @@ export const SEED_SCENARIO_PARTS: ScenarioPart[] = [
    depths · LED stays as written for now · Raul / DCI / CMAS is on the paper but
    deliberately left out until it's decided. */
 
+/* Pre-wired only where the drawing itself says so: the 137 blackout is the
+   Sicily shoot, the "Cipar" bubble on the 2023 bar is the Cyprus shoot and
+   the 2023 studio sessions are that chapter's own shoot, and the lung-squeeze
+   stage is the science. Everything else is for Tomo and Vito to connect. */
 export const SEED_MAP_LANES: MapLane[] = [
-  { id: 'ml-bo',    order: 1, title: 'Blackout',            short: 'BO',                  colorHint: '#3d7a94' },
+  { id: 'ml-bo',    order: 1, title: 'Blackout',            short: 'BO',                  colorHint: '#3d7a94',
+    connections: [{ kind: 'shoot', id: 'shoot-sicily' }] },
   { id: 'ml-2023',  order: 2, title: '2023',                short: '2023',
-    note: 'kako je jako on support i community',            colorHint: '#d96c3d' },
+    note: 'kako je jako on support i community',            colorHint: '#d96c3d',
+    connections: [{ kind: 'shoot', id: 'shoot-cyprus' }, { kind: 'shoot', id: 'shoot-2023-studio' }] },
   { id: 'ml-sport', order: 3, title: 'Sport',               short: 'SPORT',               colorHint: '#4f7d5e' },
-  { id: 'ml-ls',    order: 4, title: 'Lung squeeze',        short: 'LS',                  colorHint: '#8a5f9e' },
+  { id: 'ml-ls',    order: 4, title: 'Lung squeeze',        short: 'LS',                  colorHint: '#8a5f9e',
+    connections: [{ kind: 'shoot', id: 'shoot-rijeka-zagreb' }] },
   { id: 'ml-comp',  order: 5, title: 'Competition · support', short: 'COMPETITION-SUPPORT', colorHint: '#b8963f' },
   { id: 'ml-the4',  order: 6, title: 'The 4',                 short: 'THE 4',               colorHint: '#3d7a94' },
 ];

@@ -145,7 +145,13 @@ function migrateState(loaded: Partial<AppState>): AppState {
     scenarioParts: mergeById(loaded.scenarioParts, defaults.scenarioParts),
     scenarioArcs: mergeById(loaded.scenarioArcs, defaults.scenarioArcs),
     /* Same for the map: new stages and marks arrive, edited ones stay. */
-    mapLanes: mergeById(loaded.mapLanes, defaults.mapLanes),
+    /* Additive: a stage that has never had connections takes the seed's
+       pre-wired ones; a stage that has (even an emptied list) is left alone. */
+    mapLanes: mergeById(loaded.mapLanes, defaults.mapLanes).map((l) => {
+      if (l.connections !== undefined) return l;
+      const seeded = defaults.mapLanes.find((d) => d.id === l.id)?.connections;
+      return seeded ? { ...l, connections: seeded } : l;
+    }),
     mapNodes: mergeById(loaded.mapNodes, defaults.mapNodes),
     mapAsides: mergeById(loaded.mapAsides, defaults.mapAsides),
     scenarioSeedVersion: Math.max(loaded.scenarioSeedVersion ?? 1, defaults.scenarioSeedVersion),

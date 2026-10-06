@@ -1248,6 +1248,15 @@ export type MapNodeKind =
   | 'note'      // a written aside — "4x", "LED", the Croatian line
   | 'unknown';  // a bubble on the paper we couldn't read — Tomo to fill in
 
+/* What a stage of The Plan can be wired to elsewhere in the app. The stage
+   is a chapter of the film; these are where its material comes from. */
+export type MapLinkKind = 'shoot' | 'part' | 'interview' | 'idea' | 'thread' | 'person';
+
+export interface MapLink {
+  kind: MapLinkKind;
+  id: string;           // the entity's id — a FourKey for kind 'person'
+}
+
 export interface MapLane {
   id: string;
   order: number;
@@ -1255,6 +1264,9 @@ export interface MapLane {
   short?: string;       // what's actually written on the paper — "BO"
   note?: string;        // the handwriting beside the bar
   colorHint?: string;
+  /* Named `connections`, not `links`: a MapNode's `links` are the curved
+     arrows between stages, which is a different thing. */
+  connections?: MapLink[];
 }
 
 export interface MapNode {

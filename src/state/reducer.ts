@@ -41,6 +41,7 @@ import type {
   ScenarioKey,
   MapAside,
   MapLane,
+  MapLink,
   MapNode,
   ScenarioArc,
   ScenarioPart,
@@ -284,6 +285,8 @@ export type Action =
      ADD + UPDATE would cost two Ctrl+Z presses and flash the mark in two
      places while the history settled. */
   | { type: 'MOVE_MAP_NODE'; id: string; laneId: string }
+  | { type: 'CONNECT_MAP_LANE'; laneId: string; link: MapLink }
+  | { type: 'DISCONNECT_MAP_LANE'; laneId: string; link: MapLink }
   | { type: 'PROMOTE_MAP_ASIDE_LINE'; asideId: string; index: number; label: string; laneId: string }
   | { type: 'DEMOTE_MAP_NODE'; id: string; asideId: string }
   /* The Money — edit a funding/cost line on one budget scenario (values in €k).
@@ -679,6 +682,24 @@ export function reducer(state: AppState, action: Action): AppState {
     case 'ADD_MAP_ASIDE':    return { ...state, mapAsides: [...state.mapAsides, action.aside] };
     case 'UPDATE_MAP_ASIDE': return { ...state, mapAsides: upd(state.mapAsides, action.id, action.patch) };
     case 'DELETE_MAP_ASIDE': return { ...state, mapAsides: del(state.mapAsides, action.id) };
+
+    case 'CONNECT_MAP_LANE': {
+      const lane = state.mapLanes.find((l) => l.id === action.laneId);
+      if (!lane) return state;
+      const cur = lane.connections ?? [];
+      if (cur.some((c) => c.kind === action.link.kind && c.id === action.link.id)) return state;
+      return { ...state, mapLanes: upd(state.mapLanes, action.laneId, { connections: [...cur, action.link] }) };
+    }
+    case 'DISCONNECT_MAP_LANE': {
+      const lane = state.mapLanes.find((l) => l.id === action.laneId);
+      if (!lane?.connections) return state;
+      return {
+        ...state,
+        mapLanes: upd(state.mapLanes, action.laneId, {
+          connections: lane.connections.filter((c) => !(c.kind === action.link.kind && c.id === action.link.id)),
+        }),
+      };
+    }
 
     case 'MOVE_MAP_NODE': {
       const moving = state.mapNodes.find((n) => n.id === action.id);
